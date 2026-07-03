@@ -296,12 +296,6 @@ class _GroupScreenState extends State<GroupScreen> {
                     StreamBuilder<List<UserGroupMembership>>(
                       stream: repos.firestore.watchUserGroups(user.uid),
                       builder: (context, snapshot) {
-                        if (snapshot.hasError) {
-                          return AlertBox(
-                            variant: AlertBoxVariant.danger,
-                            child: Text(snapshot.error.toString()),
-                          );
-                        }
                         if (!snapshot.hasData) {
                           return const Center(
                             child: Padding(
@@ -313,13 +307,7 @@ class _GroupScreenState extends State<GroupScreen> {
 
                         final memberships = snapshot.data!;
                         if (memberships.isEmpty) {
-                          return AlertBox(
-                            variant: AlertBoxVariant.warning,
-                            child: const Text(
-                              'Você ainda não participa de nenhum bolão. '
-                              'Crie um novo ou entre com o código.',
-                            ),
-                          );
+                          return const _NoGroupsPlaceholder();
                         }
 
                         return Column(
@@ -420,6 +408,38 @@ class _UserAvatar extends StatelessWidget {
   }
 }
 
+class _NoGroupsPlaceholder extends StatelessWidget {
+  const _NoGroupsPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = appColors(context);
+
+    return AppCard(
+      child: Column(
+        children: [
+          Text('📂', style: const TextStyle(fontSize: 40)),
+          const SizedBox(height: 12),
+          Text(
+            'Nenhum bolão ainda',
+            style: AppTextStyles.displayHeadline(context, size: 18),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Você ainda não participa de nenhum bolão. '
+            'Crie um novo abaixo ou entre com o código de convite.',
+            style: AppTextStyles.sub(context),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 12),
+          Icon(Icons.groups_outlined, size: 28, color: colors.phoneMuted),
+        ],
+      ),
+    );
+  }
+}
+
 class _GroupListTile extends StatelessWidget {
   const _GroupListTile({
     required this.membership,
@@ -473,11 +493,6 @@ class _GroupListTile extends StatelessWidget {
                             variant: StatusBadgeVariant.winner,
                           ),
                       ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      membership.groupId,
-                      style: AppTextStyles.sub(context),
                     ),
                     const SizedBox(height: 8),
                     StatusBadge(

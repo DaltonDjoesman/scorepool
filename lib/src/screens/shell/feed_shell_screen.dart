@@ -67,7 +67,10 @@ class _FeedShellScreenState extends State<FeedShellScreen> {
                   children: [
                     _FeedShellHeader(
                       groupName: group?.name ?? currentGroupId,
-                      onOpenGroupHub: () => context.go(GroupScreen.routePath),
+                      onLeaveGroup: () {
+                        appState(context).clearCurrentGroupId();
+                        context.go(GroupScreen.routePath);
+                      },
                     ),
                     Expanded(
                       child: IndexedStack(
@@ -156,11 +159,11 @@ class _NoGroupEmptyState extends StatelessWidget {
 class _FeedShellHeader extends StatelessWidget {
   const _FeedShellHeader({
     required this.groupName,
-    required this.onOpenGroupHub,
+    required this.onLeaveGroup,
   });
 
   final String groupName;
-  final VoidCallback onOpenGroupHub;
+  final VoidCallback onLeaveGroup;
 
   @override
   Widget build(BuildContext context) {
@@ -180,7 +183,7 @@ class _FeedShellHeader extends StatelessWidget {
             ),
           ),
           TextButton(
-            onPressed: onOpenGroupHub,
+            onPressed: onLeaveGroup,
             style: TextButton.styleFrom(
               foregroundColor: colors.accent,
               textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),

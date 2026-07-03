@@ -3,15 +3,12 @@ import 'package:flutter/material.dart';
 import '../../app.dart';
 import '../../routing/navigation_helpers.dart';
 import '../../models/group.dart';
-import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/alert_box.dart';
 import '../../widgets/app_button.dart';
-import '../../widgets/app_card.dart';
 import '../../widgets/app_toast.dart';
-import 'group_match_filter_stages.dart';
+import 'group_match_filter_section.dart';
 import 'group_screen.dart';
-import 'tournament_team_picker.dart';
 
 class EditGroupFilterScreen extends StatefulWidget {
   const EditGroupFilterScreen({super.key});
@@ -201,84 +198,20 @@ class _EditGroupFilterScreenState extends State<EditGroupFilterScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(group.name, style: AppTextStyles.body(context, weight: FontWeight.w700)),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _teamSearchController,
-                      enabled: !_saving,
-                      decoration: const InputDecoration(
-                        labelText: 'Times (pesquisar)',
-                        hintText: 'Ex.: Brasil, Portugal…',
-                      ),
-                      onChanged: (_) => setState(() {}),
-                    ),
-                    const SizedBox(height: 8),
-                    TournamentTeamPicker(
+                    const SizedBox(height: 16),
+                    GroupMatchFilterSection(
                       tournamentId: _tournamentId,
-                      searchController: _teamSearchController,
+                      teamSearchController: _teamSearchController,
                       selectedTeamIds: _selectedTeamIds,
+                      selectedStages: _selectedStages,
                       enabled: !_saving,
+                      includedMatchesCount: _includedMatchesCount,
+                      countingMatches: _countingMatches,
                       onSelectionChanged: () =>
                           setState(() => _includedMatchesCount = null),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Fases',
-                      style: Theme.of(context).textTheme.titleSmall,
-                    ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        for (final stage in groupMatchFilterStages)
-                          FilterChip(
-                            label: Text(stage.label),
-                            selected: _selectedStages.contains(stage.id),
-                            onSelected: _saving
-                                ? null
-                                : (selected) {
-                                    setState(() {
-                                      if (selected) {
-                                        _selectedStages.add(stage.id);
-                                      } else {
-                                        _selectedStages.remove(stage.id);
-                                      }
-                                      _includedMatchesCount = null;
-                                    });
-                                  },
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    AppCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Jogos incluídos',
-                                style: AppTextStyles.body(context, weight: FontWeight.w700),
-                              ),
-                              Text(
-                                '${_includedMatchesCount ?? '—'}',
-                                style: TextStyle(
-                                  color: appColors(context).accent,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          AppButtonOutline(
-                            label: 'Recalcular',
-                            onPressed: (_saving || _countingMatches)
-                                ? null
-                                : _recountIncludedMatches,
-                          ),
-                        ],
-                      ),
+                      onRecalculate: _recountIncludedMatches,
+                      recalculateLabel: 'Recalcular',
+                      matchCountLabel: 'Jogos incluídos',
                     ),
                     const SizedBox(height: 16),
                     AppButton(

@@ -5,15 +5,13 @@ import 'package:go_router/go_router.dart';
 import '../../app.dart';
 import '../../routing/navigation_helpers.dart';
 import '../../models/group.dart';
-import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/alert_box.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_card.dart';
 import '../feed/feed_screen.dart';
-import 'group_match_filter_stages.dart';
+import 'group_match_filter_section.dart';
 import 'group_screen.dart';
-import 'tournament_team_picker.dart';
 
 class CreateGroupScreen extends StatefulWidget {
   const CreateGroupScreen({super.key});
@@ -153,7 +151,6 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = appColors(context);
     final feePreview = _parseEntryFeeToCents(_entryFeeController.text);
 
     return Scaffold(
@@ -189,165 +186,110 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  TextFormField(
-                    controller: _nameController,
-                    enabled: !_submitting,
-                    decoration: const InputDecoration(
-                      labelText: 'Nome do Grupo',
-                      hintText: 'Ex: Bolão do Trabalho ou Família Silva',
-                    ),
-                    textInputAction: TextInputAction.next,
-                    validator: (value) {
-                      final v = value?.trim() ?? '';
-                      if (v.isEmpty) return 'Informe um nome.';
-                      if (v.length < 3) return 'Use pelo menos 3 caracteres.';
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: DropdownButtonFormField<String>(
-                          initialValue: _currency,
-                          decoration: const InputDecoration(labelText: 'Moeda'),
-                          items: const [
-                            DropdownMenuItem(value: 'BRL', child: Text('Real (BRL)')),
-                            DropdownMenuItem(value: 'EUR', child: Text('Euro (EUR)')),
-                            DropdownMenuItem(value: 'USD', child: Text('Dólar (USD)')),
-                          ],
-                          onChanged: _submitting
-                              ? null
-                              : (v) => setState(() => _currency = v ?? 'BRL'),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextFormField(
-                          controller: _entryFeeController,
-                          enabled: !_submitting,
-                          decoration: const InputDecoration(
-                            labelText: 'Taxa por Partida',
-                          ),
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true,
-                            signed: false,
-                          ),
-                          validator: (value) {
-                            final cents = _parseEntryFeeToCents(value ?? '');
-                            if (cents == null) return 'Valor inválido.';
-                            if (cents <= 0) return 'Maior que 0.';
-                            return null;
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (feePreview != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                        'Armazenado: $feePreview centavos',
-                        style: AppTextStyles.sub(context),
-                      ),
-                    ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _lockMinutesController,
-                    enabled: !_submitting,
-                    decoration: const InputDecoration(
-                      labelText: 'Tranca de Palpites (Minutos)',
-                      helperText: 'Tempo limite antes de cada início de partida.',
-                    ),
-                    keyboardType: TextInputType.number,
-                    textInputAction: TextInputAction.done,
-                    validator: (value) {
-                      final minutes = _parsePositiveInt(value ?? '');
-                      if (minutes == null) return 'Informe um número inteiro > 0.';
-                      if (minutes > 180) return 'Use um valor até 180.';
-                      return null;
-                    },
-                    onFieldSubmitted: (_) => _submitting ? null : _createGroup(),
-                  ),
-                  const SizedBox(height: 20),
-                  Text('Filtro de Seleções', style: AppTextStyles.body(context, weight: FontWeight.w700)),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    controller: _teamSearchController,
-                    enabled: !_submitting,
-                    decoration: const InputDecoration(
-                      labelText: 'Times (pesquisar)',
-                      hintText: 'Ex.: Brasil, Portugal…',
-                    ),
-                    onChanged: (_) => setState(() {}),
-                  ),
-                  const SizedBox(height: 8),
-                  TournamentTeamPicker(
-                    tournamentId: _tournamentId,
-                    searchController: _teamSearchController,
-                    selectedTeamIds: _selectedTeamIds,
-                    enabled: !_submitting,
-                    onSelectionChanged: () =>
-                        setState(() => _includedMatchesCount = null),
-                  ),
-                  const SizedBox(height: 12),
-                  Text('Fases do Torneio', style: AppTextStyles.body(context, weight: FontWeight.w600)),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      for (final stage in groupMatchFilterStages)
-                        FilterChip(
-                          label: Text(stage.label),
-                          selected: _selectedStages.contains(stage.id),
-                          onSelected: _submitting
-                              ? null
-                              : (selected) {
-                                  setState(() {
-                                    if (selected) {
-                                      _selectedStages.add(stage.id);
-                                    } else {
-                                      _selectedStages.remove(stage.id);
-                                    }
-                                    _includedMatchesCount = null;
-                                  });
-                                },
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
                   AppCard(
-                    backgroundColor: colors.accentLight.withValues(alpha: 0.25),
-                    borderColor: colors.accent.withValues(alpha: 0.2),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        Text(
+                          'Configuração',
+                          style: AppTextStyles.body(context, weight: FontWeight.w700),
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _nameController,
+                          enabled: !_submitting,
+                          decoration: const InputDecoration(
+                            labelText: 'Nome do Grupo',
+                            hintText: 'Ex: Bolão do Trabalho ou Família Silva',
+                          ),
+                          textInputAction: TextInputAction.next,
+                          validator: (value) {
+                            final v = value?.trim() ?? '';
+                            if (v.isEmpty) return 'Informe um nome.';
+                            if (v.length < 3) return 'Use pelo menos 3 caracteres.';
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 12),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              'Total de Jogos no Filtro:',
-                              style: AppTextStyles.body(context, weight: FontWeight.w700),
+                            Expanded(
+                              child: DropdownButtonFormField<String>(
+                                initialValue: _currency,
+                                decoration: const InputDecoration(labelText: 'Moeda'),
+                                items: const [
+                                  DropdownMenuItem(value: 'BRL', child: Text('Real (BRL)')),
+                                  DropdownMenuItem(value: 'EUR', child: Text('Euro (EUR)')),
+                                  DropdownMenuItem(value: 'USD', child: Text('Dólar (USD)')),
+                                ],
+                                onChanged: _submitting
+                                    ? null
+                                    : (v) => setState(() => _currency = v ?? 'BRL'),
+                              ),
                             ),
-                            Text(
-                              '${_includedMatchesCount ?? '—'}',
-                              style: TextStyle(
-                                color: colors.accent,
-                                fontWeight: FontWeight.w700,
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _entryFeeController,
+                                enabled: !_submitting,
+                                decoration: const InputDecoration(
+                                  labelText: 'Taxa por Partida',
+                                ),
+                                keyboardType: const TextInputType.numberWithOptions(
+                                  decimal: true,
+                                  signed: false,
+                                ),
+                                validator: (value) {
+                                  final cents = _parseEntryFeeToCents(value ?? '');
+                                  if (cents == null) return 'Valor inválido.';
+                                  if (cents <= 0) return 'Maior que 0.';
+                                  return null;
+                                },
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
-                        AppButtonOutline(
-                          label: 'Recalcular Jogos',
-                          onPressed: (_submitting || _countingMatches)
-                              ? null
-                              : _recountIncludedMatches,
+                        if (feePreview != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(
+                              'Armazenado: $feePreview centavos',
+                              style: AppTextStyles.sub(context),
+                            ),
+                          ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _lockMinutesController,
+                          enabled: !_submitting,
+                          decoration: const InputDecoration(
+                            labelText: 'Tranca de Palpites (Minutos)',
+                            helperText: 'Tempo limite antes de cada início de partida.',
+                          ),
+                          keyboardType: TextInputType.number,
+                          textInputAction: TextInputAction.done,
+                          validator: (value) {
+                            final minutes = _parsePositiveInt(value ?? '');
+                            if (minutes == null) return 'Informe um número inteiro > 0.';
+                            if (minutes > 180) return 'Use um valor até 180.';
+                            return null;
+                          },
+                          onFieldSubmitted: (_) => _submitting ? null : _createGroup(),
                         ),
                       ],
                     ),
+                  ),
+                  const SizedBox(height: 16),
+                  GroupMatchFilterSection(
+                    tournamentId: _tournamentId,
+                    teamSearchController: _teamSearchController,
+                    selectedTeamIds: _selectedTeamIds,
+                    selectedStages: _selectedStages,
+                    enabled: !_submitting,
+                    includedMatchesCount: _includedMatchesCount,
+                    countingMatches: _countingMatches,
+                    onSelectionChanged: () =>
+                        setState(() => _includedMatchesCount = null),
+                    onRecalculate: _recountIncludedMatches,
                   ),
                   const SizedBox(height: 16),
                   AppButton(
