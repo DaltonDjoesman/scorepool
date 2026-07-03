@@ -254,25 +254,25 @@ Store World Cup 2026 matches in a shared, backend-managed catalog.
 - Schema is defined and documented in code
 - Sample documents validate against the model"""),
 
-    (21, "API-Football ingestion job with caching and retry", """## Goal
-Keep the global match catalog up to date from API-Football without burning API quota.
+    (21, "football-data.org ingestion job with caching and retry", """## Goal
+Keep the global WC2026 match catalog up to date from football-data.org without burning API quota.
 
 ## What to do
-- Scheduled job (e.g. GitHub Actions or Cloud Function) fetches WC2026 fixtures and results
-- Cache responses where possible; retry on transient failures
-- Respect rate limits; fetch only what changed when feasible
+- Scheduled job (GitHub Actions every 5 min + optional Cloud Function) fetches WC2026 fixtures via `GET /v4/competitions/WC/matches?season=2026`
+- Use `FOOTBALL_DATA_TOKEN`; map fields to Firestore `tournaments/wc2026/matches/{matchId}`
+- Retry on transient failures; fail loudly on auth/API errors
 
 ## Done when
-- Job runs on a schedule and completes reliably
-- Failures are logged and retried; quota usage is reasonable"""),
+- Job runs on a schedule and upserts ~104 matches reliably
+- Failures are logged and retried; quota usage stays within free-tier limits"""),
 
     (22, "Idempotent catalog upserts on updates", """## Goal
 Re-running ingestion must not duplicate or corrupt match data.
 
 ## What to do
-- Upsert by stable `matchId` from API-Football
+- Upsert by stable football-data.org `matchId`
 - Update status and scores in place when matches progress
-- Preserve canonical team IDs across updates
+- Preserve canonical team IDs (TLA codes) across updates
 
 ## Done when
 - Multiple ingestion runs produce one document per match

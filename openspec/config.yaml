@@ -1,20 +1,17 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+context: |
+  Repo: DaltonDjoesman/worldcup-pool-tracker-app
+  GitHub Project: World Cup Bet Tracker (#3), owner DaltonDjoesman
+  Delivery: 1 branch + 1 PR per tasks.md section (## N. ...); see openspec/delivery.md
+  Never implement OpenSpec tasks directly on main during /opsx:apply
+  Section/issue map: openspec/github-delivery.yaml
+  Start: .github/scripts/openspec-section-start.sh <N>
+  Finish PR: .github/scripts/openspec-section-finish.sh <N> "title"
+  After merge: .github/scripts/openspec-section-done.sh <N>
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+rules:
+  tasks:
+    - Each section header ## N. MUST include a line "> GitHub issues: #X, #Y, ..." when issues exist in github-delivery.yaml
+    - One PR covers one section; link all section issues with Closes #N in the PR body
+    - Subtasks use "- [ ] N.M ..." checkbox format for apply tracking
