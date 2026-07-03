@@ -85,9 +85,9 @@
 ## 12. Feed & Screens (Based on Prototype)
 > GitHub issues: #41, #42, #43
 
-- [ ] 12.1 Implement feed tabs (upcoming/live/finished) based on group matches overlay
-- [ ] 12.2 Implement “ver palpites da galera” for live matches (read-only list of predictions)
-- [ ] 12.3 Implement finished match card highlighting winners and accumulated pot banner
+- [x] 12.1 Implement feed tabs (upcoming/live/finished) based on group matches overlay
+- [x] 12.2 Implement “ver palpites da galera” for live matches (read-only list of predictions)
+- [x] 12.3 Implement finished match card highlighting winners and accumulated pot banner
 
 ## 13. Ranking / Stats
 > GitHub issues: #44, #45
