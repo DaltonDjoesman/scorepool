@@ -149,14 +149,17 @@ export async function reconcileGroupMatches(
   groupId: string,
   group: GroupDoc,
   now = new Date(),
-): Promise<{ added: number; reactivated: number; excluded: number; updated: number }> {
+): Promise<{ added: number; reactivated: number; excluded: number; updated: number; participationCreated: number }> {
   const filter = group.matchFilter ?? { teamIds: [], stages: [] };
   const predictionLockMinutes = group.predictionLockMinutes ?? 15;
 
-  const [catalogById, existingSnap] = await Promise.all([
+  const [catalogById, existingSnap, membersSnap] = await Promise.all([
     fetchCatalogMatchesForFilter(db, filter),
     db.collection(`groups/${groupId}/matches`).get(),
+    db.collection(`groups/${groupId}/members`).get(),
   ]);
+
+  const memberUids = membersSnap.docs.map((doc) => doc.id);
 
   const existingById = new Map<string, FirebaseFirestore.DocumentData>();
   for (const doc of existingSnap.docs) {
@@ -170,6 +173,33 @@ export async function reconcileGroupMatches(
   let reactivated = 0;
   let excluded = 0;
   let updated = 0;
+  let participationCreated = 0;
+
+  const ensureParticipation = async (matchId: string) => {
+    if (memberUids.length === 0) return;
+
+    const usersSnap = await db
+      .collection(`groups/${groupId}/roundParticipants/${matchId}/users`)
+      .get();
+    const existingUids = new Set(usersSnap.docs.map((doc) => doc.id));
+
+    for (const uid of memberUids) {
+      if (existingUids.has(uid)) continue;
+      const userRef = db.doc(
+        `groups/${groupId}/roundParticipants/${matchId}/users/${uid}`,
+      );
+      batch.set(
+        userRef,
+        { uid, groupId, matchId, isInPot: true },
+        { merge: true },
+      );
+      batchOps += 1;
+      participationCreated += 1;
+      if (batchOps >= 450) {
+        await commitIfNeeded(true);
+      }
+    }
+  };
 
   const commitIfNeeded = async (force = false) => {
     if (batchOps === 0) return;
@@ -197,6 +227,7 @@ export async function reconcileGroupMatches(
         );
         batchOps += 1;
         added += 1;
+        await ensureParticipation(matchId);
       } else if (existing) {
         const wasExcluded = existing.excludedByFilter === true;
         const excludedByFilter = false;
@@ -212,6 +243,7 @@ export async function reconcileGroupMatches(
         batchOps += 1;
         if (wasExcluded) {
           reactivated += 1;
+          await ensureParticipation(matchId);
         } else {
           updated += 1;
         }
@@ -260,9 +292,10 @@ export async function reconcileGroupMatches(
     reactivated,
     excluded,
     updated,
+    participationCreated,
     catalogMatches: catalogById.size,
     existingMatches: existingById.size,
   });
 
-  return { added, reactivated, excluded, updated };
+  return { added, reactivated, excluded, updated, participationCreated };
 }

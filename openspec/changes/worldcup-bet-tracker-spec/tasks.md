@@ -53,9 +53,9 @@
 ## 8. Round Participation (Default In-Pot + Opt-out)
 > GitHub issues: #26, #27, #28
 
-- [ ] 8.1 Implement per-match participation docs defaulting all members to `isInPot=true` for included matches
-- [ ] 8.2 Implement opt-out toggle (allowed only before lock) and reflect in UI
-- [ ] 8.3 Ensure opt-out only affects one match and is visible in match details
+- [x] 8.1 Implement per-match participation docs defaulting all members to `isInPot=true` for included matches
+- [x] 8.2 Implement opt-out toggle (allowed only before lock) and reflect in UI
+- [x] 8.3 Ensure opt-out only affects one match and is visible in match details
 
 ## 9. Predictions (Optional + Locking)
 > GitHub issues: #29, #30, #31
