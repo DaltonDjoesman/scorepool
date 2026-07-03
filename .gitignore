@@ -61,3 +61,4 @@ app.*.map.json
 .env
 .env.*
 **/secrets/
+docs/worldcup-pool-tracker-app.json

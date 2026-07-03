@@ -41,7 +41,7 @@ jobs:
       - name: Ingest fixtures into Firestore
         working-directory: functions
         env:
-          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+          FOOTBALL_DATA_TOKEN: ${{ secrets.FOOTBALL_DATA_TOKEN }}
           GOOGLE_APPLICATION_CREDENTIALS: /tmp/firebase/sa.json
         run: npm run ingest:wc2026
 

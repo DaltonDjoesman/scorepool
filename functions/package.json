@@ -8,7 +8,9 @@
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc -w",
-    "ingest:wc2026": "node ./scripts/ingest_wc2026.mjs",
+    "ingest:wc2026": "npm run build && node ./scripts/ingest_wc2026.mjs",
+    "test:mapping": "npm run build && node ./scripts/test_football_data_mapping.mjs",
+    "verify:sample": "npm run build && node ./scripts/verify_wc2026_sample.mjs",
     "lint": "eslint \"src/**/*.ts\"",
     "serve": "npm run build && firebase emulators:start --only functions",
     "shell": "npm run build && firebase functions:shell",

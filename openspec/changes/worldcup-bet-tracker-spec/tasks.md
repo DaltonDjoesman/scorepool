@@ -34,7 +34,7 @@
 ## 6. Global Match Catalog Ingestion (Backend)
 
 - [x] 6.1 Create global Firestore structure for `tournaments/wc2026/matches/{matchId}` (teamIds, stage, matchTime UTC, status, scores, flags)
-- [x] 6.2 Implement ingestion job for API-Football (schedule + updates) with caching/retry and minimal quota usage
+- [x] 6.2 Implement ingestion job for external football API (schedule + updates) with caching/retry and minimal quota usage _(provider migrated to football-data.org in change `football-data-org-ingestion`)_
 - [x] 6.3 On catalog updates, publish match changes to Firestore (idempotent upserts)
 
 ## 7. Group Match Reconciliation (Filter → Group Matches)

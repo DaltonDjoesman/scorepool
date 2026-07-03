@@ -35,14 +35,18 @@ we ingest WC2026 fixtures into Firestore using **GitHub Actions**.
 
 In your GitHub repo settings, add:
 
-- `API_FOOTBALL_KEY`: your API-FOOTBALL key
+- `FOOTBALL_DATA_TOKEN`: your [football-data.org](https://www.football-data.org/) API token
 - `FIREBASE_SERVICE_ACCOUNT_JSON`: a service account JSON (as a single-line JSON string) with permissions to write Firestore
+
+> **Note:** `API_FOOTBALL_KEY` is deprecated; ingestion now uses football-data.org (free tier includes WC 2026).
+
+See also `functions/README.md` for local ingest commands.
 
 ### What it does
 
 The workflow runs every 5 minutes and upserts fixtures into:
 
-`tournaments/wc2026/matches/{fixtureId}`
+`tournaments/wc2026/matches/{matchId}`
 
 You can also run it manually using the "Run workflow" button in GitHub Actions.
 
