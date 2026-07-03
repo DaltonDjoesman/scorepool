@@ -105,11 +105,18 @@ service cloud.firestore {
           && request.resource.data.uid == uid
           && request.resource.data.get('perfectScoresCount', 0) == 0;
 
-        // Users can update their own display fields; admins can update anything except perfectScoresCount.
+        // Users can update their own display fields; admins may adjust perfectScoresCount.
         // Creators listed in adminUids may promote themselves once after group creation.
         allow update: if (
             isGroupAdmin(groupId)
-            && request.resource.data.perfectScoresCount == resource.data.perfectScoresCount
+            && (
+              request.resource.data.perfectScoresCount == resource.data.perfectScoresCount
+              || (
+                request.resource.data.diff(resource.data).changedKeys().hasOnly(["perfectScoresCount"])
+                && request.resource.data.perfectScoresCount is int
+                && request.resource.data.perfectScoresCount >= 0
+              )
+            )
           )
           || (
             signedIn()

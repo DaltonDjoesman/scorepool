@@ -330,6 +330,20 @@ class FirestoreRepository {
     );
   }
 
+  Future<void> updateMemberPerfectScoresCount({
+    required String groupId,
+    required String memberUid,
+    required int perfectScoresCount,
+  }) async {
+    await _ensureFirestoreAuth();
+    if (perfectScoresCount < 0) {
+      throw StateError('A pontuação não pode ser negativa.');
+    }
+    await members(groupId).doc(memberUid).update({
+      'perfectScoresCount': perfectScoresCount,
+    });
+  }
+
   Future<void> updateGroupMatchFilter({
     required String groupId,
     required GroupMatchFilter matchFilter,
