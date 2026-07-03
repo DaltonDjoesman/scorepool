@@ -68,23 +68,18 @@ class FirestoreRepository {
   }
 
   Future<List<String>> _discoverGroupIdsFromMembership(String uid) async {
-    final byUidField = await db
-        .collectionGroup('members')
-        .where('uid', isEqualTo: uid)
-        .get();
-    final groupIds = <String>{
-      for (final doc in byUidField.docs)
-        if (doc.reference.parent.parent?.id case final groupId?) groupId,
-    };
-
-    if (groupIds.isNotEmpty) return groupIds.toList(growable: false);
-
-    final allMine = await db.collectionGroup('members').get();
-    for (final doc in allMine.docs.where((doc) => doc.id == uid)) {
-      final groupId = doc.reference.parent.parent?.id;
-      if (groupId != null) groupIds.add(groupId);
+    try {
+      final snap = await db
+          .collectionGroup('members')
+          .where('uid', isEqualTo: uid)
+          .get();
+      return snap.docs
+          .map((doc) => doc.reference.parent.parent?.id)
+          .whereType<String>()
+          .toList(growable: false);
+    } catch (_) {
+      return const [];
     }
-    return groupIds.toList(growable: false);
   }
 
   Future<List<String>> _userGroupIds(String uid) async {
@@ -272,6 +267,7 @@ class FirestoreRepository {
           await userRef(uid).set({'groupIds': groupIds}, SetOptions(merge: true));
         }
       }
+      if (groupIds.isEmpty) return const <UserGroupMembership>[];
       return _membershipsFromGroupIds(uid, groupIds);
     });
   }
@@ -332,6 +328,20 @@ class FirestoreRepository {
           .map((d) => MemberProfile.fromMap(uid: d.id, map: d.data()))
           .toList(growable: false),
     );
+  }
+
+  Future<void> updateMemberPerfectScoresCount({
+    required String groupId,
+    required String memberUid,
+    required int perfectScoresCount,
+  }) async {
+    await _ensureFirestoreAuth();
+    if (perfectScoresCount < 0) {
+      throw StateError('A pontuação não pode ser negativa.');
+    }
+    await members(groupId).doc(memberUid).update({
+      'perfectScoresCount': perfectScoresCount,
+    });
   }
 
   Future<void> updateGroupMatchFilter({

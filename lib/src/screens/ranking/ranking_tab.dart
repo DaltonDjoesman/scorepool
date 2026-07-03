@@ -1,16 +1,101 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../app.dart';
 import '../../models/member.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
+import '../../widgets/app_toast.dart';
 import 'podium_widget.dart';
 
 /// Ranking tab content inside the feed shell.
-class RankingTab extends StatelessWidget {
-  const RankingTab({super.key, required this.groupId});
+class RankingTab extends StatefulWidget {
+  const RankingTab({
+    super.key,
+    required this.groupId,
+    required this.isAdmin,
+  });
 
   final String groupId;
+  final bool isAdmin;
+
+  @override
+  State<RankingTab> createState() => _RankingTabState();
+}
+
+class _RankingTabState extends State<RankingTab> {
+  String? _savingMemberUid;
+
+  Future<void> _setScore(MemberProfile member, int newCount) async {
+    if (newCount < 0 || newCount == member.perfectScoresCount) return;
+
+    final repos = appRepos(context);
+    if (repos == null) return;
+
+    setState(() => _savingMemberUid = member.uid);
+    try {
+      await repos.firestore.updateMemberPerfectScoresCount(
+        groupId: widget.groupId,
+        memberUid: member.uid,
+        perfectScoresCount: newCount,
+      );
+      if (!mounted) return;
+      AppToast.success(context, 'Pontuação atualizada');
+    } catch (e) {
+      if (!mounted) return;
+      AppToast.error(context, e.toString());
+    } finally {
+      if (mounted) setState(() => _savingMemberUid = null);
+    }
+  }
+
+  Future<void> _promptScore(MemberProfile member) async {
+    final controller = TextEditingController(
+      text: '${member.perfectScoresCount}',
+    );
+    final newCount = await showDialog<int>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(_displayName(member)),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            decoration: const InputDecoration(
+              labelText: 'Acertos exatos',
+              helperText: 'Placares acertados em cheio',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                final parsed = int.tryParse(controller.text.trim());
+                if (parsed == null || parsed < 0) {
+                  AppToast.error(context, 'Informe um número ≥ 0.');
+                  return;
+                }
+                Navigator.of(context).pop(parsed);
+              },
+              child: const Text('Salvar'),
+            ),
+          ],
+        );
+      },
+    );
+    controller.dispose();
+    if (newCount != null) {
+      await _setScore(member, newCount);
+    }
+  }
+
+  String _displayName(MemberProfile member) =>
+      member.displayName.isNotEmpty ? member.displayName : member.uid;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +110,7 @@ class RankingTab extends StatelessWidget {
     }
 
     return StreamBuilder<List<MemberProfile>>(
-      stream: repos.firestore.watchMembers(groupId),
+      stream: repos.firestore.watchMembers(widget.groupId),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Center(child: Text(snapshot.error.toString()));
@@ -62,7 +147,9 @@ class RankingTab extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Eficiência pura baseada em acertos exatos do placar.',
+              widget.isAdmin
+                  ? 'Eficiência pura baseada em acertos exatos. Como admin, use +/- ou toque no número para ajustar.'
+                  : 'Eficiência pura baseada em acertos exatos do placar.',
               style: AppTextStyles.sub(context),
             ),
             if (sorted.length >= 3) ...[
@@ -70,7 +157,7 @@ class RankingTab extends StatelessWidget {
               PodiumWidget(members: sorted.take(3).toList()),
             ],
             const SizedBox(height: 16),
-            _RankingTableHeader(),
+            _RankingTableHeader(showAdminHint: widget.isAdmin),
             const SizedBox(height: 4),
             ...sorted.asMap().entries.map((entry) {
               final rank = entry.key + 1;
@@ -79,6 +166,13 @@ class RankingTab extends StatelessWidget {
                 rank: rank,
                 member: member,
                 isCurrentUser: uid == member.uid,
+                isAdmin: widget.isAdmin,
+                isSaving: _savingMemberUid == member.uid,
+                onDecrement: member.perfectScoresCount > 0
+                    ? () => _setScore(member, member.perfectScoresCount - 1)
+                    : null,
+                onIncrement: () => _setScore(member, member.perfectScoresCount + 1),
+                onEditScore: () => _promptScore(member),
               );
             }),
           ],
@@ -89,6 +183,10 @@ class RankingTab extends StatelessWidget {
 }
 
 class _RankingTableHeader extends StatelessWidget {
+  const _RankingTableHeader({required this.showAdminHint});
+
+  final bool showAdminHint;
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -102,7 +200,7 @@ class _RankingTableHeader extends StatelessWidget {
             ),
           ),
           Text(
-            'ACERTOS',
+            showAdminHint ? 'ACERTOS (EDITAR)' : 'ACERTOS',
             style: AppTextStyles.titleCaps(context).copyWith(fontSize: 11),
           ),
         ],
@@ -116,11 +214,21 @@ class _RankingRow extends StatelessWidget {
     required this.rank,
     required this.member,
     required this.isCurrentUser,
+    required this.isAdmin,
+    required this.isSaving,
+    required this.onIncrement,
+    this.onDecrement,
+    required this.onEditScore,
   });
 
   final int rank;
   final MemberProfile member;
   final bool isCurrentUser;
+  final bool isAdmin;
+  final bool isSaving;
+  final VoidCallback? onDecrement;
+  final VoidCallback onIncrement;
+  final VoidCallback onEditScore;
 
   String _displayName() =>
       member.displayName.isNotEmpty ? member.displayName : member.uid;
@@ -154,12 +262,52 @@ class _RankingRow extends StatelessWidget {
               ),
             ),
           ),
-          Text(
-            '${member.perfectScoresCount}',
-            style: AppTextStyles.displayHeadline(context, size: 18).copyWith(
-              color: isCurrentUser ? colors.accent : colors.phoneFg,
+          if (isSaving)
+            const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          else if (isAdmin)
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  onPressed: onDecrement,
+                  icon: Icon(Icons.remove_circle_outline, color: colors.phoneMuted),
+                ),
+                InkWell(
+                  onTap: onEditScore,
+                  borderRadius: BorderRadius.circular(6),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Text(
+                      '${member.perfectScoresCount}',
+                      style: AppTextStyles.displayHeadline(context, size: 18).copyWith(
+                        color: colors.accent,
+                      ),
+                    ),
+                  ),
+                ),
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  onPressed: onIncrement,
+                  icon: Icon(Icons.add_circle_outline, color: colors.accent),
+                ),
+              ],
+            )
+          else
+            Text(
+              '${member.perfectScoresCount}',
+              style: AppTextStyles.displayHeadline(context, size: 18).copyWith(
+                color: isCurrentUser ? colors.accent : colors.phoneFg,
+              ),
             ),
-          ),
         ],
       ),
     );
