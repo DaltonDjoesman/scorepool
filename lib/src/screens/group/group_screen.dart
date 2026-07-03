@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app.dart';
+import 'create_group_screen.dart';
+import 'edit_group_filter_screen.dart';
 import '../feed/feed_screen.dart';
 import '../ranking/ranking_screen.dart';
 
@@ -64,8 +66,14 @@ class _GroupScreenState extends State<GroupScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Selecione um grupo',
+              'Selecione ou crie um grupo',
               style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              onPressed: () => context.go(CreateGroupScreen.routePath),
+              icon: const Icon(Icons.add),
+              label: const Text('Criar grupo'),
             ),
             const SizedBox(height: 12),
             ListenableBuilder(
@@ -75,7 +83,15 @@ class _GroupScreenState extends State<GroupScreen> {
                 if (groupId == null) {
                   return const Text('Grupo atual: —');
                 }
-                return Text('Grupo atual: $groupId');
+                return Row(
+                  children: [
+                    Expanded(child: Text('Grupo atual: $groupId')),
+                    TextButton(
+                      onPressed: () => context.go(EditGroupFilterScreen.routePath),
+                      child: const Text('Editar filtro'),
+                    ),
+                  ],
+                );
               },
             ),
             const SizedBox(height: 16),

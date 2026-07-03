@@ -4,6 +4,8 @@ import '../auth/auth_controller.dart';
 import '../config/app_config.dart';
 import '../screens/feed/feed_screen.dart';
 import '../screens/group/group_screen.dart';
+import '../screens/group/create_group_screen.dart';
+import '../screens/group/edit_group_filter_screen.dart';
 import '../screens/login/login_screen.dart';
 import '../screens/match/match_details_screen.dart';
 import '../screens/ranking/ranking_screen.dart';
@@ -31,6 +33,14 @@ GoRouter createAppRouter({required AppConfig config, AuthController? auth}) {
       GoRoute(
         path: GroupScreen.routePath,
         builder: (context, state) => const GroupScreen(),
+      ),
+      GoRoute(
+        path: CreateGroupScreen.routePath,
+        builder: (context, state) => const CreateGroupScreen(),
+      ),
+      GoRoute(
+        path: EditGroupFilterScreen.routePath,
+        builder: (context, state) => const EditGroupFilterScreen(),
       ),
       GoRoute(
         path: FeedScreen.routePath,
