@@ -78,9 +78,9 @@
 ## 11. Payment Ledger (“Já paguei”) UX
 > GitHub issues: #38, #39, #40
 
-- [ ] 11.1 Build match details “ledger” view grouped by status (pending first, paid second)
-- [ ] 11.2 Implement “Já paguei” action per debt (allowed only before kickoff) and real-time update
-- [ ] 11.3 Ensure multiple winners are represented as multiple debts (from → to) and displayed clearly
+- [x] 11.1 Build match details “ledger” view grouped by status (pending first, paid second)
+- [x] 11.2 Implement “Já paguei” action per debt (allowed only before kickoff) and real-time update
+- [x] 11.3 Ensure multiple winners are represented as multiple debts (from → to) and displayed clearly
 
 ## 12. Feed & Screens (Based on Prototype)
 > GitHub issues: #41, #42, #43
