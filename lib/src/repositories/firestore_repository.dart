@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../firestore/firestore_paths.dart';
 import '../models/debt.dart';
 import '../models/group.dart';
+import '../models/match.dart';
 import '../models/member.dart';
 import '../models/prediction.dart';
 
@@ -27,6 +28,9 @@ class FirestoreRepository {
     required String groupId,
     required String matchId,
   }) => db.collection(FirestorePaths.groupDebtItems(groupId, matchId));
+
+  CollectionReference<Map<String, Object?>> groupMatches(String groupId) =>
+      db.collection(FirestorePaths.groupMatches(groupId));
 
   Future<String> createGroup({
     required String name,
@@ -90,6 +94,32 @@ class FirestoreRepository {
     required GroupMatchFilter matchFilter,
   }) async {
     await groupRef(groupId).update({'matchFilter': matchFilter.toMap()});
+  }
+
+  Stream<List<GroupMatchOverlay>> watchGroupMatches({
+    required String groupId,
+    required bool excludedByFilter,
+    bool descending = false,
+  }) {
+    var query = groupMatches(
+      groupId,
+    ).where('excludedByFilter', isEqualTo: excludedByFilter);
+
+    query = descending
+        ? query.orderBy('matchTimeUtc', descending: true)
+        : query.orderBy('matchTimeUtc');
+
+    return query.snapshots().map(
+      (snap) => snap.docs
+          .map(
+            (d) => GroupMatchOverlay.fromMap(
+              matchId: d.id,
+              groupId: groupId,
+              map: d.data(),
+            ),
+          )
+          .toList(growable: false),
+    );
   }
 
   Future<void> upsertMemberProfile({
