@@ -60,9 +60,9 @@
 ## 9. Predictions (Optional + Locking)
 > GitHub issues: #29, #30, #31
 
-- [ ] 9.1 Implement prediction input UI for scheduled matches (including empty prediction state)
-- [ ] 9.2 Implement countdown/lock indicator (“Tranca em…”) and disable inputs at lock
-- [ ] 9.3 Persist predictions as unique (groupId, uid, matchId) records
+- [x] 9.1 Implement prediction input UI for scheduled matches (including empty prediction state)
+- [x] 9.2 Implement countdown/lock indicator (“Tranca em…”) and disable inputs at lock
+- [x] 9.3 Persist predictions as unique (groupId, uid, matchId) records
 
 ## 10. Pot, Winners, Accumulation (Backend Closeout)
 > GitHub issues: #32, #33, #34, #35, #36, #37

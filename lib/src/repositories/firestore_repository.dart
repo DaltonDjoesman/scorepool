@@ -216,7 +216,20 @@ class FirestoreRepository {
       predictedAwayScore: predictedAwayScore,
     );
 
-    await predictions(groupId).doc(id).set(prediction.toMap());
+    await predictions(groupId).doc(id).set(prediction.toMap(), SetOptions(merge: true));
+  }
+
+  Stream<Prediction?> watchPrediction({
+    required String groupId,
+    required String uid,
+    required String matchId,
+  }) {
+    final id = Prediction.makeId(uid: uid, matchId: matchId);
+    return predictions(groupId).doc(id).snapshots().map((snap) {
+      final data = snap.data();
+      if (data == null) return null;
+      return Prediction.fromMap(id: snap.id, map: data);
+    });
   }
 
   Stream<List<DebtItem>> watchDebtItems({
