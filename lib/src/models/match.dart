@@ -81,6 +81,8 @@ class GroupMatchOverlay {
     required this.stage,
     this.homeFlag,
     this.awayFlag,
+    this.basePotCents,
+    this.totalPotCents,
   });
 
   final String matchId;
@@ -96,6 +98,8 @@ class GroupMatchOverlay {
   final String stage;
   final String? homeFlag;
   final String? awayFlag;
+  final int? basePotCents;
+  final int? totalPotCents;
 
   Map<String, Object?> toMap() => {
     'matchId': matchId,
@@ -111,6 +115,8 @@ class GroupMatchOverlay {
     'stage': stage,
     'homeFlag': homeFlag,
     'awayFlag': awayFlag,
+    'basePotCents': basePotCents,
+    'totalPotCents': totalPotCents,
   };
 
   static GroupMatchOverlay fromMap({
@@ -137,6 +143,8 @@ class GroupMatchOverlay {
       stage: (map['stage'] as String?) ?? '',
       homeFlag: map['homeFlag'] as String?,
       awayFlag: map['awayFlag'] as String?,
+      basePotCents: (map['basePotCents'] as num?)?.toInt(),
+      totalPotCents: (map['totalPotCents'] as num?)?.toInt(),
     );
   }
 }

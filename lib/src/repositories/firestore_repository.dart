@@ -232,6 +232,20 @@ class FirestoreRepository {
     });
   }
 
+  Stream<List<Prediction>> watchMatchPredictions({
+    required String groupId,
+    required String matchId,
+  }) {
+    return predictions(groupId)
+        .where('matchId', isEqualTo: matchId)
+        .snapshots()
+        .map(
+          (snap) => snap.docs
+              .map((d) => Prediction.fromMap(id: d.id, map: d.data()))
+              .toList(growable: false),
+        );
+  }
+
   Stream<List<DebtItem>> watchDebtItems({
     required String groupId,
     required String matchId,

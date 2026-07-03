@@ -6,6 +6,7 @@ import '../../models/match.dart';
 import '../../models/prediction.dart';
 import '../../models/round_participation.dart';
 import '../../utils/match_lock.dart';
+import 'group_predictions_list.dart';
 import 'lock_countdown_banner.dart';
 import 'payment_ledger_card.dart';
 import 'prediction_input_card.dart';
@@ -165,6 +166,36 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                                   isInPot: value,
                                 ),
                               ),
+                              if (shouldShowGroupPredictions(
+                                match: match,
+                                predictionLockMinutes: group.predictionLockMinutes,
+                              )) ...[
+                                const SizedBox(height: 24),
+                                Card(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        Text(
+                                          'Palpites da galera',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleMedium,
+                                        ),
+                                        const SizedBox(height: 12),
+                                        GroupPredictionsList(
+                                          repos: repos,
+                                          groupId: groupId,
+                                          matchId: widget.matchId,
+                                          memberNames: memberNames,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
                               const SizedBox(height: 24),
                               PaymentLedgerCard(
                                 repos: repos,
