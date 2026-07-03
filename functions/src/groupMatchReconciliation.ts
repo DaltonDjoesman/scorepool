@@ -2,6 +2,7 @@ import * as admin from 'firebase-admin';
 import { logger } from 'firebase-functions';
 
 import { TOURNAMENT_ID } from './footballDataOrg';
+import { applyCarryoverToNextMatch } from './carryover';
 
 export type GroupMatchFilter = {
   teamIds?: string[];
@@ -285,6 +286,8 @@ export async function reconcileGroupMatches(
   }
 
   await commitIfNeeded(true);
+
+  await applyCarryoverToNextMatch(db, groupId);
 
   logger.info('Group match reconciliation complete', {
     groupId,

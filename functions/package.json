@@ -11,6 +11,7 @@
     "ingest:wc2026": "npm run build && node ./scripts/ingest_wc2026.mjs",
     "test:mapping": "npm run build && node ./scripts/test_football_data_mapping.mjs",
     "test:reconciliation": "npm run build && node ./scripts/test_group_match_reconciliation.mjs",
+    "test:pot": "npm run build && node ./scripts/test_pot_math.mjs",
     "verify:sample": "npm run build && node ./scripts/verify_wc2026_sample.mjs",
     "verify:catalog": "node ./scripts/check_firestore_catalog.mjs",
     "lint": "eslint \"src/**/*.ts\"",
