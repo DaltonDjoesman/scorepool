@@ -88,17 +88,35 @@ export function mapStatus(status: string | undefined): AppMatchStatus {
 
 export function teamIdFromApi(team: FootballDataTeam | undefined): string {
   const tla = team?.tla?.trim();
-  if (tla) return tla.toUpperCase();
+  if (tla && tla.toUpperCase() !== 'TBD') return tla.toUpperCase();
   if (team?.id != null) return String(team.id);
+
+  const name = team?.shortName?.trim() || team?.name?.trim();
+  if (name) {
+    return name
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toUpperCase()
+      .replace(/[^A-Z0-9]+/g, '_')
+      .replace(/^_|_$/g, '')
+      .slice(0, 40);
+  }
+
   return '';
+}
+
+/** Stable placeholder when knockout slots have no team assigned yet. */
+export function placeholderTeamId(matchId: number, slot: 'home' | 'away'): string {
+  return `TBD_${matchId}_${slot === 'home' ? 'H' : 'A'}`;
 }
 
 export function toFirestoreMatchDoc(match: FootballDataMatch): FirestoreMatchDoc | null {
   if (match.id == null) return null;
 
-  const homeTeamId = teamIdFromApi(match.homeTeam);
-  const awayTeamId = teamIdFromApi(match.awayTeam);
-  if (!homeTeamId || !awayTeamId) return null;
+  const homeTeamId =
+    teamIdFromApi(match.homeTeam) || placeholderTeamId(match.id, 'home');
+  const awayTeamId =
+    teamIdFromApi(match.awayTeam) || placeholderTeamId(match.id, 'away');
 
   const matchTimeUtc = match.utcDate
     ? new Date(match.utcDate).toISOString()

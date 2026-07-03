@@ -20,13 +20,13 @@
 ## 4. CI and secrets
 
 - [x] 4.1 Update `.github/workflows/ingest-wc2026.yml` to pass `FOOTBALL_DATA_TOKEN` instead of `API_FOOTBALL_KEY`
-- [x] 4.2 Document secret setup in README or functions README (`FOOTBALL_DATA_TOKEN` from football-data.org)
+- [x] 4.2 Document secret setup in README or functions/README (`FOOTBALL_DATA_TOKEN` from football-data.org)
 
 ## 5. Verification
 
-- [ ] 5.1 Run ingest locally with `FOOTBALL_DATA_TOKEN` and confirm ~104 documents in `tournaments/wc2026/matches`
-- [ ] 5.2 Trigger GitHub Actions workflow manually and confirm successful upsert in Firestore
-- [ ] 5.3 Smoke-test group create screen: selecting `BRA` + `group` stage returns included match count > 0
+- [x] 5.1 Run ingest locally with `FOOTBALL_DATA_TOKEN` and confirm ~104 documents in `tournaments/wc2026/matches`
+- [x] 5.2 Trigger GitHub Actions workflow manually and confirm successful upsert in Firestore
+- [x] 5.3 Smoke-test group create screen: selecting `BRA` + `group` stage returns included match count > 0
 - [x] 5.4 Verify sample match fields: TLA team ids, normalized stage, ISO `matchTimeUtc`, crest URLs in `homeFlag`/`awayFlag`
 
 ## 6. Cleanup

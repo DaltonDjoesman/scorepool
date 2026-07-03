@@ -43,6 +43,25 @@ for (const [input, expected] of statusCases) {
 
 assertEqual(teamIdFromApi({ tla: "bra", id: 764 }), "BRA", "teamIdFromApi tla");
 assertEqual(teamIdFromApi({ id: 764 }), "764", "teamIdFromApi numeric");
+assertEqual(
+  teamIdFromApi({ shortName: "Winner Match 1" }),
+  "WINNER_MATCH_1",
+  "teamIdFromApi name slug",
+);
+
+const placeholderDoc = toFirestoreMatchDoc({
+  id: 537390,
+  utcDate: "2026-07-19T19:00:00Z",
+  status: "SCHEDULED",
+  stage: "FINAL",
+  homeTeam: { id: null, name: null, shortName: null, tla: null },
+  awayTeam: { id: null, name: null, shortName: null, tla: null },
+  score: { fullTime: { home: null, away: null } },
+});
+if (!placeholderDoc) throw new Error("placeholder toFirestoreMatchDoc returned null");
+assertEqual(placeholderDoc.homeTeamId, "TBD_537390_H", "placeholder home");
+assertEqual(placeholderDoc.awayTeamId, "TBD_537390_A", "placeholder away");
+assertEqual(placeholderDoc.stage, "final", "placeholder stage");
 
 const doc = toFirestoreMatchDoc({
   id: 331341,
