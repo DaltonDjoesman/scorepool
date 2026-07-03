@@ -19,6 +19,8 @@ export type CatalogMatch = {
   status: string;
   homeFlag: string | null;
   awayFlag: string | null;
+  homeScore: number | null;
+  awayScore: number | null;
 };
 
 export type GroupDoc = {
@@ -86,6 +88,8 @@ function toCatalogMatch(id: string, data: FirebaseFirestore.DocumentData): Catal
     status: (data.status as string | undefined) ?? 'scheduled',
     homeFlag: (data.homeFlag as string | null | undefined) ?? null,
     awayFlag: (data.awayFlag as string | null | undefined) ?? null,
+    homeScore: (data.homeScore as number | null | undefined) ?? null,
+    awayScore: (data.awayScore as number | null | undefined) ?? null,
   };
 }
 
@@ -119,6 +123,19 @@ async function fetchCatalogMatchesForFilter(
   return matches;
 }
 
+async function fetchFinishedCatalogMatches(
+  db: FirebaseFirestore.Firestore,
+): Promise<Map<string, CatalogMatch>> {
+  const matches = new Map<string, CatalogMatch>();
+  const collection = db.collection(`tournaments/${TOURNAMENT_ID}/matches`);
+  const snap = await collection.where('status', '==', 'finished').get();
+  for (const doc of snap.docs) {
+    const match = toCatalogMatch(doc.id, doc.data());
+    if (match) matches.set(doc.id, match);
+  }
+  return matches;
+}
+
 function overlayPayload(
   groupId: string,
   match: CatalogMatch,
@@ -141,6 +158,8 @@ function overlayPayload(
     stage: match.stage,
     homeFlag: match.homeFlag,
     awayFlag: match.awayFlag,
+    homeScore: match.homeScore,
+    awayScore: match.awayScore,
     reconciledAt: admin.firestore.FieldValue.serverTimestamp(),
   };
 }
@@ -154,8 +173,9 @@ export async function reconcileGroupMatches(
   const filter = group.matchFilter ?? { teamIds: [], stages: [] };
   const predictionLockMinutes = group.predictionLockMinutes ?? 15;
 
-  const [catalogById, existingSnap, membersSnap] = await Promise.all([
+  const [catalogById, finishedById, existingSnap, membersSnap] = await Promise.all([
     fetchCatalogMatchesForFilter(db, filter),
+    fetchFinishedCatalogMatches(db),
     db.collection(`groups/${groupId}/matches`).get(),
     db.collection(`groups/${groupId}/members`).get(),
   ]);
@@ -167,7 +187,11 @@ export async function reconcileGroupMatches(
     existingById.set(doc.id, doc.data());
   }
 
-  const allMatchIds = new Set<string>([...catalogById.keys(), ...existingById.keys()]);
+  const allMatchIds = new Set<string>([
+    ...catalogById.keys(),
+    ...finishedById.keys(),
+    ...existingById.keys(),
+  ]);
   let batch = db.batch();
   let batchOps = 0;
   let added = 0;
@@ -211,16 +235,15 @@ export async function reconcileGroupMatches(
   };
 
   for (const matchId of allMatchIds) {
-    const catalog = catalogById.get(matchId);
+    const catalog = catalogById.get(matchId) ?? finishedById.get(matchId);
     const existing = existingById.get(matchId);
     const included = catalog != null && matchIncludedInFilter(catalog, filter);
     const ref = db.doc(`groups/${groupId}/matches/${matchId}`);
 
     if (included && catalog) {
       const locked = isLockedInGroup(catalog, predictionLockMinutes, now);
-      const future = isFutureMatch(catalog, now);
 
-      if (!existing && future) {
+      if (!existing) {
         batch.set(
           ref,
           overlayPayload(groupId, catalog, false, locked),
@@ -249,26 +272,41 @@ export async function reconcileGroupMatches(
           updated += 1;
         }
       }
-    } else if (existing && catalog) {
+    } else if (catalog) {
       const locked = isLockedInGroup(catalog, predictionLockMinutes, now);
-      const softExclude = canSoftExclude(catalog, predictionLockMinutes, now);
 
-      if (softExclude) {
+      if (catalog.status === 'finished') {
         batch.set(
           ref,
           overlayPayload(groupId, catalog, true, locked, existing),
           { merge: true },
         );
         batchOps += 1;
-        excluded += 1;
-      } else {
-        batch.set(
-          ref,
-          overlayPayload(groupId, catalog, existing.excludedByFilter === true, locked, existing),
-          { merge: true },
-        );
-        batchOps += 1;
-        updated += 1;
+        if (!existing) {
+          added += 1;
+        } else {
+          updated += 1;
+        }
+      } else if (existing) {
+        const softExclude = canSoftExclude(catalog, predictionLockMinutes, now);
+
+        if (softExclude) {
+          batch.set(
+            ref,
+            overlayPayload(groupId, catalog, true, locked, existing),
+            { merge: true },
+          );
+          batchOps += 1;
+          excluded += 1;
+        } else {
+          batch.set(
+            ref,
+            overlayPayload(groupId, catalog, existing.excludedByFilter === true, locked, existing),
+            { merge: true },
+          );
+          batchOps += 1;
+          updated += 1;
+        }
       }
     } else if (existing) {
       // Catalog doc missing — keep overlay, refresh lock flag only.

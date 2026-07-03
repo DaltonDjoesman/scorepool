@@ -1,27 +1,61 @@
+import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 
 import '../auth/auth_controller.dart';
+import '../app_state/app_state.dart';
 import '../config/app_config.dart';
 import '../screens/feed/feed_screen.dart';
 import '../screens/group/group_screen.dart';
 import '../screens/group/create_group_screen.dart';
 import '../screens/group/edit_group_filter_screen.dart';
+import '../screens/group/edit_profile_screen.dart';
 import '../screens/login/login_screen.dart';
 import '../screens/match/match_details_screen.dart';
 import '../screens/ranking/ranking_screen.dart';
+import '../screens/shell/feed_shell_screen.dart';
+import '../screens/shell/feed_shell_tab.dart';
 
-GoRouter createAppRouter({required AppConfig config, AuthController? auth}) {
+GoRouter createAppRouter({
+  required AppConfig config,
+  AuthController? auth,
+  AppState? appState,
+}) {
+  final refresh = <Listenable>[
+    if (auth != null) auth,
+    if (appState != null) appState,
+  ];
+
   return GoRouter(
-    refreshListenable: auth,
+    refreshListenable: refresh.isEmpty ? null : Listenable.merge(refresh),
     initialLocation: LoginScreen.routePath,
     redirect: (context, state) {
       if (!config.firebaseEnabled) return null;
 
       final signedIn = auth?.isSignedIn ?? false;
-      final onLogin = state.matchedLocation == LoginScreen.routePath;
+      final location = state.matchedLocation;
+      final onLogin = location == LoginScreen.routePath;
+      final groupId = appState?.currentGroupId;
+      final sessionReady = appState?.sessionReady ?? false;
 
       if (!signedIn && !onLogin) return LoginScreen.routePath;
-      if (signedIn && onLogin) return GroupScreen.routePath;
+
+      if (signedIn) {
+        if (onLogin) {
+          if (!sessionReady) return null;
+          if (groupId != null) return FeedShellScreen.routePath;
+          return GroupScreen.routePath;
+        }
+
+        if (sessionReady &&
+            groupId != null &&
+            location == GroupScreen.routePath) {
+          return FeedShellScreen.routePath;
+        }
+      }
+
+      if (location == RankingScreen.routePath) {
+        return '${FeedShellScreen.routePath}?tab=${FeedShellTab.ranking.queryValue}';
+      }
 
       return null;
     },
@@ -43,8 +77,15 @@ GoRouter createAppRouter({required AppConfig config, AuthController? auth}) {
         builder: (context, state) => const EditGroupFilterScreen(),
       ),
       GoRoute(
-        path: FeedScreen.routePath,
-        builder: (context, state) => const FeedScreen(),
+        path: EditProfileScreen.routePath,
+        builder: (context, state) => const EditProfileScreen(),
+      ),
+      GoRoute(
+        path: FeedShellScreen.routePath,
+        builder: (context, state) {
+          final tab = FeedShellTab.fromQuery(state.uri.queryParameters['tab']);
+          return FeedScreen(initialTab: tab);
+        },
       ),
       GoRoute(
         path: MatchDetailsScreen.routePath,
@@ -55,7 +96,8 @@ GoRouter createAppRouter({required AppConfig config, AuthController? auth}) {
       ),
       GoRoute(
         path: RankingScreen.routePath,
-        builder: (context, state) => const RankingScreen(),
+        redirect: (_, state) =>
+            '${FeedShellScreen.routePath}?tab=${FeedShellTab.ranking.queryValue}',
       ),
     ],
   );

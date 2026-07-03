@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../app.dart';
 import '../../models/member.dart';
 
+/// Legacy full-screen ranking route; redirects to feed shell tab in router.
 class RankingScreen extends StatelessWidget {
   const RankingScreen({super.key});
 

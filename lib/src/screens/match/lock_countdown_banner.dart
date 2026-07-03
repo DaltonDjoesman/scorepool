@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../models/match.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
 import '../../utils/match_lock.dart';
 
 class LockCountdownBanner extends StatefulWidget {
@@ -38,6 +40,7 @@ class _LockCountdownBannerState extends State<LockCountdownBanner> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = appColors(context);
     final remaining = timeUntilLock(
       match: widget.match,
       predictionLockMinutes: widget.predictionLockMinutes,
@@ -47,32 +50,38 @@ class _LockCountdownBannerState extends State<LockCountdownBanner> {
         ? 'Palpites trancados'
         : formatTimeUntilLock(remaining);
 
-    final colorScheme = Theme.of(context).colorScheme;
     final locked = remaining == null;
 
-    return Card(
-      color: locked ? colorScheme.surfaceContainerHighest : colorScheme.primaryContainer,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          children: [
-            Icon(
-              locked ? Icons.lock_outline : Icons.timer_outlined,
-              color: locked ? colorScheme.outline : colorScheme.onPrimaryContainer,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                label,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: locked
-                      ? colorScheme.onSurfaceVariant
-                      : colorScheme.onPrimaryContainer,
-                ),
-              ),
-            ),
-          ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: locked
+            ? colors.phoneSurfaceHover
+            : colors.accentLight.withValues(alpha: 0.45),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: locked
+              ? colors.phoneBorder
+              : colors.accent.withValues(alpha: 0.25),
         ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            locked ? Icons.lock_outline : Icons.timer_outlined,
+            size: 16,
+            color: locked ? colors.phoneMuted : colors.accent,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: AppTextStyles.body(context, weight: FontWeight.w600).copyWith(
+              color: locked ? colors.phoneMuted : colors.accent,
+              fontSize: 13,
+            ),
+          ),
+        ],
       ),
     );
   }

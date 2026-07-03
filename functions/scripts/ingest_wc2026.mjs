@@ -1,12 +1,16 @@
 import admin from "firebase-admin";
 import { createRequire } from "node:module";
 
+import { initFirebaseAdmin } from "./firebase_admin_init.mjs";
+
 const require = createRequire(import.meta.url);
 const {
   TOURNAMENT_ID,
   fetchWc2026Matches,
+  collectTeamsFromMatch,
   toFirestoreMatchDoc,
 } = require("../lib/footballDataOrg.js");
+const { enrichTournamentCrests } = require("../lib/teamCrestEnrichment.js");
 
 function requireEnv(name) {
   const value = process.env[name];
@@ -17,9 +21,7 @@ function requireEnv(name) {
 async function main() {
   const token = requireEnv("FOOTBALL_DATA_TOKEN");
 
-  admin.initializeApp({
-    credential: admin.credential.applicationDefault(),
-  });
+  initFirebaseAdmin();
 
   const db = admin.firestore();
   const { matches, resultSet } = await fetchWc2026Matches(token);
@@ -31,17 +33,23 @@ async function main() {
   }
 
   const col = db.collection("tournaments").doc(TOURNAMENT_ID).collection("matches");
+  const teamsCol = db.collection("tournaments").doc(TOURNAMENT_ID).collection("teams");
   const batchSize = 400;
   let batch = db.batch();
   let inBatch = 0;
   let written = 0;
   let skipped = 0;
+  const teamDocs = new Map();
 
   for (const match of matches) {
     const doc = toFirestoreMatchDoc(match);
     if (!doc || match.id == null) {
       skipped += 1;
       continue;
+    }
+
+    for (const team of collectTeamsFromMatch(match, doc)) {
+      teamDocs.set(team.id, team.doc);
     }
 
     const ref = col.doc(String(match.id));
@@ -67,6 +75,33 @@ async function main() {
     await batch.commit();
   }
 
+  batch = db.batch();
+  inBatch = 0;
+  let teamsWritten = 0;
+
+  for (const [teamId, teamDoc] of teamDocs) {
+    batch.set(
+      teamsCol.doc(teamId),
+      {
+        ...teamDoc,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true },
+    );
+    inBatch += 1;
+    teamsWritten += 1;
+
+    if (inBatch >= batchSize) {
+      await batch.commit();
+      batch = db.batch();
+      inBatch = 0;
+    }
+  }
+
+  if (inBatch > 0) {
+    await batch.commit();
+  }
+
   const metaRef = db.doc(`tournaments/${TOURNAMENT_ID}/meta/ingestion`);
   await metaRef.set(
     {
@@ -75,13 +110,25 @@ async function main() {
       provider: "football-data-org",
       resultSetCount: resultSet.count ?? matches.length,
       upserted: written,
+      teamsUpserted: teamsWritten,
       skipped,
     },
     { merge: true },
   );
 
   console.log(
-    `Upserted ${written} matches into tournaments/${TOURNAMENT_ID}/matches (skipped ${skipped}).`,
+    `Upserted ${written} matches and ${teamsWritten} teams into tournaments/${TOURNAMENT_ID} (skipped ${skipped}).`,
+  );
+
+  const crestResult = await enrichTournamentCrests(db, TOURNAMENT_ID);
+  console.log("Crest enrichment:", crestResult);
+
+  await metaRef.set(
+    {
+      crestEnrichment: crestResult,
+      crestEnrichedAt: admin.firestore.FieldValue.serverTimestamp(),
+    },
+    { merge: true },
   );
 }
 

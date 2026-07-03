@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../models/match.dart';
+import '../../utils/team_display.dart';
 import '../../models/match_status.dart';
 import '../../models/prediction.dart';
 import '../../repositories/repositories.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
+import '../../widgets/app_button.dart';
+import '../../widgets/app_card.dart';
 
 class PredictionInputCard extends StatefulWidget {
   const PredictionInputCard({
@@ -15,6 +20,7 @@ class PredictionInputCard extends StatefulWidget {
     required this.match,
     required this.canEdit,
     this.prediction,
+    this.embedded = false,
   });
 
   final Repositories repos;
@@ -23,6 +29,7 @@ class PredictionInputCard extends StatefulWidget {
   final GroupMatchOverlay match;
   final bool canEdit;
   final Prediction? prediction;
+  final bool embedded;
 
   @override
   State<PredictionInputCard> createState() => _PredictionInputCardState();
@@ -133,30 +140,26 @@ class _PredictionInputCardState extends State<PredictionInputCard> {
     final showEditor =
         widget.canEdit && widget.match.status == MatchStatus.scheduled;
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'Palpite',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 12),
-            if (!showEditor) ...[
-              Text(
-                _readOnlyLabel(),
-                style: Theme.of(context).textTheme.titleLarge,
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text('Seu Palpite', style: AppTextStyles.body(context, weight: FontWeight.w700)),
+        const SizedBox(height: 12),
+        if (!showEditor) ...[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Palpite registrado:', style: AppTextStyles.sub(context)),
+              Row(
+                children: [
+                  Icon(Icons.lock_outline, size: 14, color: appColors(context).phoneMuted),
+                  const SizedBox(width: 6),
+                  Text(_readOnlyLabel(), style: AppTextStyles.body(context, weight: FontWeight.w700)),
+                ],
               ),
-              const SizedBox(height: 8),
-              Text(
-                widget.prediction == null
-                    ? 'Você pode participar do pote sem palpitar.'
-                    : 'Palpite registrado para este jogo.',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ] else ...[
+            ],
+          ),
+        ] else ...[
               Row(
                 children: [
                   Expanded(
@@ -166,7 +169,7 @@ class _PredictionInputCardState extends State<PredictionInputCard> {
                       keyboardType: TextInputType.number,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       decoration: InputDecoration(
-                        labelText: widget.match.homeTeamId,
+                        labelText: TeamDisplay.label(widget.match.homeTeamId),
                       ),
                     ),
                   ),
@@ -181,7 +184,7 @@ class _PredictionInputCardState extends State<PredictionInputCard> {
                       keyboardType: TextInputType.number,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       decoration: InputDecoration(
-                        labelText: widget.match.awayTeamId,
+                        labelText: TeamDisplay.label(widget.match.awayTeamId),
                       ),
                     ),
                   ),
@@ -192,13 +195,14 @@ class _PredictionInputCardState extends State<PredictionInputCard> {
                 widget.prediction == null
                     ? 'Sem palpite — você ainda entra no pote se estiver participando.'
                     : 'Palpite atual: ${_readOnlyLabel()}',
-                style: Theme.of(context).textTheme.bodySmall,
+                style: AppTextStyles.sub(context),
               ),
               const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton(
+                    child: AppButtonOutline(
+                      label: 'Limpar',
                       onPressed: _saving
                           ? null
                           : () async {
@@ -206,35 +210,30 @@ class _PredictionInputCardState extends State<PredictionInputCard> {
                               _awayController.clear();
                               await _save(home: null, away: null);
                             },
-                      child: const Text('Limpar'),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: FilledButton(
+                    child: AppButton(
+                      label: 'Salvar',
+                      isLoading: _saving,
                       onPressed: _saving ? null : _submit,
-                      child: _saving
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Text('Salvar'),
                     ),
                   ),
                 ],
               ),
             ],
-            if (_error != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                _error!,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
-            ],
-          ],
-        ),
-      ),
+        if (_error != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            _error!,
+            style: TextStyle(color: appColors(context).danger),
+          ),
+        ],
+      ],
     );
+
+    if (widget.embedded) return content;
+    return AppCard(child: content);
   }
 }

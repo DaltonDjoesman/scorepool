@@ -1,7 +1,17 @@
 import 'package:flutter/material.dart';
 
 import '../../app.dart';
+import '../../routing/navigation_helpers.dart';
 import '../../models/group.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
+import '../../widgets/alert_box.dart';
+import '../../widgets/app_button.dart';
+import '../../widgets/app_card.dart';
+import '../../widgets/app_toast.dart';
+import 'group_match_filter_stages.dart';
+import 'group_screen.dart';
+import 'tournament_team_picker.dart';
 
 class EditGroupFilterScreen extends StatefulWidget {
   const EditGroupFilterScreen({super.key});
@@ -25,31 +35,6 @@ class _EditGroupFilterScreenState extends State<EditGroupFilterScreen> {
   String? _error;
 
   static const _tournamentId = 'wc2026';
-
-  static const _teams = <({String id, String name})>[
-    (id: 'BRA', name: 'Brasil'),
-    (id: 'ARG', name: 'Argentina'),
-    (id: 'URU', name: 'Uruguai'),
-    (id: 'USA', name: 'Estados Unidos'),
-    (id: 'MEX', name: 'México'),
-    (id: 'FRA', name: 'França'),
-    (id: 'ESP', name: 'Espanha'),
-    (id: 'POR', name: 'Portugal'),
-    (id: 'ENG', name: 'Inglaterra'),
-    (id: 'GER', name: 'Alemanha'),
-    (id: 'ITA', name: 'Itália'),
-    (id: 'NED', name: 'Holanda'),
-  ];
-
-  static const _stages = <({String id, String label})>[
-    (id: 'group', label: 'Grupos'),
-    (id: 'round_of_32', label: '32 avos'),
-    (id: 'round_of_16', label: 'Oitavas'),
-    (id: 'quarterfinal', label: 'Quartas'),
-    (id: 'semifinal', label: 'Semi'),
-    (id: 'third_place', label: '3º lugar'),
-    (id: 'final', label: 'Final'),
-  ];
 
   @override
   void dispose() {
@@ -102,9 +87,7 @@ class _EditGroupFilterScreenState extends State<EditGroupFilterScreen> {
         ),
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Filtro atualizado')),
-      );
+      AppToast.success(context, 'Filtro atualizado');
     } catch (e) {
       if (!mounted) return;
       setState(() => _error = e.toString());
@@ -123,10 +106,32 @@ class _EditGroupFilterScreenState extends State<EditGroupFilterScreen> {
     final groupId = state.currentGroupId;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Editar filtro')),
-      body: (uid == null || repos == null || groupId == null)
-          ? const Center(child: Text('Selecione um grupo primeiro.'))
-          : StreamBuilder<Group?>(
+      body: SafeArea(
+        child: (uid == null || repos == null || groupId == null)
+            ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('🔒', style: TextStyle(fontSize: 32)),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Selecione um grupo primeiro',
+                        style: AppTextStyles.displayHeadline(context, size: 18),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      AppButton(
+                        label: 'Voltar para o Grupo',
+                        onPressed: () =>
+                            navigateBack(context, fallback: GroupScreen.routePath),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            : StreamBuilder<Group?>(
               stream: repos.firestore.watchGroup(groupId),
               builder: (context, snapshot) {
                 final group = snapshot.data;
@@ -140,8 +145,16 @@ class _EditGroupFilterScreenState extends State<EditGroupFilterScreen> {
 
                 final isAdmin = group.adminUids.contains(uid);
                 if (!isAdmin) {
-                  return const Center(
-                    child: Text('Apenas admins podem editar o filtro.'),
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: AlertBox(
+                        variant: AlertBoxVariant.warning,
+                        child: const Text(
+                          'Apenas admins podem editar o filtro deste bolão.',
+                        ),
+                      ),
+                    ),
                   );
                 }
 
@@ -158,10 +171,36 @@ class _EditGroupFilterScreenState extends State<EditGroupFilterScreen> {
                 return ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
-                    Text(
-                      group.name,
-                      style: Theme.of(context).textTheme.titleLarge,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('GERENCIAR REGRAS', style: AppTextStyles.titleCaps(context)),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Filtro do Bolão',
+                                style: AppTextStyles.displayHeadline(context, size: 24),
+                              ),
+                            ],
+                          ),
+                        ),
+                        AppButtonOutline(
+                          label: 'Voltar',
+                          expand: false,
+                          onPressed: _saving
+                              ? null
+                              : () => navigateBack(
+                                    context,
+                                    fallback: GroupScreen.routePath,
+                                  ),
+                        ),
+                      ],
                     ),
+                    const SizedBox(height: 8),
+                    Text(group.name, style: AppTextStyles.body(context, weight: FontWeight.w700)),
                     const SizedBox(height: 8),
                     TextFormField(
                       controller: _teamSearchController,
@@ -173,37 +212,13 @@ class _EditGroupFilterScreenState extends State<EditGroupFilterScreen> {
                       onChanged: (_) => setState(() {}),
                     ),
                     const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        for (final team in _teams
-                            .where((t) {
-                              final q = _teamSearchController.text
-                                  .trim()
-                                  .toLowerCase();
-                              if (q.isEmpty) return true;
-                              return t.name.toLowerCase().contains(q) ||
-                                  t.id.toLowerCase().contains(q);
-                            })
-                            .take(24))
-                          FilterChip(
-                            label: Text(team.name),
-                            selected: _selectedTeamIds.contains(team.id),
-                            onSelected: _saving
-                                ? null
-                                : (selected) {
-                                    setState(() {
-                                      if (selected) {
-                                        _selectedTeamIds.add(team.id);
-                                      } else {
-                                        _selectedTeamIds.remove(team.id);
-                                      }
-                                      _includedMatchesCount = null;
-                                    });
-                                  },
-                          ),
-                      ],
+                    TournamentTeamPicker(
+                      tournamentId: _tournamentId,
+                      searchController: _teamSearchController,
+                      selectedTeamIds: _selectedTeamIds,
+                      enabled: !_saving,
+                      onSelectionChanged: () =>
+                          setState(() => _includedMatchesCount = null),
                     ),
                     const SizedBox(height: 12),
                     Text(
@@ -215,7 +230,7 @@ class _EditGroupFilterScreenState extends State<EditGroupFilterScreen> {
                       spacing: 8,
                       runSpacing: 8,
                       children: [
-                        for (final stage in _stages)
+                        for (final stage in groupMatchFilterStages)
                           FilterChip(
                             label: Text(stage.label),
                             selected: _selectedStages.contains(stage.id),
@@ -235,47 +250,54 @@ class _EditGroupFilterScreenState extends State<EditGroupFilterScreen> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            _includedMatchesCount == null
-                                ? 'Jogos incluídos: —'
-                                : 'Jogos incluídos: $_includedMatchesCount',
+                    AppCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Jogos incluídos',
+                                style: AppTextStyles.body(context, weight: FontWeight.w700),
+                              ),
+                              Text(
+                                '${_includedMatchesCount ?? '—'}',
+                                style: TextStyle(
+                                  color: appColors(context).accent,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                        TextButton(
-                          onPressed: (_saving || _countingMatches)
-                              ? null
-                              : _recountIncludedMatches,
-                          child: _countingMatches
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : const Text('Recalcular'),
-                        ),
-                      ],
+                          const SizedBox(height: 8),
+                          AppButtonOutline(
+                            label: 'Recalcular',
+                            onPressed: (_saving || _countingMatches)
+                                ? null
+                                : _recountIncludedMatches,
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 16),
-                    FilledButton(
+                    AppButton(
+                      label: _saving ? 'Sincronizando…' : 'Salvar Filtro no Firestore',
                       onPressed: _saving ? null : () => _save(groupId),
-                      child: const Text('Salvar filtro'),
+                      isLoading: _saving,
                     ),
                     if (_error != null) ...[
                       const SizedBox(height: 12),
-                      Text(
-                        _error!,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
+                      AlertBox(
+                        variant: AlertBoxVariant.danger,
+                        child: Text(_error!),
                       ),
                     ],
                   ],
                 );
               },
             ),
+      ),
     );
   }
 }

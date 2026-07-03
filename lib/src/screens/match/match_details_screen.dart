@@ -1,15 +1,24 @@
 import 'package:flutter/material.dart';
 
 import '../../app.dart';
+import '../../routing/navigation_helpers.dart';
 import '../../models/group.dart';
 import '../../models/match.dart';
 import '../../models/prediction.dart';
 import '../../models/round_participation.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
 import '../../utils/match_lock.dart';
+import '../../widgets/app_card.dart';
+import '../../models/match_status.dart';
+import '../../utils/pot_calculator.dart';
 import 'group_predictions_list.dart';
 import 'lock_countdown_banner.dart';
+import 'match_hero_card.dart';
+import 'participant_transparency_list.dart';
 import 'payment_ledger_card.dart';
 import 'prediction_input_card.dart';
+import '../shell/feed_shell_screen.dart';
 
 class MatchDetailsScreen extends StatefulWidget {
   const MatchDetailsScreen({super.key, required this.matchId});
@@ -73,8 +82,8 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Detalhes')),
-      body: StreamBuilder<Group?>(
+      body: SafeArea(
+        child: StreamBuilder<Group?>(
         stream: repos.firestore.watchGroup(groupId),
         builder: (context, groupSnap) {
           final group = groupSnap.data;
@@ -130,89 +139,139 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                               member.uid: member.displayName,
                           };
 
-                          return ListView(
-                            padding: const EdgeInsets.all(16),
+                      return StreamBuilder<Map<String, bool>>(
+                        stream: repos.firestore.watchMatchParticipations(
+                          groupId: groupId,
+                          matchId: widget.matchId,
+                        ),
+                        builder: (context, participationsSnap) {
+                          final participations = participationsSnap.data ?? {};
+                          final members = membersSnap.data ?? [];
+                          final inPotCount = PotCalculator.countInPotParticipants(
+                            memberCount: members.length,
+                            participationByUid: participations,
+                          );
+                          final isFinished =
+                              match.status == MatchStatus.finished;
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Text(
-                                '${match.homeTeamId} x ${match.awayTeamId}',
-                                style: Theme.of(context).textTheme.titleLarge,
-                              ),
-                              const SizedBox(height: 8),
-                              Text('${match.stage} · ${match.status.name}'),
-                              const SizedBox(height: 16),
-                              LockCountdownBanner(
-                                match: match,
-                                predictionLockMinutes: group.predictionLockMinutes,
-                              ),
-                              const SizedBox(height: 24),
-                              PredictionInputCard(
-                                repos: repos,
-                                groupId: groupId,
-                                uid: uid,
-                                match: match,
-                                canEdit: canChange,
-                                prediction: prediction,
-                              ),
-                              const SizedBox(height: 24),
-                              _ParticipationCard(
-                                isInPot: isInPot,
-                                optedOutAt: participation?.optedOutAt,
-                                canChange: canChange && !_savingParticipation,
-                                saving: _savingParticipation,
-                                error: _participationError,
-                                onChanged: (value) => _setParticipation(
-                                  groupId: groupId,
-                                  uid: uid,
-                                  isInPot: value,
+                              _DetailsHeader(
+                                onBack: () => navigateBack(
+                                  context,
+                                  fallback: FeedShellScreen.routePath,
                                 ),
                               ),
-                              if (shouldShowGroupPredictions(
-                                match: match,
-                                predictionLockMinutes: group.predictionLockMinutes,
-                              )) ...[
-                                const SizedBox(height: 24),
-                                Card(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(16),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
-                                      children: [
-                                        Text(
-                                          'Palpites da galera',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleMedium,
-                                        ),
-                                        const SizedBox(height: 12),
-                                        GroupPredictionsList(
-                                          repos: repos,
-                                          groupId: groupId,
-                                          matchId: widget.matchId,
-                                          memberNames: memberNames,
-                                        ),
-                                      ],
+                              Expanded(
+                                child: ListView(
+                                  padding: const EdgeInsets.all(16),
+                                  children: [
+                                    MatchHeroCard(
+                                      match: match,
+                                      currency: group.currency,
+                                      memberNames: memberNames,
+                                      entryFeeCents: group.entryFeeCents,
+                                      inPotParticipantCount: inPotCount,
                                     ),
-                                  ),
+                                    if (match.status.name == 'scheduled') ...[
+                                      const SizedBox(height: 16),
+                                      LockCountdownBanner(
+                                        match: match,
+                                        predictionLockMinutes: group.predictionLockMinutes,
+                                      ),
+                                    ],
+                                    const SizedBox(height: 16),
+                                    AppCard(
+                                      child: PredictionInputCard(
+                                        repos: repos,
+                                        groupId: groupId,
+                                        uid: uid,
+                                        match: match,
+                                        canEdit: canChange,
+                                        prediction: prediction,
+                                        embedded: true,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    _ParticipationCard(
+                                      isInPot: isInPot,
+                                      optedOutAt: participation?.optedOutAt,
+                                      canChange: canChange && !_savingParticipation,
+                                      saving: _savingParticipation,
+                                      error: _participationError,
+                                      entryFeeCents: group.entryFeeCents,
+                                      currency: group.currency,
+                                      onChanged: (value) => _setParticipation(
+                                        groupId: groupId,
+                                        uid: uid,
+                                        isInPot: value,
+                                      ),
+                                    ),
+                                    if (shouldShowGroupPredictions(
+                                      match: match,
+                                      predictionLockMinutes: group.predictionLockMinutes,
+                                    )) ...[
+                                      const SizedBox(height: 16),
+                                      AppCard(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                                          children: [
+                                            Text(
+                                              'Palpites do Grupo',
+                                              style: AppTextStyles.body(
+                                                context,
+                                                weight: FontWeight.w700,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 12),
+                                            GroupPredictionsList(
+                                              repos: repos,
+                                              groupId: groupId,
+                                              matchId: widget.matchId,
+                                              match: match,
+                                              memberNames: memberNames,
+                                              currentUid: uid,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                    if (!isFinished) ...[
+                                      const SizedBox(height: 16),
+                                      ParticipantTransparencyList(
+                                        repos: repos,
+                                        groupId: groupId,
+                                        matchId: widget.matchId,
+                                        memberNames: memberNames,
+                                        currentUid: uid,
+                                      ),
+                                    ],
+                                    if (isFinished) ...[
+                                      const SizedBox(height: 16),
+                                      PaymentLedgerCard(
+                                        repos: repos,
+                                        groupId: groupId,
+                                        matchId: widget.matchId,
+                                        match: match,
+                                        currentUid: uid,
+                                        currency: group.currency,
+                                        memberNames: memberNames,
+                                        entryFeeCents: group.entryFeeCents,
+                                      ),
+                                    ],
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'Este opt-out vale só para este jogo.',
+                                      style: AppTextStyles.sub(context),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                              const SizedBox(height: 24),
-                              PaymentLedgerCard(
-                                repos: repos,
-                                groupId: groupId,
-                                matchId: widget.matchId,
-                                match: match,
-                                currentUid: uid,
-                                currency: group.currency,
-                                memberNames: memberNames,
-                              ),
-                              const SizedBox(height: 24),
-                              Text(
-                                'Este opt-out vale só para este jogo.',
-                                style: Theme.of(context).textTheme.bodySmall,
                               ),
                             ],
                           );
+                        },
+                      );
                         },
                       );
                     },
@@ -222,6 +281,30 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
             },
           );
         },
+      ),
+    ),
+    );
+  }
+}
+
+class _DetailsHeader extends StatelessWidget {
+  const _DetailsHeader({required this.onBack});
+
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = appColors(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: onBack,
+            icon: Icon(Icons.chevron_left, color: colors.accent),
+          ),
+          Text('DETALHES DO JOGO', style: AppTextStyles.titleCaps(context)),
+        ],
       ),
     );
   }
@@ -233,6 +316,8 @@ class _ParticipationCard extends StatelessWidget {
     required this.canChange,
     required this.saving,
     required this.onChanged,
+    required this.entryFeeCents,
+    required this.currency,
     this.optedOutAt,
     this.error,
   });
@@ -240,66 +325,60 @@ class _ParticipationCard extends StatelessWidget {
   final bool isInPot;
   final bool canChange;
   final bool saving;
+  final int entryFeeCents;
+  final String currency;
   final DateTime? optedOutAt;
   final String? error;
   final ValueChanged<bool> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    final statusLabel = isInPot ? 'No pote' : 'Fora do pote (opt-out)';
-    final statusColor = isInPot
-        ? Theme.of(context).colorScheme.primary
-        : Theme.of(context).colorScheme.outline;
+    final colors = appColors(context);
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  isInPot ? Icons.savings_outlined : Icons.money_off_outlined,
-                  color: statusColor,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    statusLabel,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: statusColor,
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Participar do pote',
+                      style: AppTextStyles.body(context, weight: FontWeight.w700),
                     ),
-                  ),
+                    Text(
+                      'Custo de $currency ${(entryFeeCents / 100).toStringAsFixed(2)} se participar.',
+                      style: AppTextStyles.sub(context),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            if (optedOutAt != null && !isInPot) ...[
-              const SizedBox(height: 8),
-              Text(
-                'Opt-out em ${optedOutAt!.toLocal()}',
-                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              Switch(
+                value: isInPot,
+                onChanged: canChange && !saving ? onChanged : null,
               ),
             ],
-            const SizedBox(height: 12),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Participar do pote'),
-              subtitle: canChange
-                  ? const Text('Desative para não pagar neste jogo.')
-                  : const Text('Trancado — não é possível alterar.'),
-              value: isInPot,
-              onChanged: canChange && !saving ? onChanged : null,
-            ),
-            if (error != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                error!,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
+          if (!isInPot) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Fora do pote${optedOutAt != null ? ' (opt-out em ${optedOutAt!.toLocal()})' : ''}',
+              style: TextStyle(
+                fontSize: 12,
+                color: colors.danger,
+                fontWeight: FontWeight.w600,
               ),
-            ],
+            ),
           ],
-        ),
+          if (error != null) ...[
+            const SizedBox(height: 8),
+            Text(error!, style: TextStyle(color: colors.danger)),
+          ],
+        ],
       ),
     );
   }

@@ -33,21 +33,6 @@
         { "fieldPath": "status", "order": "ASCENDING" },
         { "fieldPath": "matchTimeUtc", "order": "DESCENDING" }
       ]
-    },
-    {
-      "collectionGroup": "matches",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [
-        { "fieldPath": "matchId", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "matchId", "order": "ASCENDING" },
-        { "fieldPath": "status", "order": "ASCENDING" },
-        { "fieldPath": "fromUid", "order": "ASCENDING" }
-      ]
     }
   ],
   "fieldOverrides": []

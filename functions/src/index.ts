@@ -6,9 +6,12 @@ import { logger } from 'firebase-functions';
 import {
   TOURNAMENT_ID,
   WC2026_SEASON,
+  collectTeamsFromMatch,
   fetchWc2026Matches,
   toFirestoreMatchDoc,
+  type FirestoreTeamDoc,
 } from './footballDataOrg';
+import { enrichTournamentCrests } from './teamCrestEnrichment';
 import { GroupDoc, reconcileGroupMatches } from './groupMatchReconciliation';
 import { closeoutCatalogMatch } from './matchCloseout';
 import { dispatchMatchNotifications } from './matchNotifications';
@@ -43,12 +46,17 @@ export const ingestWc2026MatchCatalog = onSchedule('every 6 hours', async () => 
   let skipped = 0;
   let batch = db.batch();
   let batchOps = 0;
+  const teamDocs = new Map<string, FirestoreTeamDoc>();
 
   for (const match of matches) {
     const doc = toFirestoreMatchDoc(match);
     if (!doc || match.id == null) {
       skipped += 1;
       continue;
+    }
+
+    for (const team of collectTeamsFromMatch(match, doc)) {
+      teamDocs.set(team.id, team.doc);
     }
 
     const docRef = db.doc(`tournaments/${TOURNAMENT_ID}/matches/${match.id}`);
@@ -74,14 +82,47 @@ export const ingestWc2026MatchCatalog = onSchedule('every 6 hours', async () => 
     await batch.commit();
   }
 
+  let teamBatch = db.batch();
+  let teamBatchOps = 0;
+  let teamsUpserted = 0;
+
+  for (const [teamId, teamDoc] of teamDocs) {
+    const teamRef = db.doc(`tournaments/${TOURNAMENT_ID}/teams/${teamId}`);
+    teamBatch.set(
+      teamRef,
+      {
+        ...teamDoc,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true },
+    );
+    teamBatchOps += 1;
+    teamsUpserted += 1;
+
+    if (teamBatchOps >= 450) {
+      await teamBatch.commit();
+      teamBatch = db.batch();
+      teamBatchOps = 0;
+    }
+  }
+
+  if (teamBatchOps > 0) {
+    await teamBatch.commit();
+  }
+
+  const crestResult = await enrichTournamentCrests(db, TOURNAMENT_ID);
+  logger.info('Crest enrichment complete', crestResult);
+
   await metaRef.set(
     {
       status: 'ok',
       provider: 'football-data-org',
       resultSetCount: resultSet.count ?? matches.length,
       upserted,
+      teamsUpserted,
       skipped,
       durationMs: Date.now() - startedAt,
+      crestEnrichment: crestResult,
     },
     { merge: true },
   );
