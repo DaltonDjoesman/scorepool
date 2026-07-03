@@ -25,7 +25,18 @@ class RankingScreen extends StatelessWidget {
             : StreamBuilder<List<MemberProfile>>(
                 stream: repos.firestore.watchMembers(groupId),
                 builder: (context, snapshot) {
-                  final members = snapshot.data ?? const <MemberProfile>[];
+                  if (snapshot.hasError) {
+                    return Center(child: Text(snapshot.error.toString()));
+                  }
+                  if (!snapshot.hasData) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  final members = snapshot.data!;
+                  if (members.isEmpty) {
+                    return const Center(child: Text('Nenhum membro no grupo.'));
+                  }
+
                   final sorted = [...members]
                     ..sort((a, b) {
                       final score = b.perfectScoresCount.compareTo(
@@ -37,16 +48,12 @@ class RankingScreen extends StatelessWidget {
                       return a.uid.compareTo(b.uid);
                     });
 
-                  return ListView(
-                    children: [
-                      Text(
-                        'Ranking',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      const SizedBox(height: 12),
-                      for (final entry in sorted.indexed)
-                        _MemberTile(rank: entry.$1 + 1, member: entry.$2),
-                    ],
+                  return ListView.separated(
+                    itemCount: sorted.length,
+                    separatorBuilder: (_, _) => const Divider(height: 1),
+                    itemBuilder: (context, index) {
+                      return _MemberTile(rank: index + 1, member: sorted[index]);
+                    },
                   );
                 },
               ),
@@ -74,7 +81,8 @@ class _MemberTile extends StatelessWidget {
     return ListTile(
       leading: avatar,
       title: Text(display),
-      subtitle: Text('Perfect scores: ${member.perfectScoresCount}'),
+      subtitle: Text('Placares exatos: ${member.perfectScoresCount}'),
+      trailing: Text('#$rank'),
     );
   }
 }
