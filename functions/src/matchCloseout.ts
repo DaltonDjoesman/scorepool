@@ -121,6 +121,15 @@ export async function closeoutGroupMatch(
         { merge: true },
       );
     }
+
+    for (const winnerUid of winnerUids) {
+      const memberRef = db.doc(`groups/${groupId}/members/${winnerUid}`);
+      batch.set(
+        memberRef,
+        { perfectScoresCount: admin.firestore.FieldValue.increment(1) },
+        { merge: true },
+      );
+    }
   }
 
   await batch.commit();

@@ -92,8 +92,8 @@
 ## 13. Ranking / Stats
 > GitHub issues: #44, #45
 
-- [ ] 13.1 Increment `perfectScoresCount` for winners at closeout
-- [ ] 13.2 Build ranking screen sorted by perfectScoresCount with deterministic tie-break
+- [x] 13.1 Increment `perfectScoresCount` for winners at closeout
+- [x] 13.2 Build ranking screen sorted by perfectScoresCount with deterministic tie-break
 
 ## 14. Notifications
 > GitHub issues: #46, #47
