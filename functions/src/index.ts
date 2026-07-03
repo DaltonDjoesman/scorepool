@@ -10,6 +10,7 @@ import {
   toFirestoreMatchDoc,
 } from './footballDataOrg';
 import { GroupDoc, reconcileGroupMatches } from './groupMatchReconciliation';
+import { closeoutCatalogMatch } from './matchCloseout';
 
 admin.initializeApp();
 
@@ -112,5 +113,37 @@ export const reconcileGroupMatchesOnFilterChange = onDocumentWritten(
       groupId,
       after as GroupDoc,
     );
+  },
+);
+
+export const closeoutOnCatalogMatchFinished = onDocumentWritten(
+  `tournaments/${TOURNAMENT_ID}/matches/{matchId}`,
+  async (event) => {
+    const before = event.data?.before?.data();
+    const afterSnap = event.data?.after;
+    if (!afterSnap?.exists) return;
+
+    const after = afterSnap.data();
+    if (!after || after.status !== 'finished') return;
+    if (before?.status === 'finished') return;
+
+    const homeScore = after.homeScore;
+    const awayScore = after.awayScore;
+    if (typeof homeScore !== 'number' || typeof awayScore !== 'number') return;
+
+    const closed = await closeoutCatalogMatch(
+      admin.firestore(),
+      event.params.matchId,
+      {
+        homeScore,
+        awayScore,
+        status: 'finished',
+      },
+    );
+
+    logger.info('Catalog match closeout processed', {
+      matchId: event.params.matchId,
+      groupsClosed: closed,
+    });
   },
 );

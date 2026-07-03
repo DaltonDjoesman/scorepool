@@ -35,7 +35,13 @@
       ]
     },
     {
-      "collectionGroup": "items",
+      "collectionGroup": "matches",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "matchId", "order": "ASCENDING" }
+      ]
+    },
+    {
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "matchId", "order": "ASCENDING" },

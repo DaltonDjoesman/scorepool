@@ -67,13 +67,13 @@
 ## 10. Pot, Winners, Accumulation (Backend Closeout)
 > GitHub issues: #32, #33, #34, #35, #36, #37
 
-- [ ] 10.1 Add `carryOverPot` to group and define deterministic rounding in cents
-- [ ] 10.2 Implement closeout function triggered when a match becomes finished in catalog:
-  - [ ] 10.2.1 Compute basePot from `isInPot=true`
-  - [ ] 10.2.2 Determine winners by exact score
-  - [ ] 10.2.3 If winners exist: set group match winners and generate debts
-  - [ ] 10.2.4 If no winners: add totalPot to `carryOverPot`
-- [ ] 10.3 Implement carryover application to the next eligible included group match
+- [x] 10.1 Add `carryOverPot` to group and define deterministic rounding in cents
+- [x] 10.2 Implement closeout function triggered when a match becomes finished in catalog:
+  - [x] 10.2.1 Compute basePot from `isInPot=true`
+  - [x] 10.2.2 Determine winners by exact score
+  - [x] 10.2.3 If winners exist: set group match winners and generate debts
+  - [x] 10.2.4 If no winners: add totalPot to `carryOverPot`
+- [x] 10.3 Implement carryover application to the next eligible included group match
 
 ## 11. Payment Ledger (“Já paguei”) UX
 > GitHub issues: #38, #39, #40
