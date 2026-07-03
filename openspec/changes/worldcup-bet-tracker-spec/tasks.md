@@ -98,8 +98,8 @@
 ## 14. Notifications
 > GitHub issues: #46, #47
 
-- [ ] 14.1 Configure FCM for Android and APNs/FCM for iOS
-- [ ] 14.2 Implement notifications for “lock em 15 min”, “kickoff”, and “pote acumulado” (server-side scheduling strategy)
+- [x] 14.1 Configure FCM for Android and APNs/FCM for iOS
+- [x] 14.2 Implement notifications for “lock em 15 min”, “kickoff”, and “pote acumulado” (server-side scheduling strategy)
 
 ## 15. QA, Testability, and Release Readiness
 > GitHub issues: #48, #49, #50
