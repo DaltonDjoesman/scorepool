@@ -11,10 +11,10 @@ class AppConfig {
   final bool firebaseEnabled;
 
   factory AppConfig.fromEnvironment() {
-    final env = const String.fromEnvironment('APP_ENV', defaultValue: 'dev');
+    final env = const String.fromEnvironment('APP_ENV', defaultValue: 'prod');
     final firebaseEnabled = const bool.fromEnvironment(
       'FIREBASE_ENABLED',
-      defaultValue: false,
+      defaultValue: true,
     );
 
     return AppConfig(

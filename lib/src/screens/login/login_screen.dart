@@ -1,22 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../auth/auth_controller.dart';
-import '../../config/app_config.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/alert_box.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_text_field.dart';
-import '../../widgets/status_badge.dart';
-import '../group/group_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key, required this.config, required this.auth});
+  const LoginScreen({super.key, required this.auth});
 
   static const routePath = '/login';
 
-  final AppConfig config;
   final AuthController? auth;
 
   @override
@@ -40,12 +35,6 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _submit() async {
-    if (!widget.config.firebaseEnabled) {
-      if (!mounted) return;
-      context.go(GroupScreen.routePath);
-      return;
-    }
-
     final auth = widget.auth;
     if (auth == null) return;
 
@@ -99,7 +88,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final auth = widget.auth;
     final user = auth?.user;
 
-    if (widget.config.firebaseEnabled && user != null) {
+    if (user != null) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
@@ -139,15 +128,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: AppTextStyles.displayHeadline(context),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 8),
-                    StatusBadge(
-                      label: widget.config.firebaseEnabled
-                          ? 'Firebase habilitado'
-                          : 'modo protótipo UI',
-                      variant: widget.config.firebaseEnabled
-                          ? StatusBadgeVariant.paid
-                          : StatusBadgeVariant.scheduled,
-                    ),
                   ],
                 ),
               ),
@@ -160,19 +140,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 16),
               ],
               _LoginForm(
-                  emailController: _emailController,
-                  passwordController: _passwordController,
-                  confirmPasswordController: _confirmPasswordController,
-                  isCreateAccount: _isCreateAccount,
-                  submitting: _submitting,
-                  firebaseEnabled: widget.config.firebaseEnabled,
-                  onToggleRegister: () => setState(() {
-                    _isCreateAccount = !_isCreateAccount;
-                    _error = null;
-                  }),
-                  onSubmit: _submit,
-                  onPrototypeContinue: () => context.go(GroupScreen.routePath),
-                ),
+                emailController: _emailController,
+                passwordController: _passwordController,
+                confirmPasswordController: _confirmPasswordController,
+                isCreateAccount: _isCreateAccount,
+                submitting: _submitting,
+                onToggleRegister: () => setState(() {
+                  _isCreateAccount = !_isCreateAccount;
+                  _error = null;
+                }),
+                onSubmit: _submit,
+              ),
             ],
           ),
         ),
@@ -188,10 +166,8 @@ class _LoginForm extends StatelessWidget {
     required this.confirmPasswordController,
     required this.isCreateAccount,
     required this.submitting,
-    required this.firebaseEnabled,
     required this.onToggleRegister,
     required this.onSubmit,
-    required this.onPrototypeContinue,
   });
 
   final TextEditingController emailController;
@@ -199,10 +175,8 @@ class _LoginForm extends StatelessWidget {
   final TextEditingController confirmPasswordController;
   final bool isCreateAccount;
   final bool submitting;
-  final bool firebaseEnabled;
   final VoidCallback onToggleRegister;
   final VoidCallback onSubmit;
-  final VoidCallback onPrototypeContinue;
 
   @override
   Widget build(BuildContext context) {
@@ -251,10 +225,8 @@ class _LoginForm extends StatelessWidget {
           ],
         ),
         AppButton(
-          label: firebaseEnabled
-              ? (isCreateAccount ? 'Cadastrar conta' : 'Entrar')
-              : 'Continuar (sem Firebase)',
-          onPressed: submitting ? null : (firebaseEnabled ? onSubmit : onPrototypeContinue),
+          label: isCreateAccount ? 'Cadastrar conta' : 'Entrar',
+          onPressed: submitting ? null : onSubmit,
           isLoading: submitting,
         ),
         const SizedBox(height: 8),

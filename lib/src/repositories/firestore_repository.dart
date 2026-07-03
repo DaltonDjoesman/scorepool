@@ -334,20 +334,6 @@ class FirestoreRepository {
     );
   }
 
-  Future<void> updateMemberPerfectScoresCount({
-    required String groupId,
-    required String uid,
-    required int perfectScoresCount,
-  }) async {
-    await _ensureFirestoreAuth();
-    if (perfectScoresCount < 0) {
-      throw ArgumentError.value(perfectScoresCount, 'perfectScoresCount');
-    }
-    await members(groupId).doc(uid).update({
-      'perfectScoresCount': perfectScoresCount,
-    });
-  }
-
   Future<void> updateGroupMatchFilter({
     required String groupId,
     required GroupMatchFilter matchFilter,
