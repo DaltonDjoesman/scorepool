@@ -86,10 +86,19 @@ service cloud.firestore {
         allow read: if isGroupMember(groupId);
 
         // Opt-out only for self and only before lock.
-        allow create, update: if isGroupMember(groupId)
+        allow create: if isGroupMember(groupId)
           && request.auth.uid == uid
           && request.time < lockTimeForMatch(groupId, matchId)
-          && request.resource.data.diff(resource.data).changedKeys().hasOnly(["isInPot"]);
+          && request.resource.data.uid == uid
+          && request.resource.data.isInPot is bool;
+
+        allow update: if isGroupMember(groupId)
+          && request.auth.uid == uid
+          && request.time < lockTimeForMatch(groupId, matchId)
+          && request.resource.data.diff(resource.data).changedKeys().hasOnly([
+            "isInPot",
+            "optedOutAt"
+          ]);
 
         allow delete: if false;
       }

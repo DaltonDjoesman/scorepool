@@ -6,6 +6,7 @@ import '../models/group.dart';
 import '../models/match.dart';
 import '../models/member.dart';
 import '../models/prediction.dart';
+import '../models/round_participation.dart';
 
 class FirestoreRepository {
   FirestoreRepository(this.db);
@@ -120,6 +121,67 @@ class FirestoreRepository {
           )
           .toList(growable: false),
     );
+  }
+
+  Stream<GroupMatchOverlay?> watchGroupMatch({
+    required String groupId,
+    required String matchId,
+  }) {
+    return groupMatches(groupId).doc(matchId).snapshots().map((snap) {
+      final data = snap.data();
+      if (data == null) return null;
+      return GroupMatchOverlay.fromMap(
+        matchId: snap.id,
+        groupId: groupId,
+        map: data,
+      );
+    });
+  }
+
+  Stream<RoundParticipation?> watchRoundParticipation({
+    required String groupId,
+    required String matchId,
+    required String uid,
+  }) {
+    return db
+        .doc(FirestorePaths.groupRoundUser(groupId, matchId, uid))
+        .snapshots()
+        .map((snap) {
+          final data = snap.data();
+          if (data == null) {
+            return RoundParticipation(
+              uid: uid,
+              groupId: groupId,
+              matchId: matchId,
+              isInPot: true,
+            );
+          }
+          return RoundParticipation.fromMap(
+            uid: uid,
+            groupId: groupId,
+            matchId: matchId,
+            map: data,
+          );
+        });
+  }
+
+  Future<void> updateRoundParticipation({
+    required String groupId,
+    required String matchId,
+    required String uid,
+    required bool isInPot,
+  }) async {
+    final data = <String, Object?>{
+      'uid': uid,
+      'groupId': groupId,
+      'matchId': matchId,
+      'isInPot': isInPot,
+      'optedOutAt': isInPot ? null : FieldValue.serverTimestamp(),
+    };
+
+    await db
+        .doc(FirestorePaths.groupRoundUser(groupId, matchId, uid))
+        .set(data, SetOptions(merge: true));
   }
 
   Future<void> upsertMemberProfile({
