@@ -39,12 +39,26 @@ service cloud.firestore {
         && groupMatchDoc(groupId, matchId).data.status == 'scheduled';
     }
 
-    function matchKickoffOpen(groupId, matchId) {
-      return groupMatchDoc(groupId, matchId).data.status == 'scheduled';
-    }
-
     function matchDebtsSettleable(groupId, matchId) {
       return groupMatchDoc(groupId, matchId).data.status == 'finished';
+    }
+
+    function matchWinnerUids(groupId, matchId) {
+      return groupMatchDoc(groupId, matchId).data.get('winnerUids', []);
+    }
+
+    function matchSettlementFieldsUnchanged() {
+      return request.resource.data.get('winnerUids', []) == resource.data.get('winnerUids', [])
+        && request.resource.data.get('basePotCents', null) == resource.data.get('basePotCents', null)
+        && request.resource.data.get('totalPotCents', null) == resource.data.get('totalPotCents', null)
+        && request.resource.data.get('closeoutAt', null) == resource.data.get('closeoutAt', null);
+    }
+
+    function matchSettlementFieldsAbsentOnCreate() {
+      return request.resource.data.get('winnerUids', []).size() == 0
+        && !('basePotCents' in request.resource.data)
+        && !('totalPotCents' in request.resource.data)
+        && !('closeoutAt' in request.resource.data);
     }
 
     // Global tournament catalog (read-only from clients)
@@ -72,8 +86,12 @@ service cloud.firestore {
     match /groups/{groupId} {
       // Signed-in users may read group metadata to validate an invite code before joining.
       allow read: if signedIn();
-      allow create: if signedIn();
-      allow update, delete: if isGroupAdmin(groupId);
+      allow create: if signedIn()
+        && request.auth.uid in request.resource.data.get('adminUids', [])
+        && request.resource.data.get('carryOverPotCents', 0) == 0;
+      allow update: if isGroupAdmin(groupId)
+        && request.resource.data.carryOverPotCents == resource.data.carryOverPotCents;
+      allow delete: if isGroupAdmin(groupId);
 
       // Members
       match /members/{uid} {
@@ -84,14 +102,19 @@ service cloud.firestore {
           && request.auth.uid == uid
           && groupExists(groupId)
           && request.resource.data.role == "member"
-          && request.resource.data.uid == uid;
+          && request.resource.data.uid == uid
+          && request.resource.data.get('perfectScoresCount', 0) == 0;
 
-        // Users can update their own display fields; admins can update anything.
+        // Users can update their own display fields; admins can update anything except perfectScoresCount.
         // Creators listed in adminUids may promote themselves once after group creation.
-        allow update: if isGroupAdmin(groupId)
+        allow update: if (
+            isGroupAdmin(groupId)
+            && request.resource.data.perfectScoresCount == resource.data.perfectScoresCount
+          )
           || (
             signedIn()
             && request.auth.uid == uid
+            && request.resource.data.perfectScoresCount == resource.data.perfectScoresCount
             && request.resource.data.diff(resource.data).changedKeys().hasOnly([
               "uid",
               "displayName",
@@ -106,6 +129,7 @@ service cloud.firestore {
             && resource.data.role == "member"
             && request.resource.data.role == "admin"
             && request.auth.uid in get(groupRef(groupId)).data.adminUids
+            && request.resource.data.perfectScoresCount == resource.data.perfectScoresCount
             && request.resource.data.diff(resource.data).changedKeys().hasOnly(["role"])
           );
 
@@ -113,11 +137,11 @@ service cloud.firestore {
           || (signedIn() && request.auth.uid == uid);
       }
 
-      // Group match overlay: members read; admins reconcile from the client
-      // until Cloud Functions are deployed on Blaze.
+      // Group match overlay: members read; admins reconcile catalog fields only.
       match /matches/{matchId} {
         allow read: if isGroupMember(groupId);
-        allow create, update: if isGroupAdmin(groupId);
+        allow create: if isGroupAdmin(groupId) && matchSettlementFieldsAbsentOnCreate();
+        allow update: if isGroupAdmin(groupId) && matchSettlementFieldsUnchanged();
         allow delete: if false;
       }
 
@@ -174,7 +198,7 @@ service cloud.firestore {
         allow delete: if false;
       }
 
-      // Debts ledger: read-only except "declare paid" by the payer after match finishes.
+      // Debts ledger: payer declares paid or picks another winner as payee.
       match /debts/{matchId}/items/{itemId} {
         allow read: if isGroupMember(groupId);
 
@@ -182,12 +206,24 @@ service cloud.firestore {
           && resource.data.fromUid == request.auth.uid
           && matchDebtsSettleable(groupId, matchId)
           && resource.data.status == 'pending'
-          && request.resource.data.status == 'paid'
-          && request.resource.data.declaredPaidAt == request.time
-          && request.resource.data.diff(resource.data).changedKeys().hasOnly([
-            "status",
-            "declaredPaidAt"
-          ]);
+          && request.resource.data.fromUid == resource.data.fromUid
+          && request.resource.data.amountCents == resource.data.amountCents
+          && (
+            (
+              request.resource.data.status == 'paid'
+              && request.resource.data.declaredPaidAt == request.time
+              && request.resource.data.diff(resource.data).changedKeys().hasOnly([
+                "status",
+                "declaredPaidAt"
+              ])
+            )
+            || (
+              request.resource.data.status == 'pending'
+              && request.resource.data.diff(resource.data).changedKeys().hasOnly(["toUid"])
+              && request.resource.data.toUid in matchWinnerUids(groupId, matchId)
+              && request.resource.data.toUid != resource.data.toUid
+            )
+          );
 
         allow create, delete: if false;
       }
@@ -199,4 +235,3 @@ service cloud.firestore {
     }
   }
 }
-

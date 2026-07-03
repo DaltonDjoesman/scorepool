@@ -1,9 +1,6 @@
 # Firebase setup (dev/prod)
 
-This app is designed to run in two modes:
-
-- **Prototype UI mode (default)**: Firebase is disabled (no auth/firestore calls).
-- **Firebase mode**: Firebase is enabled and the app expects native Firebase config.
+The app requires Firebase (Auth + Firestore) by default.
 
 ## 1) Create Firebase projects
 
@@ -50,11 +47,14 @@ The workflow runs every 5 minutes and upserts fixtures into:
 
 You can also run it manually using the "Run workflow" button in GitHub Actions.
 
-## 3) Run with Firebase enabled
-
-Enable Firebase at runtime with a compile-time flag:
+## 3) Run the app
 
 ```bash
-flutter run --dart-define=FIREBASE_ENABLED=true --dart-define=APP_ENV=dev
+flutter run
 ```
 
+For a dev environment:
+
+```bash
+flutter run --dart-define=APP_ENV=dev
+```

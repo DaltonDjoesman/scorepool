@@ -1,33 +1,162 @@
-# worldcupbettracker_app
+# CopaBolão 2026
 
-Flutter app for a simple World Cup 2026 “exact score” betting pool.
+> A full-stack mobile app for running an exact-score betting pool with friends and family during the 2026 FIFA World Cup.
 
-## Getting Started
+Built as a personal learning project to experiment end-to-end with Flutter, Firebase, TypeScript Cloud Functions, and real-time NoSQL data modelling.
 
-### Run (prototype UI mode)
+---
 
-Firebase is **disabled by default** so you can run the UI skeleton without any external setup:
+## What it does
+
+Friends join a group and bet on the **exact final score** of selected World Cup matches. Only a perfect guess wins the pot. If nobody guesses right, the pot rolls over to the next match (snowball effect). No money moves inside the app — winners are auto-calculated by the backend and losers self-declare payment on a public ledger that every group member can see in real time.
+
+Key rules:
+- **Exact score only** — guessing the correct winner is not enough.
+- **Multiple winners** split the pot equally; each loser pays their individual share to each winner.
+- **Zero winners** → full pot carries over to the next group match.
+- **Participation is independent of prediction** — you can be in the pot without guessing a score (opt-out by the lock deadline to skip a round).
+- **Prediction lock** — 15 minutes before kickoff; opt-out deadline is the same.
+- **"I've paid" ledger** — public, live, grouped: pending first, declared-paid second.
+
+---
+
+## Why I built this
+
+I'm a Computer Engineering student and I wanted a real-world project to put theory into practice — not a todo-list tutorial, but something with actual domain complexity, external integrations, and real usage pressure (people actually used it).
+
+Specific things I wanted to learn:
+- Designing a production-grade Flutter app with a clean layered architecture
+- Modelling a relational-ish domain (groups, rounds, debts, carryover) on top of a NoSQL database
+- Writing server-side business rules in TypeScript Cloud Functions that the client cannot bypass
+- Consuming an external API server-side to stay within free-tier quotas
+- Thinking about security: Firestore rules that enforce time windows and ownership
+
+---
+
+## Tech stack
+
+| Layer | Technology | Role |
+|---|---|---|
+| Mobile app | Flutter / Dart | Cross-platform Android & iOS |
+| Navigation | go_router | Declarative, type-safe routing |
+| Auth | Firebase Auth | Email/password + Google sign-in |
+| Database | Cloud Firestore | Real-time NoSQL; live payment ledger |
+| Backend | Cloud Functions (TypeScript, Node 18) | Match ingestion, pot closeout, carry-over, notifications |
+| Push notifications | Firebase Cloud Messaging + APNs | Kickoff reminders, rollover alerts |
+| Match data | football-data.org API *(server-side only)* | Schedule, scores, team crests |
+| Security | Firestore Security Rules | Server-enforced ownership and time-window rules |
+| UI prototype | React (inline Babel) + CSS | Interactive HTML mockup used for design exploration before Flutter implementation |
+
+---
+
+## Architecture
+
+```
+┌──────────────────────────────────────────┐
+│  Flutter app  (Android / iOS)            │
+│  · firebase_auth · cloud_firestore       │
+│  · firebase_messaging · go_router        │
+│  · Repository layer, models, screens     │
+└───────────────────┬──────────────────────┘
+                    │  real-time listeners + writes
+┌───────────────────▼──────────────────────┐
+│  Cloud Firestore                         │
+│  · tournaments/{id}/matches (global)     │
+│  · groups / members                      │
+│  · groups/{id}/matches (group overlay)   │
+│  · predictions / roundParticipants       │
+│  · debts (payment ledger per match)      │
+└───────────────────┬──────────────────────┘
+                    │  Firestore triggers + scheduled jobs
+┌───────────────────▼──────────────────────┐
+│  Cloud Functions  (TypeScript)           │
+│  · ingestWc2026       — catalog sync     │
+│  · reconcileGroupMatches — filter logic  │
+│  · onMatchFinished    — closeout & debts │
+│  · applyCarryover     — pot accumulation │
+│  · matchNotifications — push dispatch    │
+└───────────────────┬──────────────────────┘
+                    │
+┌───────────────────▼──────────────────────┐
+│  football-data.org API                   │
+│  (consumed server-side; results cached   │
+│   in Firestore to stay within free tier) │
+└──────────────────────────────────────────┘
+```
+
+---
+
+## Engineering highlights
+
+A few decisions that were more interesting to work through than I expected:
+
+**Pot math in integer cents** — all monetary amounts are stored and computed as integer cents (e.g. `200` for €2.00) to avoid floating-point drift. When the pot doesn't divide evenly across winners, the remainder is assigned deterministically to the first winner by stable sort so totals always balance exactly.
+
+**Carry-over resilient to filter changes** — instead of chaining "nextMatchId" references (which break when a filter change removes a match), the group document holds a single `carryOverPot` field. It accumulates when a round ends with no winners and is applied to the next eligible group match when that match is activated. Filter changes can't corrupt the carry-over balance.
+
+**Match filter as a set union** — a match enters a group if:
+`homeTeamId ∈ selectedTeams OR awayTeamId ∈ selectedTeams OR stage ∈ selectedStages`
+This lets groups follow specific national teams and also always include knockout rounds regardless of teams.
+
+**Updating the filter without breaking history** — when an admin edits the filter, future unstarted matches can be added or soft-removed (`excludedByFilter: true`). Matches that are live, finished, or past prediction lock are never removed — their financial history is immutable.
+
+**Server-enforced time windows** — prediction lock, opt-out deadline, and "paid" declaration deadline are all enforced by Firestore Security Rules and Cloud Functions. The client never has authority over these timestamps.
+
+---
+
+## App screens
+
+| Screen | Description |
+|---|---|
+| Login | Email/password sign-in; Google sign-in |
+| Groups | Create a group (currency, entry fee, match filter); join via code |
+| Match feed | Tabs: Upcoming · Live · Finished; accumulated pot banner on rollover matches |
+| Prediction input | Score input with live countdown to lock; opt-out toggle |
+| Live match | Read-only view of all locked predictions ("secar palpites") |
+| Match details | Final score, pot breakdown, winners |
+| Payment ledger | Public debt list — pending first; "Já paguei" action per debt |
+| Ranking | Perfect-score leaderboard; podium for top 3 |
+
+> **Interactive prototype** — before building in Flutter, I designed all screens as a single-file React prototype. Open [`worldcup-bet-tracker.html`](worldcup-bet-tracker.html) in a browser to explore it.
+
+---
+
+## Running locally
+
+### Prerequisites
+
+- Flutter SDK `>=3.11`
+- Node.js 18 (for Cloud Functions)
+- A Firebase project with Firestore, Auth, and Functions enabled
+
+See [`docs/firebase_setup.md`](docs/firebase_setup.md) for Firebase configuration steps and [`docs/security.md`](docs/security.md) before making the repo public.
+
+### Flutter app
 
 ```bash
 flutter pub get
-flutter run
+flutter run                                     # production Firebase
+flutter run --dart-define=APP_ENV=dev           # dev Firebase project
+flutter run --dart-define=FIREBASE_ENABLED=false # widget tests, no Firebase
 ```
 
-### Run (Firebase mode)
-
-Follow `docs/firebase_setup.md`, then run:
+### Cloud Functions
 
 ```bash
-flutter run --dart-define=FIREBASE_ENABLED=true --dart-define=APP_ENV=dev
+cd functions
+npm install
+npm run build
+
+# Ingest the WC 2026 match catalog into Firestore
+npm run ingest:wc2026
+
+# Run local scripts
+npm run test:pot            # pot math unit tests
+npm run test:reconciliation # group filter reconciliation tests
 ```
 
-A few resources to get you started if this is your first Flutter project:
+---
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Project status
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-
+Personal / learning project — actively developed during the 2026 World Cup cycle. Not intended for production use beyond the group it was built for.

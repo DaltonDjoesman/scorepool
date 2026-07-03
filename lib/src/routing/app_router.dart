@@ -29,8 +29,6 @@ GoRouter createAppRouter({
     refreshListenable: refresh.isEmpty ? null : Listenable.merge(refresh),
     initialLocation: LoginScreen.routePath,
     redirect: (context, state) {
-      if (!config.firebaseEnabled) return null;
-
       final signedIn = auth?.isSignedIn ?? false;
       final location = state.matchedLocation;
       final onLogin = location == LoginScreen.routePath;
@@ -62,7 +60,7 @@ GoRouter createAppRouter({
     routes: [
       GoRoute(
         path: LoginScreen.routePath,
-        builder: (context, state) => LoginScreen(config: config, auth: auth),
+        builder: (context, state) => LoginScreen(auth: auth),
       ),
       GoRoute(
         path: GroupScreen.routePath,
