@@ -7,6 +7,7 @@ import '../../models/prediction.dart';
 import '../../models/round_participation.dart';
 import '../../utils/match_lock.dart';
 import 'lock_countdown_banner.dart';
+import 'payment_ledger_card.dart';
 import 'prediction_input_card.dart';
 
 class MatchDetailsScreen extends StatefulWidget {
@@ -120,48 +121,68 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                     builder: (context, predictionSnap) {
                       final prediction = predictionSnap.data;
 
-                      return ListView(
-                        padding: const EdgeInsets.all(16),
-                        children: [
-                          Text(
-                            '${match.homeTeamId} x ${match.awayTeamId}',
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          const SizedBox(height: 8),
-                          Text('${match.stage} · ${match.status.name}'),
-                          const SizedBox(height: 16),
-                          LockCountdownBanner(
-                            match: match,
-                            predictionLockMinutes: group.predictionLockMinutes,
-                          ),
-                          const SizedBox(height: 24),
-                          PredictionInputCard(
-                            repos: repos,
-                            groupId: groupId,
-                            uid: uid,
-                            match: match,
-                            canEdit: canChange,
-                            prediction: prediction,
-                          ),
-                          const SizedBox(height: 24),
-                          _ParticipationCard(
-                            isInPot: isInPot,
-                            optedOutAt: participation?.optedOutAt,
-                            canChange: canChange && !_savingParticipation,
-                            saving: _savingParticipation,
-                            error: _participationError,
-                            onChanged: (value) => _setParticipation(
-                              groupId: groupId,
-                              uid: uid,
-                              isInPot: value,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          Text(
-                            'Este opt-out vale só para este jogo.',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ],
+                      return StreamBuilder(
+                        stream: repos.firestore.watchMembers(groupId),
+                        builder: (context, membersSnap) {
+                          final memberNames = <String, String>{
+                            for (final member in membersSnap.data ?? [])
+                              member.uid: member.displayName,
+                          };
+
+                          return ListView(
+                            padding: const EdgeInsets.all(16),
+                            children: [
+                              Text(
+                                '${match.homeTeamId} x ${match.awayTeamId}',
+                                style: Theme.of(context).textTheme.titleLarge,
+                              ),
+                              const SizedBox(height: 8),
+                              Text('${match.stage} · ${match.status.name}'),
+                              const SizedBox(height: 16),
+                              LockCountdownBanner(
+                                match: match,
+                                predictionLockMinutes: group.predictionLockMinutes,
+                              ),
+                              const SizedBox(height: 24),
+                              PredictionInputCard(
+                                repos: repos,
+                                groupId: groupId,
+                                uid: uid,
+                                match: match,
+                                canEdit: canChange,
+                                prediction: prediction,
+                              ),
+                              const SizedBox(height: 24),
+                              _ParticipationCard(
+                                isInPot: isInPot,
+                                optedOutAt: participation?.optedOutAt,
+                                canChange: canChange && !_savingParticipation,
+                                saving: _savingParticipation,
+                                error: _participationError,
+                                onChanged: (value) => _setParticipation(
+                                  groupId: groupId,
+                                  uid: uid,
+                                  isInPot: value,
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              PaymentLedgerCard(
+                                repos: repos,
+                                groupId: groupId,
+                                matchId: widget.matchId,
+                                match: match,
+                                currentUid: uid,
+                                currency: group.currency,
+                                memberNames: memberNames,
+                              ),
+                              const SizedBox(height: 24),
+                              Text(
+                                'Este opt-out vale só para este jogo.',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
+                          );
+                        },
                       );
                     },
                   );

@@ -243,6 +243,29 @@ class FirestoreRepository {
     );
   }
 
+  Future<void> declareDebtPaid({
+    required String groupId,
+    required String matchId,
+    required String debtItemId,
+  }) async {
+    await debtItems(groupId: groupId, matchId: matchId).doc(debtItemId).update({
+      'status': DebtStatus.paid.name,
+      'declaredPaidAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  static List<DebtItem> sortDebtsForLedger(List<DebtItem> debts) {
+    final copy = [...debts];
+    copy.sort((a, b) {
+      final statusOrder = a.status.index.compareTo(b.status.index);
+      if (statusOrder != 0) return statusOrder;
+      final fromCompare = a.fromUid.compareTo(b.fromUid);
+      if (fromCompare != 0) return fromCompare;
+      return a.toUid.compareTo(b.toUid);
+    });
+    return copy;
+  }
+
   Future<int> countIncludedCatalogMatches({
     required String tournamentId,
     required List<String> teamIds,
