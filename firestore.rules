@@ -26,16 +26,25 @@ service cloud.firestore {
       return isGroupMember(groupId) && get(memberRef(groupId, request.auth.uid)).data.role == "admin";
     }
 
-    function matchRef(matchId) {
-      return /databases/$(database)/documents/tournaments/wc2026/matches/$(matchId);
+    function groupMatchRef(groupId, matchId) {
+      return /databases/$(database)/documents/groups/$(groupId)/matches/$(matchId);
     }
 
-    function matchTimeUtc(matchId) {
-      return get(matchRef(matchId)).data.matchTimeUtc;
+    function groupMatchDoc(groupId, matchId) {
+      return get(groupMatchRef(groupId, matchId));
     }
 
-    function lockTimeForMatch(groupId, matchId) {
-      return matchTimeUtc(matchId) - duration.value(get(groupRef(groupId)).data.predictionLockMinutes, "m");
+    function predictionsOpen(groupId, matchId) {
+      return groupMatchDoc(groupId, matchId).data.lockedInGroup == false
+        && groupMatchDoc(groupId, matchId).data.status == 'scheduled';
+    }
+
+    function matchKickoffOpen(groupId, matchId) {
+      return groupMatchDoc(groupId, matchId).data.status == 'scheduled';
+    }
+
+    function matchDebtsSettleable(groupId, matchId) {
+      return groupMatchDoc(groupId, matchId).data.status == 'finished';
     }
 
     // Global tournament catalog (read-only from clients)
@@ -44,43 +53,72 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    match /tournaments/wc2026/teams/{teamId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    // User catalog: groupIds the signed-in user belongs to (client-maintained).
+    match /users/{uid} {
+      allow read, write: if signedIn() && request.auth.uid == uid;
+    }
+
+    // Collection group: list own membership docs across all bolões.
+    match /{path=**}/members/{memberUid} {
+      allow read: if signedIn() && request.auth.uid == memberUid;
+    }
+
     // Groups root
     match /groups/{groupId} {
-      allow read: if isGroupMember(groupId);
+      // Signed-in users may read group metadata to validate an invite code before joining.
+      allow read: if signedIn();
       allow create: if signedIn();
       allow update, delete: if isGroupAdmin(groupId);
 
       // Members
       match /members/{uid} {
-        allow read: if isGroupMember(groupId);
+        allow read: if isGroupMember(groupId)
+          || (signedIn() && request.auth.uid == uid);
 
-        // Allow a user to create their own member profile document (join flow),
-        // but do not let them grant themselves admin.
         allow create: if signedIn()
           && request.auth.uid == uid
           && groupExists(groupId)
-          && request.resource.data.role == "member";
+          && request.resource.data.role == "member"
+          && request.resource.data.uid == uid;
 
         // Users can update their own display fields; admins can update anything.
+        // Creators listed in adminUids may promote themselves once after group creation.
         allow update: if isGroupAdmin(groupId)
           || (
             signedIn()
             && request.auth.uid == uid
             && request.resource.data.diff(resource.data).changedKeys().hasOnly([
+              "uid",
               "displayName",
               "photoUrl",
               "fcmToken",
               "fcmTokenUpdatedAt"
             ])
+          )
+          || (
+            signedIn()
+            && request.auth.uid == uid
+            && resource.data.role == "member"
+            && request.resource.data.role == "admin"
+            && request.auth.uid in get(groupRef(groupId)).data.adminUids
+            && request.resource.data.diff(resource.data).changedKeys().hasOnly(["role"])
           );
 
-        allow delete: if isGroupAdmin(groupId);
+        allow delete: if isGroupAdmin(groupId)
+          || (signedIn() && request.auth.uid == uid);
       }
 
-      // Group match overlay: clients read only (managed by backend reconciliation).
+      // Group match overlay: members read; admins reconcile from the client
+      // until Cloud Functions are deployed on Blaze.
       match /matches/{matchId} {
         allow read: if isGroupMember(groupId);
-        allow write: if false;
+        allow create, update: if isGroupAdmin(groupId);
+        allow delete: if false;
       }
 
       // Round participation per match
@@ -90,13 +128,13 @@ service cloud.firestore {
         // Opt-out only for self and only before lock.
         allow create: if isGroupMember(groupId)
           && request.auth.uid == uid
-          && request.time < lockTimeForMatch(groupId, matchId)
+          && predictionsOpen(groupId, matchId)
           && request.resource.data.uid == uid
           && request.resource.data.isInPot is bool;
 
         allow update: if isGroupMember(groupId)
           && request.auth.uid == uid
-          && request.time < lockTimeForMatch(groupId, matchId)
+          && predictionsOpen(groupId, matchId)
           && request.resource.data.diff(resource.data).changedKeys().hasOnly([
             "isInPot",
             "optedOutAt"
@@ -109,10 +147,22 @@ service cloud.firestore {
       match /predictions/{predictionId} {
         allow read: if isGroupMember(groupId);
 
-        allow create, update: if isGroupMember(groupId)
+        allow create: if isGroupMember(groupId)
           && request.resource.data.uid == request.auth.uid
           && predictionId == (request.auth.uid + "_" + request.resource.data.matchId)
-          && request.time < lockTimeForMatch(groupId, request.resource.data.matchId)
+          && predictionsOpen(groupId, request.resource.data.matchId)
+          && request.resource.data.keys().hasOnly([
+            "groupId",
+            "uid",
+            "matchId",
+            "predictedHomeScore",
+            "predictedAwayScore"
+          ]);
+
+        allow update: if isGroupMember(groupId)
+          && request.resource.data.uid == request.auth.uid
+          && predictionId == (request.auth.uid + "_" + request.resource.data.matchId)
+          && predictionsOpen(groupId, request.resource.data.matchId)
           && request.resource.data.diff(resource.data).changedKeys().hasOnly([
             "groupId",
             "uid",
@@ -124,14 +174,15 @@ service cloud.firestore {
         allow delete: if false;
       }
 
-      // Debts ledger: read-only except "declare paid" by the payer before kickoff.
+      // Debts ledger: read-only except "declare paid" by the payer after match finishes.
       match /debts/{matchId}/items/{itemId} {
         allow read: if isGroupMember(groupId);
 
         allow update: if isGroupMember(groupId)
           && resource.data.fromUid == request.auth.uid
-          && request.time < matchTimeUtc(matchId)
-          && request.resource.data.status == "paid"
+          && matchDebtsSettleable(groupId, matchId)
+          && resource.data.status == 'pending'
+          && request.resource.data.status == 'paid'
           && request.resource.data.declaredPaidAt == request.time
           && request.resource.data.diff(resource.data).changedKeys().hasOnly([
             "status",

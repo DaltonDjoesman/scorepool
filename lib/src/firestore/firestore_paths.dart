@@ -1,6 +1,9 @@
 class FirestorePaths {
   static const groups = 'groups';
   static const tournaments = 'tournaments';
+  static const users = 'users';
+
+  static String user(String uid) => '$users/$uid';
 
   static String group(String groupId) => '$groups/$groupId';
   static String groupMembers(String groupId) => '${group(groupId)}/members';
@@ -38,4 +41,9 @@ class FirestorePaths {
       '$tournaments/$tournamentId/matches';
   static String tournamentMatch(String tournamentId, String matchId) =>
       '${tournamentMatches(tournamentId)}/$matchId';
+
+  static String tournamentTeams(String tournamentId) =>
+      '$tournaments/$tournamentId/teams';
+  static String tournamentTeam(String tournamentId, String teamId) =>
+      '${tournamentTeams(tournamentId)}/$teamId';
 }

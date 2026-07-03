@@ -16,6 +16,7 @@ class MemberProfile {
   final int perfectScoresCount;
 
   Map<String, Object?> toMap() => {
+    'uid': uid,
     'displayName': displayName,
     'photoUrl': photoUrl,
     'role': role.name,

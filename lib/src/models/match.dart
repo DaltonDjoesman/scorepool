@@ -81,6 +81,8 @@ class GroupMatchOverlay {
     required this.stage,
     this.homeFlag,
     this.awayFlag,
+    this.homeScore,
+    this.awayScore,
     this.basePotCents,
     this.totalPotCents,
   });
@@ -98,6 +100,8 @@ class GroupMatchOverlay {
   final String stage;
   final String? homeFlag;
   final String? awayFlag;
+  final int? homeScore;
+  final int? awayScore;
   final int? basePotCents;
   final int? totalPotCents;
 
@@ -115,6 +119,8 @@ class GroupMatchOverlay {
     'stage': stage,
     'homeFlag': homeFlag,
     'awayFlag': awayFlag,
+    'homeScore': homeScore,
+    'awayScore': awayScore,
     'basePotCents': basePotCents,
     'totalPotCents': totalPotCents,
   };
@@ -143,6 +149,8 @@ class GroupMatchOverlay {
       stage: (map['stage'] as String?) ?? '',
       homeFlag: map['homeFlag'] as String?,
       awayFlag: map['awayFlag'] as String?,
+      homeScore: (map['homeScore'] as num?)?.toInt(),
+      awayScore: (map['awayScore'] as num?)?.toInt(),
       basePotCents: (map['basePotCents'] as num?)?.toInt(),
       totalPotCents: (map['totalPotCents'] as num?)?.toInt(),
     );

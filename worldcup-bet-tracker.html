@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="pt">
 <head>
@@ -853,8 +852,156 @@
       display: inline-block;
       line-height: 0;
     }
+
+    /* Additions for form & chips */
+    .chip-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .chip {
+      background: var(--phone-surface-hover);
+      border: 1px solid var(--phone-border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--phone-fg);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+    .chip-active {
+      background: var(--accent-light);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .phase-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .phase-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--phone-fg);
+      cursor: pointer;
+    }
+    .phase-item input {
+      accent-color: var(--accent);
+      width: 16px;
+      height: 16px;
+    }
+    .alert-box {
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.4;
+      margin-bottom: 12px;
+    }
+    .alert-danger {
+      background: oklch(95% 0.02 25);
+      border: 1px solid var(--danger);
+      color: var(--danger);
+    }
+    .alert-warning {
+      background: oklch(95% 0.02 65);
+      border: 1px solid var(--gold);
+      color: var(--gold);
+    }
+    .alert-info {
+      background: var(--phone-surface-hover);
+      border: 1px solid var(--phone-border);
+      color: var(--phone-muted);
+    }
+    .route-bar {
+      height: 28px;
+      background: var(--phone-input-bg);
+      border-bottom: 1px solid var(--phone-border);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      font-family: ui-monospace, monospace;
+      font-size: 10px;
+      color: var(--phone-muted);
+      gap: 4px;
+    }
+    .route-indicator {
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .form-group {
+      margin-bottom: 12px;
+    }
+    .form-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--phone-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+      display: block;
+    }
+    .spin {
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Toggle Switch (iOS Style) */
+    .switch-container {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 28px;
+    }
+    .switch-container input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .switch-slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background-color: var(--phone-border);
+      transition: .3s;
+      border-radius: 34px;
+    }
+    .switch-slider:before {
+      position: absolute;
+      content: "";
+      height: 22px;
+      width: 22px;
+      left: 3px;
+      bottom: 3px;
+      background-color: #fff;
+      transition: .3s;
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    input:checked + .switch-slider {
+      background-color: var(--accent);
+    }
+    input:focus + .switch-slider {
+      box-shadow: 0 0 1px var(--accent);
+    }
+    input:checked + .switch-slider:before {
+      transform: translateX(22px);
+    }
+    input:disabled + .switch-slider {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
   </style>
-</head>
 <body>
 
   <div class="dashboard-container">
@@ -927,8 +1074,8 @@
       <div class="tweak-group">
         <label class="tweak-label">Resultado do Usuário (Jogo 4)</label>
         <select class="tweak-select" id="tweak-user-status">
-          <option value="lost">Você Errou (Perdedor - R$ 10 pendente)</option>
-          <option value="won">Você Acertou (Vendedor - Divide o pote)</option>
+          <option value="lost">Você Errou (Perdedor - pendente)</option>
+          <option value="won">Você Acertou (Vencedor - divide o pote)</option>
         </select>
         <span style="font-size: 11px; color: #627768; margin-top: 4px; display: block;">
           Altere para ver a tela de detalhes como vencedor ou perdedor.
@@ -938,15 +1085,31 @@
       <div class="tweak-group">
         <label class="tweak-label">Moeda do Grupo</label>
         <select class="tweak-select" id="tweak-currency">
-          <option value="R$">Real (R$)</option>
-          <option value="€">Euro (€)</option>
-          <option value="$">Dólar ($)</option>
+          <option value="BRL">Real (BRL)</option>
+          <option value="EUR">Euro (EUR)</option>
+          <option value="USD">Dólar (USD)</option>
         </select>
       </div>
 
       <div class="tweak-group">
         <label class="tweak-label">Valor de Entrada por Jogo</label>
         <input type="number" class="app-input" id="tweak-fee" value="10" style="padding: 8px 12px; font-size: 14px;" />
+      </div>
+
+      <div class="tweak-group">
+        <label class="tweak-label">Simular Firebase</label>
+        <select class="tweak-select" id="tweak-firebase">
+          <option value="false">Desabilitado (Modo Protótipo UI)</option>
+          <option value="true">Habilitado (Firebase Ativo)</option>
+        </select>
+      </div>
+
+      <div class="tweak-group">
+        <label class="tweak-label">Papel no Grupo (Filtro)</label>
+        <select class="tweak-select" id="tweak-role">
+          <option value="admin">Administrador (Pode editar filtro)</option>
+          <option value="member">Membro Comum (Bloqueado)</option>
+        </select>
       </div>
 
       <div class="tweak-group">
@@ -976,268 +1139,341 @@
   <script type="text/babel">
     const { useState, useEffect, useMemo } = React;
 
-    // Custom Local SVG Flags
+    // Compact SVG Flag helper using CSS gradients for maximum lines economy
     const Flag = ({ code }) => {
-      const flags = {
-        br: (
-          <svg viewBox="0 0 100 70" width="100%" height="100%">
-            <rect width="100" height="70" fill="#009739" />
-            <polygon points="50,8 92,35 50,62 8,35" fill="#FEDF00" />
-            <circle cx="50" cy="35" r="16" fill="#002776" />
-            <path d="M35,38 Q50,30 65,38" stroke="#ffffff" strokeWidth="2" fill="none" />
-          </svg>
-        ),
-        es: (
-          <svg viewBox="0 0 100 70" width="100%" height="100%">
-            <rect width="100" height="70" fill="#C60B1E" />
-            <rect y="17.5" width="100" height="35" fill="#FBE122" />
-            <circle cx="25" cy="35" r="7" fill="#C60B1E" opacity="0.8" />
-          </svg>
-        ),
-        mx: (
-          <svg viewBox="0 0 100 70" width="100%" height="100%">
-            <rect width="33.3" height="70" fill="#006847" />
-            <rect x="33.3" width="33.4" height="70" fill="#ffffff" />
-            <rect x="66.7" width="33.3" height="70" fill="#CE1126" />
-            <circle cx="50" cy="35" r="6" fill="#8B5A2B" opacity="0.7" />
-          </svg>
-        ),
-        it: (
-          <svg viewBox="0 0 100 70" width="100%" height="100%">
-            <rect width="33.3" height="70" fill="#009246" />
-            <rect x="33.3" width="33.4" height="70" fill="#ffffff" />
-            <rect x="66.7" width="33.3" height="70" fill="#CD212A" />
-          </svg>
-        ),
-        pt: (
-          <svg viewBox="0 0 100 70" width="100%" height="100%">
-            <rect width="40" height="70" fill="#006600" />
-            <rect x="40" width="60" height="70" fill="#FF0000" />
-            <circle cx="40" cy="35" r="9" fill="#FFFF00" />
-            <rect x="37" y="32" width="6" height="6" fill="#FF0000" />
-          </svg>
-        ),
-        gh: (
-          <svg viewBox="0 0 100 70" width="100%" height="100%">
-            <rect width="100" height="23.3" fill="#DA291C" />
-            <rect y="23.3" width="100" height="23.4" fill="#FCD116" />
-            <rect y="46.7" width="100" height="23.3" fill="#00AA47" />
-            <polygon points="50,27 53,35 61,35 55,40 57,48 50,43 43,48 45,40 39,35 47,35" fill="#000000" />
-          </svg>
-        ),
-        us: (
-          <svg viewBox="0 0 100 70" width="100%" height="100%">
-            <rect width="100" height="70" fill="#ffffff" />
-            <rect y="0" width="100" height="5.3" fill="#B22234" />
-            <rect y="10.7" width="100" height="5.3" fill="#B22234" />
-            <rect y="21.5" width="100" height="5.3" fill="#B22234" />
-            <rect y="32.3" width="100" height="5.3" fill="#B22234" />
-            <rect y="43" width="100" height="5.3" fill="#B22234" />
-            <rect y="53.8" width="100" height="5.3" fill="#B22234" />
-            <rect y="64.6" width="100" height="5.4" fill="#B22234" />
-            <rect width="45" height="37.6" fill="#3C3B6E" />
-            <circle cx="10" cy="10" r="1.5" fill="#fff" />
-            <circle cx="22.5" cy="10" r="1.5" fill="#fff" />
-            <circle cx="35" cy="10" r="1.5" fill="#fff" />
-            <circle cx="16" cy="19" r="1.5" fill="#fff" />
-            <circle cx="28.5" cy="19" r="1.5" fill="#fff" />
-            <circle cx="10" cy="28" r="1.5" fill="#fff" />
-            <circle cx="22.5" cy="28" r="1.5" fill="#fff" />
-            <circle cx="35" cy="28" r="1.5" fill="#fff" />
-          </svg>
-        ),
-        gb: (
-          <svg viewBox="0 0 100 70" width="100%" height="100%">
-            <rect width="100" height="70" fill="#ffffff" />
-            <rect x="42.5" width="15" height="70" fill="#CF142B" />
-            <rect y="27.5" width="100" height="15" fill="#CF142B" />
-          </svg>
-        ),
-        ar: (
-          <svg viewBox="0 0 100 70" width="100%" height="100%">
-            <rect width="100" height="23.3" fill="#74ACDF" />
-            <rect y="23.3" width="100" height="23.4" fill="#ffffff" />
-            <rect y="46.7" width="100" height="23.3" fill="#74ACDF" />
-            <circle cx="50" cy="35" r="5" fill="#F8B125" stroke="#8A5A00" strokeWidth="1" />
-          </svg>
-        ),
-        fr: (
-          <svg viewBox="0 0 100 70" width="100%" height="100%">
-            <rect width="33.3" height="70" fill="#002395" />
-            <rect x="33.3" width="33.4" height="70" fill="#ffffff" />
-            <rect x="66.7" width="33.3" height="70" fill="#ED2939" />
-          </svg>
-        )
+      const style = {
+        width: '28px',
+        height: '20px',
+        borderRadius: '4px',
+        border: '1px solid var(--phone-border)',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '9px',
+        fontWeight: '700',
+        color: '#fff',
+        textShadow: '0 1px 2px rgba(0,0,0,0.6)',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+        overflow: 'hidden'
+      };
+      
+      const flagColors = {
+        br: 'linear-gradient(135deg, #009739 60%, #FEDF00 60% 85%, #002776 85%)',
+        ar: 'linear-gradient(to bottom, #74ACDF 33%, #ffffff 33% 66%, #74ACDF 66%)',
+        mx: 'linear-gradient(to right, #006847 33%, #ffffff 33% 66%, #CE1126 66%)',
+        it: 'linear-gradient(to right, #009246 33%, #ffffff 33% 66%, #CD212A 66%)',
+        pt: 'linear-gradient(to right, #006600 40%, #FF0000 40%)',
+        fr: 'linear-gradient(to right, #002395 33%, #ffffff 33% 66%, #ED2939 66%)',
+        es: 'linear-gradient(to bottom, #C60B1E 25%, #FBE122 25% 75%, #C60B1E 75%)',
+        de: 'linear-gradient(to bottom, #000000 33%, #DD0000 33% 66%, #FFCC00 66%)',
+        uy: 'linear-gradient(to bottom, #ffffff 16.6%, #0038A8 16.6% 33.2%, #ffffff 33.2% 49.8%, #0038A8 49.8% 66.4%, #ffffff 66.4% 83%, #0038A8 83%)',
+        nl: 'linear-gradient(to bottom, #AE1C28 33%, #FFFFFF 33% 66%, #21468B 66%)',
+        us: 'repeating-linear-gradient(to bottom, #B22234, #B22234 3px, #ffffff 3px, #ffffff 6px)',
+        gb: 'linear-gradient(to bottom, #ffffff 40%, #CF142B 40% 60%, #ffffff 60%)',
+        gh: 'linear-gradient(to bottom, #DA291C 33%, #FCD116 33% 66%, #00AA47 66%)',
       };
 
+      const bg = flagColors[code] || '#777';
       return (
-        <div className="flag-holder" style={{ width: '28px', height: '20px' }}>
-          {flags[code] || <div style={{ background: '#ccc', width: '100%', height: '100%' }} />}
+        <div style={{ ...style, background: bg }}>
+          {code.toUpperCase()}
         </div>
       );
     };
 
-    // Shared Icons components
-    const TrophyIcon = () => (
-      <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
-        <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
-        <path d="M4 22h16" />
-        <path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34" />
-        <path d="M12 2a6 6 0 0 1 6 6v3.5c0 3.04-2.46 5.5-5.5 5.5h-1C8.46 17 6 14.54 6 11.5V8a6 6 0 0 1 6-6z" />
-      </svg>
-    );
+    // Global SVG Icon component to save file lines
+    const Icon = ({ name, size = 18, color = 'currentColor' }) => {
+      const icons = {
+        trophy: <g><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18" /><path d="M4 22h16" /><path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34" /><path d="M12 2a6 6 0 0 1 6 6v3.5c0 3.04-2.46 5.5-5.5 5.5h-1C8.46 17 6 14.54 6 11.5V8a6 6 0 0 1 6-6z" /></g>,
+        calendar: <g><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></g>,
+        lock: <g><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></g>,
+        chevronLeft: <polyline points="15 18 9 12 15 6" />,
+        ball: <g><circle cx="12" cy="12" r="10" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10zM2 12h20" /></g>,
+        group: <g><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></g>,
+        globe: <g><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></g>,
+        plus: <g><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></g>,
+        info: <g><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></g>
+      };
+      return (
+        <svg viewBox="0 0 24 24" width={size} height={size} stroke={color} strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline-block', verticalAlign: 'middle' }}>
+          {icons[name] || <circle cx="12" cy="12" r="10" />}
+        </svg>
+      );
+    };
 
-    const CalendarIcon = () => (
-      <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-        <line x1="16" y1="2" x2="16" y2="6" />
-        <line x1="8" y1="2" x2="8" y2="6" />
-        <line x1="3" y1="10" x2="21" y2="10" />
-      </svg>
-    );
+    // Standard 64 matches database (simulated)
+    const ALL_MOCK_TEAMS = [
+      { code: "BRA", name: "Brasil", flag: "br" },
+      { code: "ARG", name: "Argentina", flag: "ar" },
+      { code: "URU", name: "Uruguai", flag: "uy" },
+      { code: "USA", name: "EUA", flag: "us" },
+      { code: "MEX", name: "México", flag: "mx" },
+      { code: "FRA", name: "França", flag: "fr" },
+      { code: "ESP", name: "Espanha", flag: "es" },
+      { code: "POR", name: "Portugal", flag: "pt" },
+      { code: "ENG", name: "Inglaterra", flag: "gb" },
+      { code: "GER", name: "Alemanha", flag: "de" },
+      { code: "ITA", name: "Itália", flag: "it" },
+      { code: "NED", name: "Holanda", flag: "nl" }
+    ];
 
-    const LockIcon = () => (
-      <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-      </svg>
-    );
+    const generatePredictionsForGame = (gameId, score1, score2, status) => {
+      const list = [
+        { name: "Bruno", prediction: "3x2", won: false, paid: true, payee: null, isInPot: true, optOutTime: null },
+        { name: "Camila", prediction: "3x2", won: false, paid: true, payee: null, isInPot: true, optOutTime: null },
+        { name: "Você", prediction: "", won: false, paid: false, payee: null, isInPot: true, optOutTime: null },
+        { name: "Thiago", prediction: "1x1", won: false, paid: true, payee: null, isInPot: true, optOutTime: null },
+        { name: "Mariana", prediction: "0x2", won: false, paid: false, payee: null, isInPot: true, optOutTime: null },
+        { name: "Pedro", prediction: "1x2", won: false, paid: true, payee: null, isInPot: true, optOutTime: null },
+        { name: "Ana", prediction: "2x2", won: false, paid: true, payee: null, isInPot: true, optOutTime: null }
+      ];
 
-    const ChevronLeft = () => (
-      <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="15 18 9 12 15 6" />
-      </svg>
-    );
-
-    const BallIcon = () => (
-      <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" />
-        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-        <path d="M2 12h20" />
-      </svg>
-    );
-
-    // Initial Games Mock Database
-    const INITIAL_GAMES = [
-      {
-        id: 1,
-        team1: "México",
-        team2: "Itália",
-        team1Flag: "mx",
-        team2Flag: "it",
-        score1: null,
-        score2: null,
-        date: "15 Jun • 17:00",
-        potMultiplier: 12,
-        status: "agendado",
-        prediction: { score1: "", score2: "" },
-        accumulated: true,
-        potBonus: 80
-      },
-      {
-        id: 2,
-        team1: "Portugal",
-        team2: "Gana",
-        team1Flag: "pt",
-        team2Flag: "gh",
-        score1: null,
-        score2: null,
-        date: "15 Jun • 20:00",
-        potMultiplier: 12,
-        status: "agendado",
-        prediction: { score1: "", score2: "" },
-        accumulated: false,
-        potBonus: 0
-      },
-      {
-        id: 3,
-        team1: "EUA",
-        team2: "Inglaterra",
-        team1Flag: "us",
-        team2Flag: "gb",
-        score1: 1,
-        score2: 1,
-        date: "Ao Vivo • 75'",
-        potMultiplier: 12,
-        status: "em_andamento",
-        prediction: { score1: "2", score2: "1" },
-        accumulated: false,
-        potBonus: 0
-      },
-      {
-        id: 4,
-        team1: "Brasil",
-        team2: "Espanha",
-        team1Flag: "br",
-        team2Flag: "es",
-        score1: 3,
-        score2: 2,
-        date: "13 Jun • Encerrado",
-        potMultiplier: 12,
-        status: "encerrado",
-        prediction: { score1: "2", score2: "1" }, // defaults to loss
-        accumulated: false,
-        potBonus: 0,
-        winners: ["Bruno", "Camila"]
-      },
-      {
-        id: 5,
-        team1: "Argentina",
-        team2: "França",
-        team1Flag: "ar",
-        team2Flag: "fr",
-        score1: 0,
-        score2: 0,
-        date: "12 Jun • Encerrado",
-        potMultiplier: 12,
-        status: "encerrado",
-        prediction: { score1: "1", score2: "2" },
-        accumulated: true,
-        potBonus: 0,
-        winners: [] // Accumulated (no winners)
+      if (gameId === 1) {
+        list[0].prediction = "2x1";
+        list[1].prediction = "1x1";
+        list[3].prediction = "2x2";
+        list[4].prediction = "3x1";
+        list[5].prediction = "0x1";
+        list[6].prediction = "1x2";
+      } else if (gameId === 2) {
+        list[0].prediction = "2x0";
+        list[1].prediction = "3x1";
+        list[3].prediction = "2x1";
+        list[4].prediction = "1x1";
+        list[5].prediction = "1x0";
+        list[6].prediction = "2x2";
+      } else if (gameId === 3) {
+        list[0].prediction = "1x1";
+        list[1].prediction = "2x2";
+        list[2].prediction = "2x1";
+        list[3].prediction = "1x0";
+        list[4].prediction = "1x1";
+        list[5].prediction = "2x1";
+        list[6].prediction = "3x2";
+      } else if (gameId === 4) {
+        list[0].prediction = "3x2";
+        list[1].prediction = "3x2";
+        list[2].prediction = "2x1";
+        list[3].prediction = "1x1";
+        list[4].prediction = "0x2";
+        list[5].prediction = "1x2";
+        list[6].prediction = "2x2";
+      } else if (gameId === 5) {
+        list[0].prediction = "2x1";
+        list[1].prediction = "1x2";
+        list[2].prediction = "1x1";
+        list[3].prediction = "2x2";
+        list[4].prediction = "3x1";
+        list[5].prediction = "1x0";
+        list[6].prediction = "2x0";
+      } else {
+        list.forEach((m) => {
+          if (m.name !== "Você") {
+            const s1 = Math.floor(Math.random() * 3);
+            const s2 = Math.floor(Math.random() * 3);
+            m.prediction = `${s1}x${s2}`;
+          }
+        });
       }
+
+      // Compute won flag for ended games
+      if (status === "encerrado" && score1 !== null && score2 !== null) {
+        const target = `${score1}x${score2}`;
+        list.forEach(m => {
+          m.won = (m.prediction === target);
+        });
+      }
+
+      return list;
+    };
+
+    const generate64Games = () => {
+      const phases = ["grupos", "32_avos", "oitavas", "quartas", "semi", "terceiro_lugar", "final"];
+      
+      const list = [
+        { id: 1, team1: "México", team2: "Itália", team1Flag: "mx", team2Flag: "it", score1: null, score2: null, matchTimeUtc: Date.now() + 20 * 60 * 1000, status: "agendado", phase: "grupos", potBonus: 8000, accumulated: true, prediction: { score1: "", score2: "" } },
+        { id: 2, team1: "Portugal", team2: "Gana", team1Flag: "pt", team2Flag: "gh", score1: null, score2: null, matchTimeUtc: Date.now() + 120 * 60 * 1000, status: "agendado", phase: "grupos", potBonus: 0, accumulated: false, prediction: { score1: "", score2: "" } },
+        { id: 3, team1: "EUA", team2: "Inglaterra", team1Flag: "us", team2Flag: "gb", score1: 1, score2: 1, matchTimeUtc: Date.now() - 45 * 60 * 1000, status: "em_andamento", phase: "grupos", potBonus: 0, accumulated: false, prediction: { score1: "2", score2: "1" } },
+        { id: 4, team1: "Brasil", team2: "Espanha", team1Flag: "br", team2Flag: "es", score1: 3, score2: 2, matchTimeUtc: Date.now() - 24 * 3600 * 1000, status: "encerrado", phase: "oitavas", potBonus: 0, accumulated: false, prediction: { score1: "2", score2: "1" }, winners: ["Bruno", "Camila"] },
+        { id: 5, team1: "Argentina", team2: "França", team1Flag: "ar", team2Flag: "fr", score1: 0, score2: 0, matchTimeUtc: Date.now() - 48 * 3600 * 1000, status: "encerrado", phase: "grupos", potBonus: 0, accumulated: true, prediction: { score1: "1", score2: "2" }, winners: [] }
+      ];
+
+      const extraTeams = [
+        { name: "Alemanha", flag: "de" },
+        { name: "Holanda", flag: "nl" },
+        { name: "Uruguai", flag: "uy" },
+        { name: "Gana", flag: "gh" }
+      ];
+      const allTeams = [...ALL_MOCK_TEAMS, ...extraTeams];
+      
+      for (let i = 6; i <= 64; i++) {
+        const t1 = allTeams[i % allTeams.length];
+        const t2 = allTeams[(i + 3) % allTeams.length];
+        const phase = phases[i % phases.length];
+        const score1 = i % 4 === 0 ? Math.floor(Math.random() * 3) : null;
+        const score2 = i % 4 === 0 ? Math.floor(Math.random() * 3) : null;
+        const status = i % 4 === 0 ? "encerrado" : (i % 9 === 0 ? "em_andamento" : "agendado");
+        
+        let matchTimeUtc;
+        if (status === "encerrado") {
+          matchTimeUtc = Date.now() - (i * 3 * 3600 * 1000);
+        } else if (status === "em_andamento") {
+          matchTimeUtc = Date.now() - 30 * 60 * 1000;
+        } else {
+          matchTimeUtc = Date.now() + (i * 4 * 3600 * 1000);
+        }
+
+        list.push({
+          id: i,
+          team1: t1.name,
+          team2: t2.name,
+          team1Flag: t1.flag || t1.code?.toLowerCase(),
+          team2Flag: t2.flag || t2.code?.toLowerCase(),
+          score1,
+          score2,
+          matchTimeUtc,
+          status,
+          phase,
+          potBonus: i % 12 === 0 ? 5000 : 0,
+          accumulated: i % 12 === 0,
+          prediction: { score1: "", score2: "" },
+          winners: status === "encerrado" && score1 === score2 ? [] : (status === "encerrado" ? ["Bruno"] : [])
+        });
+      }
+
+      // Fill predictions for all
+      list.forEach(game => {
+        game.predictions = generatePredictionsForGame(game.id, game.score1, game.score2, game.status);
+      });
+
+      return list;
+    };
+
+    const INITIAL_GAMES = generate64Games();
+
+    const INITIAL_MEMBERS = [
+      { uid: "usr_bruno", name: "Bruno", perfectScoresCount: 4, avatar: "👑" },
+      { uid: "usr_camila", name: "Camila", perfectScoresCount: 3, avatar: "C" },
+      { uid: "usr_thiago", name: "Thiago", perfectScoresCount: 3, avatar: "T" },
+      { uid: "usr_ana", name: "Ana", perfectScoresCount: 2, avatar: "A" },
+      { uid: "usr_voce", name: "Você", perfectScoresCount: 2, avatar: "👤" },
+      { uid: "usr_pedro", name: "Pedro", perfectScoresCount: 1, avatar: "P" },
+      { uid: "usr_mariana", name: "Mariana", perfectScoresCount: 0, avatar: "M" }
     ];
 
-    // Initial Ledger database for Brasil vs Espanha
-    const INITIAL_PARTICIPANTS = [
-      { name: "Bruno", prediction: "3x2", won: true, paid: true },
-      { name: "Camila", prediction: "3x2", won: true, paid: true },
-      { name: "Você", prediction: "2x1", won: false, paid: false },
-      { name: "Thiago", prediction: "1x1", won: false, paid: true },
-      { name: "Mariana", prediction: "0x2", won: false, paid: false },
-      { name: "Pedro", prediction: "1x2", won: false, paid: true },
-      { name: "Ana", prediction: "2x2", won: false, paid: true }
-    ];
-
-    // App Component
     function App() {
-      // Global Tweaks linked to HTML inputs
+      // Global Tweaks States
       const [themeMode, setThemeMode] = useState("dark");
       const [userStatus, setUserStatus] = useState("lost"); // "lost" | "won"
-      const [currency, setCurrency] = useState("R$");
-      const [entryFee, setEntryFee] = useState(10);
+      const [currency, setCurrency] = useState("BRL");
+      const [entryFee, setEntryFee] = useState(1000); // 1000 centavos = R$ 10,00
       const [primaryHue, setPrimaryHue] = useState(142);
+      const [firebaseEnabled, setFirebaseEnabled] = useState(false);
+      const [userIsAdmin, setUserIsAdmin] = useState(true);
 
-      // App Navigation
-      const [loggedIn, setLoggedIn] = useState(false);
-      const [email, setEmail] = useState("");
-      const [roomCode, setRoomCode] = useState("FAMILIA26");
-      const [activeTab, setActiveTab] = useState("feed"); // "feed" | "ranking" | "rules"
-      const [currentScreen, setCurrentScreen] = useState("login"); // "login" | "app" | "details"
-      
-      // Screen States
-      const [feedTab, setFeedTab] = useState("scheduled"); // "scheduled" | "live" | "ended"
-      const [games, setGames] = useState(INITIAL_GAMES);
-      const [selectedGameId, setSelectedGameId] = useState(null);
-      const [participants, setParticipants] = useState(INITIAL_PARTICIPANTS);
-      
-      // Modals / Feedback
+      // Routing / Session
+      const [currentScreen, setCurrentScreen] = useState("login"); // "login" | "group" | "create-group" | "edit-filter" | "feed" | "details"
+      const [activeTab, setActiveTab] = useState("feed"); // "feed" | "ranking" | "rules" (inside feed shell)
+      const [feedTab, setFeedTab] = useState("scheduled"); // "scheduled" | "live" | "ended" | "archived"
       const [toastMsg, setToastMsg] = useState(null);
-      const [activeSecarGame, setActiveSecarGame] = useState(null);
       const [searchQuery, setSearchQuery] = useState("");
 
-      // Link HTML Tweak Panel to React States
+      // Login Forms
+      const [email, setEmail] = useState("");
+      const [password, setPassword] = useState("");
+      const [confirmPassword, setConfirmPassword] = useState("");
+      const [isRegisterMode, setIsRegisterMode] = useState(false);
+      const [authError, setAuthError] = useState(null);
+      const [userSession, setUserSession] = useState(null);
+
+      // Groups database (in state for updates)
+      const [groups, setGroups] = useState([
+        {
+          id: "FAMILIA26",
+          name: "Bolão da Família ⚽",
+          currency: "BRL",
+          entryFee: 1000, // 1000 centavos
+          lockMinutes: 15,
+          allowedTeams: ["BRA", "ARG", "URU", "USA", "MEX", "FRA", "ESP", "POR"],
+          allowedPhases: ["grupos", "oitavas", "quartas", "semi", "final"],
+          adminUids: ["demo@copabolao.com"]
+        }
+      ]);
+      const [currentGroup, setCurrentGroup] = useState(groups[0]);
+      const [joinGroupId, setJoinGroupId] = useState("");
+      const [groupJoinError, setGroupJoinError] = useState(null);
+
+      // Create Group Form States
+      const [newGroupName, setNewGroupName] = useState("");
+      const [newGroupCurrency, setNewGroupCurrency] = useState("BRL");
+      const [newGroupFee, setNewGroupFee] = useState(10); // standard unit, will convert to cents on submit
+      const [newGroupLock, setNewGroupLock] = useState(15);
+      const [newGroupTeams, setNewGroupTeams] = useState(["BRA", "ARG", "URU", "USA", "MEX", "FRA", "ESP", "POR"]);
+      const [newGroupPhases, setNewGroupPhases] = useState(["grupos", "oitavas", "quartas", "semi", "final"]);
+      const [teamSearchQuery, setTeamSearchQuery] = useState("");
+      const [createdGamesCount, setCreatedGamesCount] = useState(38);
+
+      // Edit Filter Form States (clones of selected group)
+      const [editGroupTeams, setEditGroupTeams] = useState([]);
+      const [editGroupPhases, setEditGroupPhases] = useState([]);
+      const [editTeamSearch, setEditTeamSearch] = useState("");
+      const [editGamesCount, setEditGamesCount] = useState(0);
+      const [isSavingFilter, setIsSavingFilter] = useState(false);
+      const [isLoadingFilter, setIsLoadingFilter] = useState(false);
+
+      // Games & State
+      const [games, setGames] = useState(INITIAL_GAMES);
+      const [selectedGameId, setSelectedGameId] = useState(null);
+      const [activeSecarGame, setActiveSecarGame] = useState(null);
+      const [tick, setTick] = useState(0);
+
+      // Derive selectedGame and participants list
+      const selectedGame = useMemo(() => games.find(g => g.id === selectedGameId), [games, selectedGameId]);
+      const participants = useMemo(() => selectedGame ? selectedGame.predictions : [], [selectedGame]);
+
+      const [localScore1, setLocalScore1] = useState("");
+      const [localScore2, setLocalScore2] = useState("");
+
+      useEffect(() => {
+        if (selectedGame) {
+          const userPredObj = selectedGame.predictions.find(p => p.name === "Você");
+          const predStr = userPredObj?.prediction || "";
+          const [u1, u2] = predStr.split('x');
+          setLocalScore1(u1 || "");
+          setLocalScore2(u2 || "");
+        } else {
+          setLocalScore1("");
+          setLocalScore2("");
+        }
+      }, [selectedGameId, games]);
+
+      // Clock tick for live countdowns
+      useEffect(() => {
+        const interval = setInterval(() => {
+          setTick(t => t + 1);
+        }, 1000);
+        return () => clearInterval(interval);
+      }, []);
+
+      // Money formatting helper
+      const formatMoney = (valueInCents, curr = currency) => {
+        const val = valueInCents / 100;
+        const symbolMap = { BRL: "R$", EUR: "€", USD: "$" };
+        const symbol = symbolMap[curr] || curr;
+        return `${symbol} ${val.toFixed(2).replace('.', ',')}`;
+      };
+
+      const formatMatchTime = (utcTime) => {
+        if (!utcTime) return "";
+        const date = new Date(utcTime);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${day}/${month} ${hours}:${minutes}`;
+      };
+
+      // Sync HTML tweaks to react states
       useEffect(() => {
         const themeBtnContainer = document.getElementById("tweak-theme-container");
         if (themeBtnContainer) {
@@ -1245,7 +1481,6 @@
             <button class="tweak-btn ${themeMode === 'light' ? 'tweak-btn-active' : ''}" id="btn-theme-light">Claro</button>
             <button class="tweak-btn ${themeMode === 'dark' ? 'tweak-btn-active' : ''}" id="btn-theme-dark">Escuro</button>
           `;
-          
           document.getElementById("btn-theme-light").onclick = () => setThemeMode("light");
           document.getElementById("btn-theme-dark").onclick = () => setThemeMode("dark");
         }
@@ -1257,36 +1492,80 @@
           select.value = userStatus;
           select.onchange = (e) => {
             setUserStatus(e.target.value);
-            // Sync user participant prediction to matches userStatus
-            setParticipants(prev => prev.map(p => {
-              if (p.name === "Você") {
-                return {
-                  ...p,
-                  prediction: e.target.value === "won" ? "3x2" : "2x1",
-                  won: e.target.value === "won"
-                };
-              }
-              return p;
-            }));
           };
         }
+      }, [userStatus]);
+
+      // Update game 4 and its predictions dynamically when userStatus tweak changes
+      useEffect(() => {
+        setGames(prev => prev.map(g => {
+          if (g.id === 4) {
+            const isWon = userStatus === "won";
+            const newPred = isWon ? { score1: "3", score2: "2" } : { score1: "2", score2: "1" };
+            const newWinners = isWon ? ["Bruno", "Camila", "Você"] : ["Bruno", "Camila"];
+            const newPredictions = g.predictions.map(p => {
+              if (p.name === "Você") {
+                return { ...p, prediction: isWon ? "3x2" : "2x1", won: isWon, paid: !isWon };
+              }
+              return p;
+            });
+            return { ...g, prediction: newPred, winners: newWinners, predictions: newPredictions };
+          }
+          return g;
+        }));
       }, [userStatus]);
 
       useEffect(() => {
         const select = document.getElementById("tweak-currency");
         if (select) {
           select.value = currency;
-          select.onchange = (e) => setCurrency(e.target.value);
+          select.onchange = (e) => {
+            setCurrency(e.target.value);
+            if (currentGroup) {
+              setCurrentGroup(prev => ({ ...prev, currency: e.target.value }));
+            }
+          };
         }
-      }, [currency]);
+      }, [currency, currentGroup]);
 
       useEffect(() => {
         const input = document.getElementById("tweak-fee");
         if (input) {
-          input.value = entryFee;
-          input.oninput = (e) => setEntryFee(Number(e.target.value) || 0);
+          input.value = entryFee / 100;
+          input.oninput = (e) => {
+            const val = Number(e.target.value) || 0;
+            const cents = Math.round(val * 100);
+            setEntryFee(cents);
+            if (currentGroup) {
+              setCurrentGroup(prev => ({ ...prev, entryFee: cents }));
+            }
+          };
         }
-      }, [entryFee]);
+      }, [entryFee, currentGroup]);
+
+      useEffect(() => {
+        const select = document.getElementById("tweak-firebase");
+        if (select) {
+          select.value = String(firebaseEnabled);
+          select.onchange = (e) => {
+            const val = e.target.value === "true";
+            setFirebaseEnabled(val);
+            showToast(`Firebase ${val ? 'Habilitado' : 'Desabilitado'}`);
+          };
+        }
+      }, [firebaseEnabled]);
+
+      useEffect(() => {
+        const select = document.getElementById("tweak-role");
+        if (select) {
+          select.value = userIsAdmin ? "admin" : "member";
+          select.onchange = (e) => {
+            const val = e.target.value === "admin";
+            setUserIsAdmin(val);
+            showToast(`Papel atualizado: ${val ? 'Admin' : 'Membro'}`);
+          };
+        }
+      }, [userIsAdmin]);
 
       useEffect(() => {
         const range = document.getElementById("tweak-hue");
@@ -1305,34 +1584,240 @@
           resetBtn.onclick = () => {
             setThemeMode("dark");
             setUserStatus("lost");
-            setCurrency("R$");
-            setEntryFee(10);
+            setCurrency("BRL");
+            setEntryFee(1000);
             setPrimaryHue(142);
+            setFirebaseEnabled(false);
+            setUserIsAdmin(true);
             document.documentElement.style.setProperty('--primary-hue', '142');
-            setGames(INITIAL_GAMES);
-            setParticipants(INITIAL_PARTICIPANTS);
+            setGames(generate64Games());
+            setCurrentGroup(groups[0]);
+            setUserSession(null);
+            setCurrentScreen("login");
             showToast("Dados reiniciados!");
           };
         }
-      }, []);
+      }, [groups]);
 
-      // Trigger Toast Utility
+      // Sync Edit Filter screen inputs when currentScreen changes
+      useEffect(() => {
+        if (currentScreen === "edit-filter" && currentGroup) {
+          setIsLoadingFilter(true);
+          const timer = setTimeout(() => {
+            setEditGroupTeams(currentGroup.allowedTeams || []);
+            setEditGroupPhases(currentGroup.allowedPhases || []);
+            setIsLoadingFilter(false);
+          }, 400);
+          return () => clearTimeout(timer);
+        }
+      }, [currentScreen, currentGroup]);
+
+      // Calculate matches dynamically based on chips/checkmarks
+      const recalculateGames = (allowedTeams, allowedPhases, isEditMode = false) => {
+        const count = games.filter(game => {
+          // Check phase matches
+          const matchPhase = allowedPhases.length === 0 || allowedPhases.includes(game.phase);
+          if (!matchPhase) return false;
+
+          // Check team matches
+          if (allowedTeams.length > 0) {
+            const t1Code = ALL_MOCK_TEAMS.find(t => t.name === game.team1)?.code;
+            const t2Code = ALL_MOCK_TEAMS.find(t => t.name === game.team2)?.code;
+            const matchesT1 = allowedTeams.includes(t1Code);
+            const matchesT2 = allowedTeams.includes(t2Code);
+            if (!matchesT1 && !matchesT2) return false;
+          }
+          return true;
+        }).length;
+
+        if (isEditMode) {
+          setEditGamesCount(count);
+        } else {
+          setCreatedGamesCount(count);
+        }
+        showToast(`Jogos recalculados: ${count} encontrados!`);
+      };
+
+      // Toast Utility
       const showToast = (msg) => {
         setToastMsg(msg);
         setTimeout(() => setToastMsg(null), 2500);
       };
 
-      // Handle predictive score entry
+      // AUTHENTICATION LOGIC
+      const handleAuthSubmit = (e) => {
+        e.preventDefault();
+        setAuthError(null);
+
+        if (!firebaseEnabled) {
+          setAuthError("Erro de Autenticação: Firebase não configurado. Por favor, ative a simulação do Firebase no painel lateral de Tweaks ou clique em 'Continuar como Convidado'.");
+          return;
+        }
+
+        if (!email.includes("@") || !email.includes(".")) {
+          setAuthError("Endereço de e-mail inválido. Digite um e-mail correto.");
+          return;
+        }
+
+        if (password.length < 6) {
+          setAuthError("Senha muito fraca! A senha precisa ter pelo menos 6 caracteres.");
+          return;
+        }
+
+        if (isRegisterMode && password !== confirmPassword) {
+          setAuthError("As senhas informadas não coincidem.");
+          return;
+        }
+
+        // Simulating loading then success
+        setTimeout(() => {
+          setUserSession({
+            email: email,
+            uid: `auth_usr_${Math.random().toString(36).substring(2, 8)}`,
+            currentGroupId: currentGroup ? currentGroup.id : null
+          });
+          setCurrentScreen("group");
+          showToast(isRegisterMode ? "Conta criada no Firebase!" : "Login efetuado no Firebase!");
+        }, 600);
+      };
+
+      const handlePrototypeContinue = () => {
+        setUserSession({
+          email: "anonimo@copabolao.com",
+          uid: "auth_usr_anonimo",
+          currentGroupId: currentGroup ? currentGroup.id : null
+        });
+        setCurrentScreen("group");
+        showToast("Continuando no modo protótipo!");
+      };
+
+      // JOIN GROUP LOGIC
+      const handleJoinGroup = (e) => {
+        e.preventDefault();
+        setGroupJoinError(null);
+
+        if (!joinGroupId.trim()) {
+          setGroupJoinError("Digite o código do grupo.");
+          return;
+        }
+
+        if (joinGroupId.toUpperCase() === "INEXISTENTE" || joinGroupId.toUpperCase() === "ERRO") {
+          setGroupJoinError("Grupo não encontrado no Firestore (código inválido).");
+          return;
+        }
+
+        const foundGroup = groups.find(g => g.id.toUpperCase() === joinGroupId.toUpperCase());
+        
+        setTimeout(() => {
+          let activeG = foundGroup;
+          if (!foundGroup) {
+            // Generate a random dynamic group for testing the join
+            activeG = {
+              id: joinGroupId.toUpperCase(),
+              name: `Bolão ${joinGroupId.toUpperCase()} ⚽`,
+              currency: "BRL",
+              entryFee: 1000,
+              lockMinutes: 15,
+              allowedTeams: ["BRA", "ARG", "URU", "USA", "MEX", "FRA", "ESP", "POR"],
+              allowedPhases: ["grupos", "oitavas", "quartas", "semi", "final"],
+              adminUids: ["outro_user@copabolao.com"]
+            };
+            setGroups(prev => [...prev, activeG]);
+          }
+          
+          setCurrentGroup(activeG);
+          setCurrency(activeG.currency);
+          setEntryFee(activeG.entryFee);
+          
+          // Member persistence simulation
+          if (userSession) {
+            setUserSession(prev => ({
+              ...prev,
+              currentGroupId: activeG.id
+            }));
+          }
+          
+          showToast(`Perfil atualizado com currentGroupId: ${activeG.id}!`);
+          setCurrentScreen("feed");
+        }, 500);
+      };
+
+      // CREATE GROUP ACTION
+      const handleCreateGroup = (e) => {
+        e.preventDefault();
+        if (newGroupName.length < 3) {
+          showToast("Nome do grupo deve ter pelo menos 3 caracteres.");
+          return;
+        }
+        if (newGroupFee < 0) {
+          showToast("A taxa de entrada não pode ser negativa.");
+          return;
+        }
+        if (newGroupLock < 1 || newGroupLock > 180) {
+          showToast("Tempo de tranca deve ser entre 1 e 180 minutos.");
+          return;
+        }
+
+        const feeInCents = Math.round(newGroupFee * 100);
+
+        const newG = {
+          id: `BOLAO_${Math.random().toString(36).substring(2, 7).toUpperCase()}`,
+          name: newGroupName,
+          currency: newGroupCurrency,
+          entryFee: feeInCents,
+          lockMinutes: newGroupLock,
+          allowedTeams: newGroupTeams,
+          allowedPhases: newGroupPhases,
+          adminUids: [userSession?.email || "demo@copabolao.com"]
+        };
+
+        setTimeout(() => {
+          setGroups(prev => [...prev, newG]);
+          setCurrentGroup(newG);
+          setCurrency(newG.currency);
+          setEntryFee(feeInCents);
+          
+          // Member persistence simulation
+          if (userSession) {
+            setUserSession(prev => ({ ...prev, currentGroupId: newG.id }));
+          }
+          
+          setCurrentScreen("feed");
+          showToast("Bolão criado no Firestore com sucesso! 🎉");
+        }, 500);
+      };
+
+      // EDIT FILTER ACTION
+      const handleSaveFilter = () => {
+        setIsSavingFilter(true);
+        setTimeout(() => {
+          setCurrentGroup(prev => ({
+            ...prev,
+            allowedTeams: editGroupTeams,
+            allowedPhases: editGroupPhases
+          }));
+          setGroups(prev => prev.map(g => g.id === currentGroup.id ? {
+            ...g,
+            allowedTeams: editGroupTeams,
+            allowedPhases: editGroupPhases
+          } : g));
+          setIsSavingFilter(false);
+          showToast("Filtros atualizados no Firestore! 🟢");
+        }, 1200);
+      };
+
+      // Predictions & Pot Participation handlers
       const handlePredictionChange = (gameId, team, value) => {
         setGames(prev => prev.map(g => {
           if (g.id === gameId) {
-            return {
-              ...g,
-              prediction: {
-                ...g.prediction,
-                [team]: value
+            const newPred = { ...g.prediction, [team]: value };
+            const newPredictions = g.predictions.map(p => {
+              if (p.name === "Você") {
+                return { ...p, prediction: `${newPred.score1 || "0"}x${newPred.score2 || "0"}` };
               }
-            };
+              return p;
+            });
+            return { ...g, prediction: newPred, predictions: newPredictions };
           }
           return g;
         }));
@@ -1340,61 +1825,173 @@
 
       const savePrediction = (gameId) => {
         const game = games.find(g => g.id === gameId);
-        if (game.prediction.score1 === "" || game.prediction.score2 === "") {
+        if (!game || game.prediction.score1 === "" || game.prediction.score2 === "") {
           showToast("Preencha ambos os placares!");
           return;
         }
+        setGames(prev => prev.map(g => {
+          if (g.id === gameId) {
+            const predStr = `${g.prediction.score1}x${g.prediction.score2}`;
+            const newPredictions = g.predictions.map(p => 
+              p.name === "Você" ? { ...p, prediction: predStr } : p
+            );
+            return { ...g, predictions: newPredictions };
+          }
+          return g;
+        }));
         showToast("Palpite salvo com sucesso! ⚽");
       };
 
-      // Filtered participants list for details page
-      const filteredParticipants = useMemo(() => {
-        return participants.filter(p => 
-          p.name.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-      }, [participants, searchQuery]);
+      const clearPrediction = (gameId) => {
+        setGames(prev => prev.map(g => {
+          if (g.id === gameId) {
+            const newPredictions = g.predictions.map(p => 
+              p.name === "Você" ? { ...p, prediction: "" } : p
+            );
+            return { ...g, prediction: { score1: "", score2: "" }, predictions: newPredictions };
+          }
+          return g;
+        }));
+        showToast("Palpite limpo! 🗑️");
+      };
 
+      const handleToggleParticipation = (gameId) => {
+        setGames(prev => prev.map(g => {
+          if (g.id === gameId) {
+            const newPredictions = g.predictions.map(p => {
+              if (p.name === "Você") {
+                const nextIsInPot = !p.isInPot;
+                const optOutTime = nextIsInPot ? null : new Date().toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' }) + " " + new Date().toLocaleDateString("pt-BR", { day: '2-digit', month: '2-digit' });
+                return { ...p, isInPot: nextIsInPot, optOutTime };
+              }
+              return p;
+            });
+            return { ...g, predictions: newPredictions };
+          }
+          return g;
+        }));
+        showToast("Participação do pote atualizada!");
+      };
+
+      const handleTogglePaid = (memberName) => {
+        if (!selectedGameId) return;
+        setGames(prev => prev.map(g => {
+          if (g.id === selectedGameId) {
+            const newPredictions = g.predictions.map(p => 
+              p.name === memberName ? { ...p, paid: !p.paid } : p
+            );
+            return { ...g, predictions: newPredictions };
+          }
+          return g;
+        }));
+      };
+
+      const handlePayeeChange = (memberName, payeeName) => {
+        if (!selectedGameId) return;
+        setGames(prev => prev.map(g => {
+          if (g.id === selectedGameId) {
+            const newPredictions = g.predictions.map(p => 
+              p.name === memberName ? { ...p, payee: payeeName } : p
+            );
+            return { ...g, predictions: newPredictions };
+          }
+          return g;
+        }));
+      };
+
+      // Payment ledger logic
       const currentWinners = useMemo(() => participants.filter(p => p.won), [participants]);
-      const currentLosers = useMemo(() => participants.filter(p => !p.won), [participants]);
+      const currentLosers = useMemo(() => participants.filter(p => !p.won && p.isInPot), [participants]);
 
-      const getAutoPayee = (participantName) => {
+      const getPayeeName = (p) => {
+        if (p.payee) return p.payee;
         if (currentWinners.length === 0) return null;
-        const loserIndex = currentLosers.findIndex(l => l.name === participantName);
+        const loserIndex = currentLosers.findIndex(l => l.name === p.name);
         if (loserIndex === -1) return null;
         return currentWinners[loserIndex % currentWinners.length].name;
       };
 
-      const getPayeeName = (p) => {
-        if (p.payee) return p.payee;
-        return getAutoPayee(p.name);
-      };
-
-      // Estimate game pot values dynamically based on entry fee
       const calculatePot = (game) => {
-        const base = entryFee * participants.length;
+        const activeCount = game.predictions ? game.predictions.filter(p => p.isInPot).length : 7;
+        const base = entryFee * activeCount;
         return base + (game.potBonus || 0);
       };
 
-      const selectedGame = games.find(g => g.id === selectedGameId);
+      const sortedMembers = useMemo(() => {
+        const baseCounts = {
+          "Bruno": 3,
+          "Camila": 2,
+          "Thiago": 2,
+          "Ana": 1,
+          "Você": 1,
+          "Pedro": 0,
+          "Mariana": 0
+        };
 
-      // Login Handler
-      const handleLogin = (e) => {
-        e.preventDefault();
-        if (email.trim() === "") {
-          showToast("Por favor, digite seu e-mail.");
-          return;
+        games.forEach(g => {
+          if (g.status === "encerrado" && g.score1 !== null && g.score2 !== null) {
+            const target = `${g.score1}x${g.score2}`;
+            g.predictions.forEach(p => {
+              if (p.prediction === target) {
+                baseCounts[p.name] = (baseCounts[p.name] || 0) + 1;
+              }
+            });
+          }
+        });
+
+        const list = INITIAL_MEMBERS.map(m => {
+          return {
+            ...m,
+            perfectScoresCount: baseCounts[m.name] !== undefined ? baseCounts[m.name] : m.perfectScoresCount
+          };
+        });
+
+        return list.sort((a, b) => {
+          if (b.perfectScoresCount !== a.perfectScoresCount) {
+            return b.perfectScoresCount - a.perfectScoresCount;
+          }
+          if (a.name !== b.name) {
+            return a.name.localeCompare(b.name);
+          }
+          return a.uid.localeCompare(b.uid);
+        });
+      }, [games]);
+
+      // Filtering of games based on current group filters
+      const isGameFiltered = (game) => {
+        if (!currentGroup) return true;
+        // Phase Filter
+        if (currentGroup.allowedPhases.length > 0 && !currentGroup.allowedPhases.includes(game.phase)) {
+          return false;
         }
-        setLoggedIn(true);
-        setCurrentScreen("app");
-        setActiveTab("feed");
-        showToast(`Bem-vindo ao Bolão! 👋`);
+        // Team Filter
+        if (currentGroup.allowedTeams.length > 0) {
+          const t1Code = ALL_MOCK_TEAMS.find(t => t.name === game.team1)?.code;
+          const t2Code = ALL_MOCK_TEAMS.find(t => t.name === game.team2)?.code;
+          const matchesT1 = currentGroup.allowedTeams.includes(t1Code);
+          const matchesT2 = currentGroup.allowedTeams.includes(t2Code);
+          if (!matchesT1 && !matchesT2) return false;
+        }
+        return true;
       };
 
-      // Logout handler
-      const handleLogout = () => {
-        setLoggedIn(false);
-        setCurrentScreen("login");
-      };
+      const activeGames = games.filter(g => isGameFiltered(g));
+      const archivedGames = games.filter(g => !isGameFiltered(g));
+
+      // Filtered teams list in create/edit group
+      const filteredTeams = useMemo(() => {
+        const query = teamSearchQuery.toLowerCase();
+        return ALL_MOCK_TEAMS.filter(t => 
+          t.name.toLowerCase().includes(query) || t.code.toLowerCase().includes(query)
+        );
+      }, [teamSearchQuery]);
+
+      const filteredEditTeams = useMemo(() => {
+        const query = editTeamSearch.toLowerCase();
+        return ALL_MOCK_TEAMS.filter(t => 
+          t.name.toLowerCase().includes(query) || t.code.toLowerCase().includes(query)
+        );
+      }, [editTeamSearch]);
 
       return (
         <div className={`phone-frame phone-theme-${themeMode}`}>
@@ -1402,32 +1999,37 @@
           <div className="status-bar">
             <span>09:41</span>
             <div className="status-icons">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                <path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9zm0 15c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/>
-              </svg>
+              <Icon name="globe" size={14} color="var(--phone-status-fg)" />
               <span style={{ fontSize: '10px' }}>5G</span>
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                <path d="M17 5H3a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm1 12H3V7h15v10zm4-7v4a1 1 0 0 1-2 0v-4a1 1 0 0 1 2 0z"/>
-              </svg>
+              <Icon name="ball" size={14} color="var(--phone-status-fg)" />
             </div>
           </div>
           
           <div className="dynamic-island"></div>
-          
-          {/* iOS home gesture indicator */}
           <div className="home-indicator"></div>
 
-          {/* Floating Toast inside app screen */}
+          {/* Simulated App Router Address Bar */}
+          <div className="route-bar">
+            <span style={{ color: 'var(--phone-muted)' }}>app://wc2026/</span>
+            <span className="route-indicator">
+              {currentScreen === "login" && "login"}
+              {currentScreen === "group" && "group"}
+              {currentScreen === "create-group" && "group/create"}
+              {currentScreen === "edit-filter" && "group/filter"}
+              {currentScreen === "feed" && `${activeTab}`}
+              {currentScreen === "details" && `match/${selectedGameId}`}
+            </span>
+          </div>
+
+          {/* Dynamic toast alerts */}
           {toastMsg && (
             <div className="toast-notif">
-              <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--accent)" strokeWidth="2.5" fill="none">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
+              <Icon name="info" size={18} color="var(--accent)" />
               <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--phone-fg)' }}>{toastMsg}</span>
             </div>
           )}
 
-          {/* Drawer for Secar Palpites */}
+          {/* Drawer: Secar Palpites */}
           {activeSecarGame && (
             <>
               <div className="drawer-overlay" onClick={() => setActiveSecarGame(null)}></div>
@@ -1457,277 +2059,880 @@
             </>
           )}
 
-          {/* RENDER SCREENS */}
+          {/* SCREEN SCROLL CONTAINER */}
           <div className="phone-viewport">
-            
-            {/* LOGIN SCREEN */}
-            {!loggedIn && (
+
+            {/* SCREEN 1: LOGIN */}
+            {currentScreen === "login" && (
               <div className="login-container screen-fade">
                 <div className="logo-container">
-                  <div style={{ background: 'var(--accent-light)', width: '64px', height: '64px', borderRadius: '20px', display: 'flex', alignItems: 'center', justifycontent: 'center', border: '1px solid var(--accent)' }}>
-                    <svg viewBox="0 0 24 24" width="32" height="32" stroke="var(--accent)" strokeWidth="1.8" fill="none">
-                      <circle cx="12" cy="12" r="10" />
-                      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-                      <path d="M2 12h20" />
-                    </svg>
+                  <div style={{ background: 'var(--accent-light)', width: '64px', height: '64px', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--accent)' }}>
+                    <Icon name="ball" size={32} color="var(--accent)" />
                   </div>
                   <h1 className="app-headline" style={{ fontSize: '28px' }}>CopaBolão 2026</h1>
-                  <p className="app-sub">O bolão transparente jogo a jogo com sua família e amigos.</p>
+                  <span className={`status-badge ${firebaseEnabled ? 'status-paid' : 'badge-scheduled'}`} style={{ alignSelf: 'center', fontSize: '10px' }}>
+                    {firebaseEnabled ? "Firebase habilitado" : "modo protótipo UI"}
+                  </span>
                 </div>
 
-                <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
-                  <div>
-                    <label style={{ fontSize: '12px', fontWeight: '700', color: 'var(--phone-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px', display: 'block' }}>E-mail de Acesso</label>
-                    <input 
-                      type="email" 
-                      className="app-input" 
-                      placeholder="seu.nome@exemplo.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
+                {authError && (
+                  <div className="alert-box alert-danger">
+                    {authError}
                   </div>
-                  <div>
-                    <label style={{ fontSize: '12px', fontWeight: '700', color: 'var(--phone-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px', display: 'block' }}>Código do Bolão da Galera</label>
-                    <input 
-                      type="text" 
-                      className="app-input" 
-                      placeholder="FAMILIA26"
-                      value={roomCode}
-                      onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
-                    />
-                  </div>
+                )}
 
-                  <button type="submit" className="app-button" style={{ marginTop: '8px' }}>
-                    Entrar no Bolão
+                {userSession ? (
+                  /* Active session UI */
+                  <div className="app-card" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--phone-fg)' }}>Sessão Ativa Detectada</h4>
+                    <div style={{ fontSize: '13px', color: 'var(--phone-muted)' }}>
+                      <p>E-mail: <strong>{userSession.email}</strong></p>
+                      <p>UID: <code style={{ fontSize: '11px' }}>{userSession.uid}</code></p>
+                      {userSession.currentGroupId && <p>Grupo ID: <strong>{userSession.currentGroupId}</strong></p>}
+                    </div>
+                    <button className="app-button" onClick={() => setCurrentScreen("group")}>
+                      Continuar
+                    </button>
+                    <button className="app-button-outline" onClick={() => setUserSession(null)}>
+                      Sair da Conta
+                    </button>
+                  </div>
+                ) : (
+                  /* Standard Login/Register forms */
+                  <form onSubmit={handleAuthSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div className="form-group">
+                      <label className="form-label">Endereço de E-mail</label>
+                      <input 
+                        type="text" 
+                        className="app-input" 
+                        placeholder="seu.nome@exemplo.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Senha de Acesso</label>
+                      <input 
+                        type="password" 
+                        className="app-input" 
+                        placeholder="Mínimo de 6 caracteres"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                      />
+                    </div>
+
+                    {isRegisterMode && (
+                      <div className="form-group screen-fade">
+                        <label className="form-label">Confirmar Senha</label>
+                        <input 
+                          type="password" 
+                          className="app-input" 
+                          placeholder="Repita a senha informada"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                        />
+                      </div>
+                    )}
+
+                    <div className="flex-between mb-8" style={{ fontSize: '13px' }}>
+                      <span style={{ color: 'var(--phone-muted)' }}>
+                        {isRegisterMode ? "Já possui conta?" : "Novo por aqui?"}
+                      </span>
+                      <button 
+                        type="button" 
+                        style={{ background: 'none', border: 'none', color: 'var(--accent)', fontWeight: '600', cursor: 'pointer', textDecoration: 'underline' }}
+                        onClick={() => { setIsRegisterMode(!isRegisterMode); setAuthError(null); }}
+                      >
+                        {isRegisterMode ? "Entrar" : "Criar conta"}
+                      </button>
+                    </div>
+
+                    <button type="submit" className="app-button">
+                      {isRegisterMode ? "Cadastrar Conta" : "Entrar com E-mail"}
+                    </button>
+
+                    <div className="text-center" style={{ color: 'var(--phone-muted)', fontSize: '11px', margin: '8px 0' }}>
+                      <span>OU CONECTAR COM</span>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                      <button 
+                        type="button" 
+                        className="app-button-outline" 
+                        style={{ fontSize: '12px', padding: '10px' }}
+                        onClick={() => {
+                          if (firebaseEnabled) {
+                            setUserSession({ email: "google.user@gmail.com", uid: "google_12345", currentGroupId: currentGroup ? currentGroup.id : null });
+                            setCurrentScreen("group");
+                            showToast("Google OAuth conectado!");
+                          } else {
+                            setAuthError("Erro: Google Auth indisponível (Firebase não configurado).");
+                          }
+                        }}
+                      >
+                        Google
+                      </button>
+                      <button 
+                        type="button" 
+                        className="app-button-outline" 
+                        style={{ fontSize: '12px', padding: '10px' }}
+                        onClick={() => {
+                          if (firebaseEnabled) {
+                            setUserSession({ email: "apple.user@icloud.com", uid: "apple_12345", currentGroupId: currentGroup ? currentGroup.id : null });
+                            setCurrentScreen("group");
+                            showToast("Apple OAuth conectado!");
+                          } else {
+                            setAuthError("Erro: Apple Auth indisponível (Firebase não configurado).");
+                          }
+                        }}
+                      >
+                        Apple
+                      </button>
+                    </div>
+
+                    {!firebaseEnabled && (
+                      <button 
+                        type="button" 
+                        className="app-button-outline" 
+                        style={{ marginTop: '16px', borderColor: 'var(--accent)', color: 'var(--accent)' }}
+                        onClick={handlePrototypeContinue}
+                      >
+                        Continuar (Sem Firebase)
+                      </button>
+                    )}
+                  </form>
+                )}
+              </div>
+            )}
+
+            {/* SCREEN 2: GROUP HUB */}
+            {currentScreen === "group" && (
+              <div className="screen-fade">
+                <div className="flex-between mb-16">
+                  <div>
+                    <span className="app-title-caps">ÁREA DO USUÁRIO</span>
+                    <h2 className="app-headline">Gerenciar Bolão</h2>
+                  </div>
+                  <button className="app-button-outline" style={{ width: 'auto', padding: '6px 12px', fontSize: '12px' }} onClick={() => setCurrentScreen("login")}>
+                    Sair
                   </button>
-                </form>
-
-                <div className="text-center" style={{ margin: '12px 0' }}>
-                  <span style={{ fontSize: '12px', color: 'var(--phone-muted)' }}>Ou entre rápido com</span>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <button onClick={() => { setEmail("demo@copabolao.com"); setLoggedIn(true); setCurrentScreen("app"); }} className="app-button-outline" style={{ fontSize: '13px' }}>
-                    Acesso Rápido de Teste
+                {/* Simulated session header */}
+                <div className="app-card alert-info" style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 16px' }}>
+                  <div style={{ background: 'var(--phone-border)', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>👤</div>
+                  <div>
+                    <p style={{ fontWeight: '700', fontSize: '13px', color: 'var(--phone-fg)' }}>{userSession?.email || "Visitante"}</p>
+                    <p style={{ fontSize: '11px', color: 'var(--phone-muted)' }}>UID: {userSession?.uid || "auth_usr_anonimo"}</p>
+                    {userSession?.currentGroupId && (
+                      <p style={{ fontSize: '11.5px', color: 'var(--accent)', fontWeight: '600', marginTop: '2px' }}>Grupo Ativo ID: {userSession.currentGroupId}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Active Group Box */}
+                <div className="app-card" style={{ background: 'var(--phone-surface)', border: '1px solid var(--phone-border)' }}>
+                  <span className="app-title-caps">Bolão Ativo</span>
+                  <div className="flex-between mt-12 mb-16">
+                    <div>
+                      <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--phone-fg)' }}>
+                        {currentGroup ? currentGroup.name : "Nenhum Grupo Selecionado"}
+                      </h3>
+                      <p style={{ fontSize: '12px', color: 'var(--phone-muted)', fontFamily: 'ui-monospace' }}>
+                        Grupo atual: <strong>{currentGroup ? currentGroup.id : "—"}</strong>
+                      </p>
+                    </div>
+                    {currentGroup && (
+                      <span className="status-badge status-winner">
+                        {formatMoney(currentGroup.entryFee, currentGroup.currency)}/jogo
+                      </span>
+                    )}
+                  </div>
+
+                  {currentGroup ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                        <button className="app-button" onClick={() => setCurrentScreen("feed")}>
+                          Abrir feed
+                        </button>
+                        <button className="app-button" style={{ background: 'var(--phone-border)', color: 'var(--phone-fg)' }} onClick={() => { setCurrentScreen("feed"); setActiveTab("ranking"); }}>
+                          Ver ranking
+                        </button>
+                      </div>
+                      
+                      <button 
+                        className="app-button-outline"
+                        style={{ borderStyle: 'dashed', fontSize: '13px', gap: '6px' }}
+                        onClick={() => setCurrentScreen("edit-filter")}
+                      >
+                        <Icon name="settings" size={16} color="var(--accent)" />
+                        Editar Filtro do Bolão (Admins)
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="alert-box alert-warning" style={{ margin: 0 }}>
+                      Você precisa entrar em um bolão ou criar um novo para ter acesso aos jogos.
+                    </div>
+                  )}
+                </div>
+
+                {/* Form to join existing room */}
+                <div className="app-card">
+                  <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--phone-fg)', marginBottom: '12px' }}>Entrar em um Bolão Existente</h4>
+                  <form onSubmit={handleJoinGroup} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {groupJoinError && (
+                      <div className="alert-box alert-danger" style={{ padding: '8px 10px', fontSize: '12px' }}>
+                        {groupJoinError}
+                      </div>
+                    )}
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <input 
+                        type="text" 
+                        className="app-input" 
+                        placeholder="Código do Grupo (Ex: FAMILIA26)" 
+                        value={joinGroupId}
+                        onChange={(e) => setJoinGroupId(e.target.value)}
+                      />
+                    </div>
+                    <button type="submit" className="app-button">
+                      Entrar no Grupo
+                    </button>
+                  </form>
+                </div>
+
+                {/* Navigation to Create Group */}
+                <div style={{ marginTop: '16px' }}>
+                  <button className="app-button-outline" onClick={() => {
+                    setNewGroupName("");
+                    setCurrentScreen("create-group");
+                  }}>
+                    <Icon name="plus" size={16} />
+                    Criar Novo Bolão (Grupo)
                   </button>
                 </div>
               </div>
             )}
 
-            {/* MAIN APP CONTAINER */}
-            {loggedIn && currentScreen === "app" && (
+            {/* SCREEN 3: CREATE GROUP */}
+            {currentScreen === "create-group" && (
               <div className="screen-fade">
-                
-                {/* Header info */}
-                <div className="feed-header">
+                <div className="flex-between mb-16">
                   <div>
-                    <span className="app-title-caps">GRUPO {roomCode}</span>
-                    <h2 className="app-headline" style={{ fontSize: '22px' }}>CopaBolão 2026</h2>
+                    <span className="app-title-caps">CONFIGURAR BOLÃO</span>
+                    <h2 className="app-headline">Novo Grupo</h2>
                   </div>
-                  <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: 'var(--phone-muted)', fontSize: '12px', fontWeight: '600', textDecoration: 'underline', cursor: 'pointer' }}>
-                    Sair
+                  <button className="app-button-outline" style={{ width: 'auto', padding: '6px 12px', fontSize: '12px' }} onClick={() => setCurrentScreen("group")}>
+                    Cancelar
                   </button>
                 </div>
 
-                {/* FEED TAB */}
-                {activeTab === "feed" && (
+                <form onSubmit={handleCreateGroup} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div className="form-group">
+                    <label className="form-label">Nome do Grupo</label>
+                    <input 
+                      type="text" 
+                      className="app-input" 
+                      placeholder="Ex: Bolão do Trabalho ou Família Silva" 
+                      value={newGroupName}
+                      onChange={(e) => setNewGroupName(e.target.value)}
+                      required
+                      minLength={3}
+                    />
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                    <div className="form-group">
+                      <label className="form-label">Moeda</label>
+                      <select className="tweak-select" style={{ height: '44px', background: 'var(--phone-surface)', border: '1px solid var(--phone-border)', borderRadius: '12px' }} value={newGroupCurrency} onChange={(e) => setNewGroupCurrency(e.target.value)}>
+                        <option value="BRL">Real (BRL)</option>
+                        <option value="EUR">Euro (EUR)</option>
+                        <option value="USD">Dólar (USD)</option>
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Taxa por Partida</label>
+                      <input 
+                        type="number" 
+                        step="0.01"
+                        className="app-input" 
+                        value={newGroupFee}
+                        onChange={(e) => setNewGroupFee(Number(e.target.value))}
+                        min="0"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <span style={{ fontSize: '11px', color: 'var(--phone-muted)', marginTop: '-8px', display: 'block' }}>
+                    Taxa: {newGroupCurrency} {newGroupFee.toFixed(2)} (Armazenado: {Math.round(newGroupFee * 100)} centavos)
+                  </span>
+
+                  <div className="form-group">
+                    <label className="form-label">Tranca de Palpites (Minutos)</label>
+                    <input 
+                      type="number" 
+                      className="app-input" 
+                      value={newGroupLock}
+                      onChange={(e) => setNewGroupLock(Number(e.target.value))}
+                      min="1"
+                      max="180"
+                      required
+                    />
+                    <span style={{ fontSize: '11px', color: 'var(--phone-muted)', marginTop: '4px', display: 'block' }}>
+                      Tempo limite antes de cada início de partida.
+                    </span>
+                  </div>
+
+                  {/* Filter teams select */}
+                  <div className="form-group">
+                    <label className="form-label">Filtro de Seleções ({newGroupTeams.length} selecionadas)</label>
+                    <input 
+                      type="text" 
+                      className="app-input" 
+                      placeholder="Buscar país..." 
+                      style={{ padding: '8px 12px', fontSize: '13px', borderRadius: '8px', marginBottom: '8px' }}
+                      value={teamSearchQuery}
+                      onChange={(e) => setTeamSearchQuery(e.target.value)}
+                    />
+                    
+                    <div className="chip-grid">
+                      {filteredTeams.map(team => {
+                        const active = newGroupTeams.includes(team.code);
+                        return (
+                          <div 
+                            key={team.code} 
+                            className={`chip ${active ? 'chip-active' : ''}`}
+                            onClick={() => {
+                              if (active) {
+                                setNewGroupTeams(prev => prev.filter(c => c !== team.code));
+                              } else {
+                                setNewGroupTeams(prev => [...prev, team.code]);
+                              }
+                            }}
+                          >
+                            <Flag code={team.flag} />
+                            <span>{team.name}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Filter phases checks */}
+                  <div className="form-group">
+                    <label className="form-label">Fases do Torneio</label>
+                    <div className="phase-grid">
+                      {["grupos", "32_avos", "oitavas", "quartas", "semi", "terceiro_lugar", "final"].map(p => {
+                        const active = newGroupPhases.includes(p);
+                        return (
+                          <label key={p} className="phase-item">
+                            <input 
+                              type="checkbox" 
+                              checked={active}
+                              onChange={() => {
+                                if (active) {
+                                  setNewGroupPhases(prev => prev.filter(x => x !== p));
+                                } else {
+                                  setNewGroupPhases(prev => [...prev, p]);
+                                }
+                              }}
+                            />
+                            <span>{p.replace('_', ' ').toUpperCase()}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Calculate Games Match Button */}
+                  <div className="app-card alert-info" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div className="flex-between">
+                      <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--phone-fg)' }}>Total de Jogos no Filtro:</span>
+                      <strong style={{ fontSize: '14px', color: 'var(--accent)' }}>{createdGamesCount} / 64</strong>
+                    </div>
+                    <button 
+                      type="button" 
+                      className="app-button-outline" 
+                      style={{ fontSize: '12px', padding: '6px' }}
+                      onClick={() => recalculateGames(newGroupTeams, newGroupPhases, false)}
+                    >
+                      Recalcular Jogos
+                    </button>
+                  </div>
+
+                  <button type="submit" className="app-button" style={{ marginTop: '8px' }}>
+                    Criar Grupo & Ir para o Feed
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {/* SCREEN 4: EDIT FILTER */}
+            {currentScreen === "edit-filter" && (
+              <div className="screen-fade">
+                <div className="flex-between mb-16">
                   <div>
-                    {/* Inner feed switcher */}
-                    <div className="tab-control">
+                    <span className="app-title-caps">GERENCIAR REGRAS</span>
+                    <h2 className="app-headline">Filtro do Bolão</h2>
+                  </div>
+                  <button className="app-button-outline" style={{ width: 'auto', padding: '6px 12px', fontSize: '12px' }} onClick={() => setCurrentScreen("group")}>
+                    Voltar
+                  </button>
+                </div>
+
+                {/* Pre-requisite checks */}
+                {!userSession ? (
+                  <div className="alert-box alert-danger screen-fade" style={{ textAlign: 'center', padding: '24px 16px' }}>
+                    <p style={{ fontSize: '32px', marginBottom: '12px' }}>🔒</p>
+                    <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: '700', marginBottom: '8px' }}>Login Requerido</h3>
+                    <p style={{ fontSize: '13px', color: 'var(--phone-muted)', marginBottom: '16px' }}>Você precisa estar autenticado para poder acessar as configurações de filtro do bolão.</p>
+                    <button className="app-button" onClick={() => setCurrentScreen("login")}>Ir para Login</button>
+                  </div>
+                ) : !firebaseEnabled ? (
+                  <div className="alert-box alert-warning screen-fade" style={{ textAlign: 'center', padding: '24px 16px' }}>
+                    <p style={{ fontSize: '32px', marginBottom: '12px' }}>⚠️</p>
+                    <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: '700', marginBottom: '8px' }}>Firebase Não Configurado</h3>
+                    <p style={{ fontSize: '13px', color: 'var(--phone-muted)', marginBottom: '16px' }}>A edição dos filtros do bolão exige uma conexão ativa com o banco Firestore. Habilite "Simular Firebase" no painel lateral de Tweaks.</p>
+                    <button className="app-button" onClick={() => setCurrentScreen("group")}>Voltar para o Grupo</button>
+                  </div>
+                ) : !currentGroup ? (
+                  <div className="alert-box alert-danger screen-fade" style={{ textAlign: 'center', padding: '24px 16px' }}>
+                    <p style={{ fontSize: '32px', marginBottom: '12px' }}>📂</p>
+                    <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: '700', marginBottom: '8px' }}>Selecione um Grupo</h3>
+                    <p style={{ fontSize: '13px', color: 'var(--phone-muted)', marginBottom: '16px' }}>Nenhum grupo ativo selecionado. Crie ou entre em um grupo antes de editar o filtro.</p>
+                    <button className="app-button" onClick={() => setCurrentScreen("group")}>Selecionar Grupo</button>
+                  </div>
+                ) : firebaseEnabled && !currentGroup.adminUids.includes(userSession.email) && !userIsAdmin ? (
+                  <div className="alert-box alert-danger screen-fade" style={{ textAlign: 'center', padding: '24px 16px' }}>
+                    <p style={{ fontSize: '32px', marginBottom: '12px' }}>🚫</p>
+                    <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: '700', marginBottom: '8px' }}>Apenas Administradores</h3>
+                    <p style={{ fontSize: '13px', color: 'var(--phone-muted)', marginBottom: '16px' }}>Você não tem permissão para alterar os filtros deste grupo. Apenas os admins contidos no Firestore (<code style={{fontSize: '11px'}}>{currentGroup.adminUids.join(', ')}</code>) podem editá-los.</p>
+                    <button className="app-button" onClick={() => setCurrentScreen("group")}>Voltar para o Grupo</button>
+                  </div>
+                ) : isLoadingFilter ? (
+                  <div style={{ textAlign: 'center', padding: '40px 0' }} className="screen-fade">
+                    <div style={{ width: '32px', height: '32px', border: '3px solid var(--accent)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 16px' }}></div>
+                    <p style={{ fontSize: '13px', color: 'var(--phone-muted)' }}>Lendo matchFilter do Firestore em tempo real...</p>
+                  </div>
+                ) : (
+                  /* Interactive Edit Form */
+                  <div className="screen-fade">
+                    <div style={{ marginBottom: '16px' }}>
+                      <p style={{ fontSize: '13px', color: 'var(--phone-muted)' }}>
+                        Modificando filtros de jogos para o bolão: <strong>{currentGroup.name}</strong> ({currentGroup.id})
+                      </p>
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Filtrar por Seleções ({editGroupTeams.length} ativas)</label>
+                      <input 
+                        type="text" 
+                        className="app-input" 
+                        placeholder="Pesquisar time..." 
+                        style={{ padding: '8px 12px', fontSize: '13px', borderRadius: '8px', marginBottom: '8px' }}
+                        value={editTeamSearch}
+                        onChange={(e) => setEditTeamSearch(e.target.value)}
+                      />
+                      
+                      <div className="chip-grid">
+                        {filteredEditTeams.map(team => {
+                          const active = editGroupTeams.includes(team.code);
+                          return (
+                            <div 
+                              key={team.code} 
+                              className={`chip ${active ? 'chip-active' : ''}`}
+                              onClick={() => {
+                                if (active) {
+                                  setEditGroupTeams(prev => prev.filter(c => c !== team.code));
+                                } else {
+                                  setEditGroupTeams(prev => [...prev, team.code]);
+                                }
+                              }}
+                            >
+                              <Flag code={team.flag} />
+                              <span>{team.name}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="form-group" style={{ marginTop: '16px' }}>
+                      <label className="form-label">Fases Inclusas</label>
+                      <div className="phase-grid">
+                        {["grupos", "32_avos", "oitavas", "quartas", "semi", "terceiro_lugar", "final"].map(p => {
+                          const active = editGroupPhases.includes(p);
+                          return (
+                            <label key={p} className="phase-item">
+                              <input 
+                                type="checkbox" 
+                                checked={active}
+                                onChange={() => {
+                                  if (active) {
+                                    setEditGroupPhases(prev => prev.filter(x => x !== p));
+                                  } else {
+                                    setEditGroupPhases(prev => [...prev, p]);
+                                  }
+                                }}
+                              />
+                              <span>{p.replace('_', ' ').toUpperCase()}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="app-card alert-info" style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '16px' }}>
+                      <div className="flex-between">
+                        <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--phone-fg)' }}>Total Estimado de Jogos:</span>
+                        <strong style={{ fontSize: '14px', color: 'var(--accent)' }}>{editGamesCount || currentGroup.allowedTeams.length * 4} / 64</strong>
+                      </div>
                       <button 
-                        className={`tab-btn ${feedTab === 'scheduled' ? 'tab-btn-active' : ''}`}
-                        onClick={() => setFeedTab("scheduled")}
+                        type="button" 
+                        className="app-button-outline" 
+                        style={{ fontSize: '12px', padding: '6px' }}
+                        onClick={() => recalculateGames(editGroupTeams, editGroupPhases, true)}
                       >
-                        Próximos
-                      </button>
-                      <button 
-                        className={`tab-btn ${feedTab === 'live' ? 'tab-btn-active' : ''}`}
-                        onClick={() => setFeedTab("live")}
-                      >
-                        Ao Vivo
-                      </button>
-                      <button 
-                        className={`tab-btn ${feedTab === 'ended' ? 'tab-btn-active' : ''}`}
-                        onClick={() => setFeedTab("ended")}
-                      >
-                        Encerrados
+                        Recalcular Filtro
                       </button>
                     </div>
 
-                    {/* Games lists according to tab selected */}
-                    {games.filter(g => {
+                    <button 
+                      className="app-button" 
+                      style={{ marginTop: '16px' }}
+                      onClick={handleSaveFilter}
+                      disabled={isSavingFilter}
+                    >
+                      {isSavingFilter ? "Sincronizando no Firestore..." : "Salvar Filtro no Firestore"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* SCREEN 5: FEED OF GAMES */}
+            {currentScreen === "feed" && (
+              <div className="screen-fade">
+                {!currentGroup ? (
+                  <div style={{ textAlign: 'center', padding: '48px 16px' }} className="screen-fade">
+                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>📂</div>
+                    <h3 className="app-headline" style={{ fontSize: '20px', marginBottom: '8px' }}>Selecione um grupo</h3>
+                    <p className="app-sub" style={{ marginBottom: '24px' }}>Você precisa entrar em um bolão ou criar um novo para ver os jogos e o ranking.</p>
+                    <button className="app-button" onClick={() => setCurrentScreen("group")}>Ir para Grupos</button>
+                  </div>
+                ) : (
+                  <>
+                
+                {/* Header */}
+                <div className="feed-header">
+                  <div>
+                    <span className="app-title-caps">CÓDIGO: {currentGroup.id}</span>
+                    <h2 className="app-headline" style={{ fontSize: '22px' }}>{currentGroup.name}</h2>
+                  </div>
+                  <button onClick={() => setCurrentScreen("group")} style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: '12px', fontWeight: '700', textDecoration: 'underline', cursor: 'pointer' }}>
+                    Sair do Grupo
+                  </button>
+                </div>
+
+                {/* FEED STATE TABS */}
+                {/* FEED STATE TABS */}
+                {activeTab === "feed" && (
+                  <div>
+                    {/* Switch between active and archived */}
+                    <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                      <button 
+                        style={{ 
+                          flex: 1, 
+                          padding: '6px', 
+                          borderRadius: '8px', 
+                          border: '1px solid var(--phone-border)',
+                          background: feedTab !== 'archived' ? 'var(--accent-light)' : 'transparent',
+                          color: feedTab !== 'archived' ? 'var(--accent)' : 'var(--phone-muted)',
+                          fontSize: '12px',
+                          fontWeight: '700'
+                        }}
+                        onClick={() => setFeedTab("scheduled")}
+                      >
+                        Jogos Ativos
+                      </button>
+                      <button 
+                        style={{ 
+                          flex: 1, 
+                          padding: '6px', 
+                          borderRadius: '8px', 
+                          border: '1px solid var(--phone-border)',
+                          background: feedTab === 'archived' ? 'var(--phone-surface-hover)' : 'transparent',
+                          color: feedTab === 'archived' ? 'var(--phone-fg)' : 'var(--phone-muted)',
+                          fontSize: '12px',
+                          fontWeight: '700'
+                        }}
+                        onClick={() => setFeedTab("archived")}
+                      >
+                        Arquivados ({archivedGames.length})
+                      </button>
+                    </div>
+
+                    {/* Inner status tabs (only for active games) */}
+                    {feedTab !== "archived" && (
+                      <div className="tab-control">
+                        <button className={`tab-btn ${feedTab === 'scheduled' ? 'tab-btn-active' : ''}`} onClick={() => setFeedTab("scheduled")}>
+                          Próximos
+                        </button>
+                        <button className={`tab-btn ${feedTab === 'live' ? 'tab-btn-active' : ''}`} onClick={() => setFeedTab("live")}>
+                          Ao Vivo
+                        </button>
+                        <button className={`tab-btn ${feedTab === 'ended' ? 'tab-btn-active' : ''}`} onClick={() => setFeedTab("ended")}>
+                          Encerrados
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Games iteration list */}
+                    {(feedTab === "archived" ? archivedGames : activeGames.filter(g => {
                       if (feedTab === "scheduled") return g.status === "agendado";
                       if (feedTab === "live") return g.status === "em_andamento";
                       return g.status === "encerrado";
-                    }).map(game => (
-                      <div key={game.id} className="app-card" style={{ cursor: game.status === 'encerrado' ? 'pointer' : 'default' }} onClick={() => { if(game.status === 'encerrado') { setSelectedGameId(game.id); setCurrentScreen("details"); } }}>
-                        
-                        {/* Pot accumulator alert banner */}
-                        {game.accumulated && (
-                          <div className="match-pot-banner">
-                            <span>🔥</span>
-                            <span>POTE ACUMULADO: {currency} {calculatePot(game)}</span>
-                          </div>
-                        )}
-
-                        <div className="flex-between">
-                          <span className={`match-status-badge ${game.status === 'agendado' ? 'badge-scheduled' : game.status === 'em_andamento' ? 'badge-live' : 'badge-ended'}`}>
-                            {game.status === 'agendado' ? 'Agendado' : game.status === 'em_andamento' ? 'Ao Vivo' : 'Encerrado'}
-                          </span>
-                          <span style={{ fontSize: '12px', color: 'var(--phone-muted)', fontWeight: '600' }}>
-                            {game.date}
-                          </span>
-                        </div>
-
-                        <div className="match-teams-row">
-                          <div className="team-display">
-                            <Flag code={game.team1Flag} />
-                            <span className="team-name">{game.team1}</span>
-                          </div>
-
-                          <div className="match-vs-score">
-                            {game.status === 'agendado' ? (
-                              <div className="prediction-inputs">
-                                <input 
-                                  type="text" 
-                                  maxLength="2" 
-                                  className="prediction-box" 
-                                  placeholder="-"
-                                  value={game.prediction.score1}
-                                  onChange={(e) => handlePredictionChange(game.id, 'score1', e.target.value.replace(/\D/g, ''))}
-                                />
-                                <span style={{ color: 'var(--phone-muted)' }}>x</span>
-                                <input 
-                                  type="text" 
-                                  maxLength="2" 
-                                  className="prediction-box" 
-                                  placeholder="-"
-                                  value={game.prediction.score2}
-                                  onChange={(e) => handlePredictionChange(game.id, 'score2', e.target.value.replace(/\D/g, ''))}
-                                />
-                              </div>
-                            ) : (
-                              <>
-                                <span>{game.score1}</span>
-                                <span style={{ fontSize: '16px', color: 'var(--phone-muted)' }}>x</span>
-                                <span>{game.score2}</span>
-                              </>
-                            )}
-                          </div>
-
-                          <div className="team-display">
-                            <Flag code={game.team2Flag} />
-                            <span className="team-name">{game.team2}</span>
-                          </div>
-                        </div>
-
-                        {/* Actions below match */}
-                        {game.status === 'agendado' && (
-                          <button 
-                            className="app-button" 
-                            style={{ padding: '8px 12px', fontSize: '13px', marginTop: '8px' }}
-                            onClick={() => savePrediction(game.id)}
-                          >
-                            Salvar Palpite
-                          </button>
-                        )}
-
-                        {game.status === 'em_andamento' && (
-                          <div style={{ marginTop: '12px', borderTop: '1px solid var(--phone-border)', paddingTop: '12px' }}>
-                            <div className="flex-between mb-8">
-                              <span style={{ fontSize: '12px', color: 'var(--phone-muted)' }}>Seu Palpite trancado:</span>
-                              <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--phone-fg)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <LockIcon /> {game.prediction.score1} x {game.prediction.score2}
-                              </span>
+                    })).map(game => {
+                      const t1Code = ALL_MOCK_TEAMS.find(t => t.name === game.team1)?.code || "T1";
+                      const t2Code = ALL_MOCK_TEAMS.find(t => t.name === game.team2)?.code || "T2";
+                      return (
+                        <div 
+                          key={game.id} 
+                          className="app-card" 
+                          style={{ 
+                            cursor: 'pointer',
+                            borderColor: feedTab === 'archived' 
+                              ? 'var(--phone-border)' 
+                              : (game.status === 'encerrado' && game.winners?.length > 0 ? 'var(--gold)' : undefined),
+                            background: feedTab === 'archived'
+                              ? undefined
+                              : (game.status === 'encerrado' && game.winners?.length > 0
+                                ? (themeMode === 'dark' ? 'rgba(234, 179, 8, 0.06)' : 'rgba(234, 179, 8, 0.03)')
+                                : undefined),
+                            opacity: feedTab === 'archived' ? 0.75 : 1
+                          }} 
+                          onClick={() => { 
+                            setSelectedGameId(game.id); 
+                            setCurrentScreen("details"); 
+                          }}
+                        >
+                          
+                          {/* Pot Accumulator banner */}
+                          {game.accumulated && feedTab !== 'archived' && (
+                            <div className="match-pot-banner">
+                              <span>🔥</span>
+                              <span>POTE ACUMULADO: {formatMoney(calculatePot(game))}</span>
                             </div>
-                            <button 
-                              className="app-button-outline"
-                              style={{ padding: '8px 12px', fontSize: '13px', width: '100%' }}
-                              onClick={() => setActiveSecarGame(game)}
-                            >
-                              Secar Palpites da Galera
-                            </button>
-                          </div>
-                        )}
+                          )}
 
-                        {game.status === 'encerrado' && (
-                          <div style={{ marginTop: '12px', borderTop: '1px solid var(--phone-border)', paddingTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontSize: '12px', color: 'var(--phone-muted)' }}>
-                              {game.winners.length > 0 ? (
-                                <span>🏆 Vencedores: <strong>{game.winners.join(', ')}</strong></span>
+                          <div className="flex-between" style={{ marginBottom: '8px' }}>
+                            <span className={`match-status-badge ${game.status === 'agendado' ? 'badge-scheduled' : game.status === 'em_andamento' ? 'badge-live' : 'badge-ended'}`}>
+                              {feedTab === 'archived' ? 'Arquivado' : (game.status === 'agendado' ? 'Agendado' : game.status === 'em_andamento' ? 'Ao Vivo' : 'Encerrado')}
+                            </span>
+                            <span style={{ fontSize: '11px', color: 'var(--phone-muted)', fontWeight: '600' }}>
+                              {formatMatchTime(game.matchTimeUtc)}
+                            </span>
+                          </div>
+
+                          <div style={{ fontSize: '11px', color: 'var(--phone-muted)', marginBottom: '8px', fontWeight: '500' }}>
+                            {t1Code} x {t2Code} · {{
+                              grupos: "group",
+                              "32_avos": "32 avos",
+                              oitavas: "oitavas",
+                              quartas: "quartas",
+                              semi: "semi",
+                              terceiro_lugar: "3º lugar",
+                              final: "final"
+                            }[game.phase] || game.phase} · {{
+                              agendado: "scheduled",
+                              em_andamento: "live",
+                              encerrado: "finished"
+                            }[game.status] || game.status}
+                          </div>
+
+                          <div className="match-teams-row">
+                            <div className="team-display">
+                              <Flag code={game.team1Flag} />
+                              <span className="team-name">{game.team1}</span>
+                            </div>
+
+                            <div className="match-vs-score" onClick={(e) => {
+                              if (game.status === 'agendado') {
+                                e.stopPropagation();
+                              }
+                            }}>
+                              {game.status === 'agendado' ? (
+                                <div className="prediction-inputs">
+                                  <input 
+                                    type="text" 
+                                    maxLength="2" 
+                                    className="prediction-box" 
+                                    placeholder="-"
+                                    value={game.prediction.score1}
+                                    onChange={(e) => handlePredictionChange(game.id, 'score1', e.target.value.replace(/\D/g, ''))}
+                                  />
+                                  <span style={{ color: 'var(--phone-muted)' }}>x</span>
+                                  <input 
+                                    type="text" 
+                                    maxLength="2" 
+                                    className="prediction-box" 
+                                    placeholder="-"
+                                    value={game.prediction.score2}
+                                    onChange={(e) => handlePredictionChange(game.id, 'score2', e.target.value.replace(/\D/g, ''))}
+                                  />
+                                </div>
                               ) : (
-                                <span>Acumulou! Ninguém acertou em cheio.</span>
+                                <>
+                                  <span>{game.score1}</span>
+                                  <span style={{ fontSize: '16px', color: 'var(--phone-muted)' }}>x</span>
+                                  <span>{game.score2}</span>
+                                </>
                               )}
-                            </span>
-                            <span style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: '600', display: 'flex', alignItems: 'center' }}>
-                              Detalhes &gt;
-                            </span>
-                          </div>
-                        )}
+                            </div>
 
-                      </div>
-                    ))}
+                            <div className="team-display">
+                              <Flag code={game.team2Flag} />
+                              <span className="team-name">{game.team2}</span>
+                            </div>
+                          </div>
+
+                          {feedTab === 'archived' && (
+                            <div style={{ fontSize: '11px', color: 'var(--danger)', marginTop: '8px' }}>
+                              🚫 Excluído do Bolão pelas regras de filtragem.
+                            </div>
+                          )}
+
+                          {game.status === 'agendado' && feedTab !== 'archived' && (
+                            <button 
+                              className="app-button" 
+                              style={{ padding: '8px 12px', fontSize: '13px', marginTop: '8px' }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                savePrediction(game.id);
+                              }}
+                            >
+                              Salvar Palpite
+                            </button>
+                          )}
+
+                          {game.status === 'em_andamento' && feedTab !== 'archived' && (
+                            <div style={{ marginTop: '12px', borderTop: '1px solid var(--phone-border)', paddingTop: '12px' }}>
+                              <div className="flex-between mb-8">
+                                <span style={{ fontSize: '12px', color: 'var(--phone-muted)' }}>Seu Palpite trancado:</span>
+                                <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--phone-fg)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                  <Icon name="lock" size={14} /> {game.predictions.find(p => p.name === "Você")?.prediction || "Sem palpite"}
+                                </span>
+                              </div>
+                              <button 
+                                className="app-button-outline"
+                                style={{ padding: '8px 12px', fontSize: '13px', width: '100%' }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActiveSecarGame(game);
+                                }}
+                              >
+                                Secar Palpites da Galera
+                              </button>
+                            </div>
+                          )}
+
+                          {game.status === 'encerrado' && feedTab !== 'archived' && (
+                            <div style={{ marginTop: '12px', borderTop: '1px solid var(--phone-border)', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontSize: '12px', color: 'var(--phone-muted)' }}>
+                                  {game.winners && game.winners.length > 0 ? (
+                                    <span>🏆 Vencedores: <strong>{game.winners.join(', ')}</strong></span>
+                                  ) : (
+                                    <span style={{ color: 'var(--phone-muted)', fontWeight: '600' }}>Sem vencedores — pote acumulado</span>
+                                  )}
+                                </span>
+                                <span style={{ fontSize: '12.5px', color: 'var(--accent)', fontWeight: '700' }}>
+                                  Ver Detalhes &gt;
+                                </span>
+                              </div>
+                              <div style={{ fontSize: '11px', color: game.winners?.length > 0 ? 'var(--gold)' : 'var(--phone-muted)', fontWeight: '600' }}>
+                                Pote Total: {formatMoney(calculatePot(game))}
+                              </div>
+                            </div>
+                          )}
+
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
 
-                {/* RANKING TAB */}
+                {/* RANKING STATE TAB */}
                 {activeTab === "ranking" && (
                   <div className="screen-fade">
                     <h3 className="app-headline" style={{ fontSize: '20px', marginBottom: '8px' }}>Ranking de Bruxos</h3>
-                    <p className="app-sub" style={{ marginBottom: '16px' }}>Eficiência pura com base em acertos exatos do placar.</p>
+                    <p className="app-sub" style={{ marginBottom: '16px' }}>Eficiência pura baseada em acertos exatos do placar.</p>
 
-                    {/* Podium for top 3 */}
-                    <div className="podium-container">
-                      <div className="podium-block podium-2nd">
-                        <div className="podium-avatar">C</div>
-                        <span className="podium-rank">2º</span>
-                        <span className="podium-name">Camila</span>
-                        <span className="podium-score">3 acertos</span>
-                      </div>
-                      
-                      <div className="podium-block podium-1st">
-                        <div className="podium-avatar" style={{ top: '-24px', width: '44px', height: '44px', fontSize: '16px' }}>👑</div>
-                        <span className="podium-rank">1º</span>
-                        <span className="podium-name" style={{ fontWeight: '700' }}>Bruno</span>
-                        <span className="podium-score">4 acertos</span>
-                      </div>
+                    {sortedMembers.length > 0 ? (
+                      <>
+                        {/* Podium top 3 */}
+                        <div className="podium-container">
+                          {/* 2nd Place */}
+                          {sortedMembers[1] && (
+                            <div className="podium-block podium-2nd">
+                              <div className="podium-avatar">{sortedMembers[1].avatar}</div>
+                              <span className="podium-rank">2º</span>
+                              <span className="podium-name">{sortedMembers[1].name}</span>
+                              <span className="podium-score">{sortedMembers[1].perfectScoresCount} acertos</span>
+                            </div>
+                          )}
+                          
+                          {/* 1st Place */}
+                          {sortedMembers[0] && (
+                            <div className="podium-block podium-1st">
+                              <div className="podium-avatar" style={{ top: '-24px', width: '44px', height: '44px', fontSize: '16px' }}>👑</div>
+                              <span className="podium-rank">1º</span>
+                              <span className="podium-name" style={{ fontWeight: '700' }}>{sortedMembers[0].name}</span>
+                              <span className="podium-score">{sortedMembers[0].perfectScoresCount} acertos</span>
+                            </div>
+                          )}
 
-                      <div className="podium-block podium-3rd">
-                        <div className="podium-avatar">T</div>
-                        <span className="podium-rank">3º</span>
-                        <span className="podium-name">Thiago</span>
-                        <span className="podium-score">3 acertos</span>
-                      </div>
-                    </div>
+                          {/* 3rd Place */}
+                          {sortedMembers[2] && (
+                            <div className="podium-block podium-3rd">
+                              <div className="podium-avatar">{sortedMembers[2].avatar}</div>
+                              <span className="podium-rank">3º</span>
+                              <span className="podium-name">{sortedMembers[2].name}</span>
+                              <span className="podium-score">{sortedMembers[2].perfectScoresCount} acertos</span>
+                            </div>
+                          )}
+                        </div>
 
-                    {/* Ranking Table List */}
-                    <div className="ledger-list" style={{ marginTop: '16px' }}>
-                      <div className="ledger-row" style={{ background: 'none', border: 'none', padding: '4px 12px' }}>
-                        <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--phone-muted)' }}>Posição & Nome</span>
-                        <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--phone-muted)' }}>Acertos</span>
+                        {/* Remaining List */}
+                        <div className="ledger-list" style={{ marginTop: '16px' }}>
+                          <div className="ledger-row" style={{ background: 'none', border: 'none', padding: '4px 12px' }}>
+                            <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--phone-muted)' }}>Posição & Nome</span>
+                            <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--phone-muted)' }}>Acertos</span>
+                          </div>
+                          
+                          {sortedMembers.map((member, index) => {
+                            const isUser = member.name === "Você";
+                            return (
+                              <div key={member.uid} className="ledger-row" style={{ borderColor: isUser ? 'var(--accent)' : undefined }}>
+                                <span style={{ fontSize: '14px', fontWeight: isUser ? '700' : '500', color: isUser ? 'var(--accent)' : 'var(--phone-fg)' }}>
+                                  {index + 1}. {member.name} {isUser && "(Geral)"}
+                                </span>
+                                <span style={{ fontFamily: 'var(--font-display)', fontWeight: '700', color: isUser ? 'var(--accent)' : 'var(--phone-fg)' }}>
+                                  {member.perfectScoresCount}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="alert-box alert-info" style={{ textAlign: 'center', marginTop: '32px' }}>
+                        Nenhum membro no grupo.
                       </div>
-                      
-                      <div className="ledger-row">
-                        <span style={{ fontSize: '14px', fontWeight: '500', color: 'var(--phone-fg)' }}>4. Ana</span>
-                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: '700', color: 'var(--phone-fg)' }}>2</span>
-                      </div>
-                      <div className="ledger-row" style={{ borderColor: 'var(--accent)' }}>
-                        <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--accent)' }}>5. Você (Geral)</span>
-                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: '700', color: 'var(--accent)' }}>2</span>
-                      </div>
-                      <div className="ledger-row">
-                        <span style={{ fontSize: '14px', fontWeight: '500', color: 'var(--phone-fg)' }}>6. Pedro</span>
-                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: '700', color: 'var(--phone-fg)' }}>1</span>
-                      </div>
-                      <div className="ledger-row">
-                        <span style={{ fontSize: '14px', fontWeight: '500', color: 'var(--phone-fg)' }}>7. Mariana</span>
-                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: '700', color: 'var(--phone-fg)' }}>0</span>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 )}
 
-                {/* RULES TAB */}
+                {/* RULES STATE TAB */}
                 {activeTab === "rules" && (
                   <div className="screen-fade">
                     <h3 className="app-headline" style={{ fontSize: '20px', marginBottom: '8px' }}>Regulamento</h3>
@@ -1739,7 +2944,7 @@
                         <div>
                           <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--phone-fg)', marginBottom: '4px' }}>Aposta por Partida</h4>
                           <p style={{ fontSize: '13px', color: 'var(--phone-muted)' }}>
-                            Cada jogo tem entrada fixa de {currency} {entryFee}. Pagos fora do aplicativo de forma transparente aos ganhadores do pote.
+                            Cada jogo tem entrada fixa de {formatMoney(currentGroup.entryFee, currentGroup.currency)}. Pagos fora do aplicativo de forma transparente aos ganhadores do pote.
                           </p>
                         </div>
                       </div>
@@ -1751,7 +2956,7 @@
                         <div>
                           <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--phone-fg)', marginBottom: '4px' }}>Bloqueio de Palpites</h4>
                           <p style={{ fontSize: '13px', color: 'var(--phone-muted)' }}>
-                            Tranca automaticamente 15 minutos antes do início de cada jogo. Sem alterações posteriores.
+                            Tranca automaticamente {currentGroup.lockMinutes} minutos antes do início de cada jogo. Sem alterações posteriores.
                           </p>
                         </div>
                       </div>
@@ -1761,7 +2966,7 @@
                       <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
                         <div style={{ background: 'var(--accent-light)', padding: '6px', borderRadius: '8px', color: 'var(--accent)' }}>🎯</div>
                         <div>
-                          <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--phone-fg)', marginBottom: '4px' }}>Vencedor Único ou Divisão</h4>
+                          <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--phone-fg)', marginBottom: '4px' }}>Vencedor Único</h4>
                           <p style={{ fontSize: '13px', color: 'var(--phone-muted)' }}>
                             Somente acerto EXATO do placar ganha. Se 2 ou mais pessoas acertarem o placar exato, dividem o pote.
                           </p>
@@ -1783,68 +2988,46 @@
                   </div>
                 )}
 
-                {/* BOTTOM NAVIGATION */}
+                {/* BOTTOM NAVIGATION (SHELL OVERLAY) */}
                 <div className="app-nav">
-                  <button 
-                    className={`nav-item ${activeTab === 'feed' ? 'nav-item-active' : ''}`}
-                    onClick={() => setActiveTab("feed")}
-                  >
-                    <svg className="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <rect x="3" y="3" width="7" height="9" />
-                      <rect x="14" y="3" width="7" height="5" />
-                      <rect x="14" y="12" width="7" height="9" />
-                      <rect x="3" y="16" width="7" height="5" />
-                    </svg>
+                  <button className={`nav-item ${activeTab === 'feed' ? 'nav-item-active' : ''}`} onClick={() => setActiveTab("feed")}>
+                    <Icon name="ball" size={22} color={activeTab === 'feed' ? 'var(--accent)' : 'var(--phone-muted)'} />
                     Feed
                   </button>
-                  
-                  <button 
-                    className={`nav-item ${activeTab === 'ranking' ? 'nav-item-active' : ''}`}
-                    onClick={() => setActiveTab("ranking")}
-                  >
-                    <svg className="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <line x1="18" y1="20" x2="18" y2="10" />
-                      <line x1="12" y1="20" x2="12" y2="4" />
-                      <line x1="6" y1="20" x2="6" y2="14" />
-                    </svg>
+                  <button className={`nav-item ${activeTab === 'ranking' ? 'nav-item-active' : ''}`} onClick={() => setActiveTab("ranking")}>
+                    <Icon name="trophy" size={22} color={activeTab === 'ranking' ? 'var(--accent)' : 'var(--phone-muted)'} />
                     Ranking
                   </button>
-                  
-                  <button 
-                    className={`nav-item ${activeTab === 'rules' ? 'nav-item-active' : ''}`}
-                    onClick={() => setActiveTab("rules")}
-                  >
-                    <svg className="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <circle cx="12" cy="12" r="10" />
-                      <line x1="12" y1="16" x2="12" y2="12" />
-                      <line x1="12" y1="8" x2="12.01" y2="8" />
-                    </svg>
+                  <button className={`nav-item ${activeTab === 'rules' ? 'nav-item-active' : ''}`} onClick={() => setActiveTab("rules")}>
+                    <Icon name="info" size={22} color={activeTab === 'rules' ? 'var(--accent)' : 'var(--phone-muted)'} />
                     Regulamento
                   </button>
                 </div>
 
+                  </>
+                )}
               </div>
             )}
 
-            {/* SCREEN 3: GAME DETAILS & PAYMENT LEDGER */}
-            {loggedIn && currentScreen === "details" && selectedGame && (
+            {/* SCREEN 6: GAME DETAILS & PAYMENT LEDGER */}
+            {currentScreen === "details" && selectedGame && (
               <div className="screen-fade">
                 
                 {/* Back Navigation */}
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px', gap: '8px' }}>
                   <button 
-                    onClick={() => setCurrentScreen("app")} 
+                    onClick={() => setCurrentScreen("feed")} 
                     style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
                   >
-                    <ChevronLeft />
+                    <Icon name="chevronLeft" size={20} color="var(--accent)" />
                   </button>
-                  <span className="app-title-caps">DETALHES DO JOGO</span>
+                  <span className="app-title-caps">Detalhes do Jogo</span>
                 </div>
 
                 {/* Postgame Hero Card */}
                 <div className="postgame-hero">
                   <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--phone-muted)' }}>
-                    {selectedGame.date}
+                    {formatMatchTime(selectedGame.matchTimeUtc)} · {selectedGame.phase.replace('_', ' ').toUpperCase()} · {selectedGame.status.toUpperCase()}
                   </span>
                   
                   <div className="match-teams-row" style={{ margin: '16px 0' }}>
@@ -1853,9 +3036,9 @@
                       <span className="team-name">{selectedGame.team1}</span>
                     </div>
                     <div className="match-vs-score">
-                      <span>{selectedGame.score1}</span>
+                      <span>{selectedGame.score1 !== null ? selectedGame.score1 : "-"}</span>
                       <span style={{ fontSize: '16px', color: 'var(--phone-muted)' }}>x</span>
-                      <span>{selectedGame.score2}</span>
+                      <span>{selectedGame.score2 !== null ? selectedGame.score2 : "-"}</span>
                     </div>
                     <div className="team-display">
                       <Flag code={selectedGame.team2Flag} />
@@ -1865,82 +3048,232 @@
 
                   <div style={{ height: '1px', background: 'var(--phone-border)', margin: '12px 0' }}></div>
                   
-                  <div style={{ fontSize: '13px', color: 'var(--phone-muted)' }}>Pote Acordado da Rodada</div>
+                  <div style={{ fontSize: '13px', color: 'var(--phone-muted)' }}>Pote Acumulado Distribuído</div>
                   <div className="pot-display">
-                    {currency} {calculatePot(selectedGame)}
+                    {formatMoney(calculatePot(selectedGame))}
                   </div>
                   
-                  <div style={{ fontSize: '13px', color: 'var(--phone-fg)', fontWeight: '600' }}>
-                    {currentWinners.length > 0 ? (
-                      <span>🏆 Dividido entre: <strong>{currentWinners.map(w => w.name).join(' e ')}</strong> ({currency} {calculatePot(selectedGame) / currentWinners.length} para cada)</span>
+                  <div style={{ fontSize: '13.5px', color: 'var(--phone-fg)', fontWeight: '600' }}>
+                    {selectedGame.predictions.filter(p => p.won).length > 0 ? (
+                      <span>🏆 Dividido entre: <strong>{selectedGame.predictions.filter(p => p.won).map(w => w.name).join(' e ')}</strong> ({formatMoney(calculatePot(selectedGame) / selectedGame.predictions.filter(p => p.won).length)} para cada)</span>
                     ) : (
-                      <span>Rodada acumulada para o próximo jogo! ❄️</span>
+                      <span>{selectedGame.status === 'encerrado' ? "Sem vencedores — pote acumulado ❄️" : "Pote acumulado estimado"}</span>
                     )}
                   </div>
                 </div>
 
-                {/* Audit & Inquiry System - Checks user prediction against final score */}
-                {currentWinners.length > 0 && (
-                  userStatus === "lost" ? (
-                    /* User Lost UI */
-                    <div className="audit-card audit-card-unpaid">
-                      <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--danger)', marginBottom: '4px' }}>
-                        Seu Status: Errou o Palpite 😔
-                      </h4>
-                      <p style={{ fontSize: '13px', color: 'var(--phone-muted)', marginBottom: '12px' }}>
-                        Seu palpite: <strong>{selectedGame.prediction.score1}x{selectedGame.prediction.score2}</strong>. Você precisa pagar <strong>{currency} {entryFee}</strong> para <strong>{getPayeeName(participants.find(p => p.name === "Você"))}</strong>.
-                      </p>
-                      
-                      {participants.find(p => p.name === "Você")?.paid ? (
-                        <div className="status-badge status-paid" style={{ width: '100%', justifyContent: 'center' }}>
-                          🟢 Pagamento Declarado. Aguardando auditoria.
-                        </div>
-                      ) : (
-                        <button 
-                          className="app-button" 
-                          style={{ background: 'var(--danger)' }}
-                          onClick={() => {
-                            setParticipants(prev => prev.map(p => p.name === "Você" ? { ...p, paid: true } : p));
-                            showToast("Pagamento registrado publicamente!");
-                          }}
-                        >
-                          Sim, já transferi o valor
-                        </button>
-                      )}
-                    </div>
-                  ) : (
-                    /* User Won UI */
-                    <div className="audit-card" style={{ background: 'var(--gold-light)', borderColor: 'var(--gold)' }}>
-                      <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--gold)', marginBottom: '4px' }}>
-                        Seu Status: Acertou em Cheio! 🏆
-                      </h4>
-                      <p style={{ fontSize: '13px', color: 'var(--phone-muted)', marginBottom: '12px' }}>
-                        Seu palpite: <strong>{selectedGame.score1}x{selectedGame.score2}</strong>. Você divide o prêmio acumulado e receberá <strong>{currency} {calculatePot(selectedGame) / currentWinners.length}</strong>.
-                        {currentLosers.filter(l => getPayeeName(l) === "Você").length > 0 && (
-                          <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--phone-fg)', borderTop: '1px dashed var(--gold)', paddingTop: '8px' }}>
-                            👉 Você deve receber de: <strong>{currentLosers.filter(l => getPayeeName(l) === "Você").map(l => l.name).join(', ')}</strong> ({currency} {entryFee} de cada)
-                          </div>
-                        )}
-                      </p>
-                      <div className="status-badge status-winner" style={{ width: '100%', justifyContent: 'center' }}>
-                        🏆 Vencedor da rodada
-                      </div>
-                    </div>
-                  )
+                {/* LockCountdownBanner */}
+                {selectedGame.status === 'agendado' && (
+                  <div className="countdown-banner" style={{
+                    background: (selectedGame.status !== "agendado" || Date.now() >= (selectedGame.matchTimeUtc - (currentGroup?.lockMinutes || 15) * 60 * 1000)) ? 'var(--phone-surface-hover)' : 'var(--accent-light)',
+                    color: (selectedGame.status !== "agendado" || Date.now() >= (selectedGame.matchTimeUtc - (currentGroup?.lockMinutes || 15) * 60 * 1000)) ? 'var(--phone-muted)' : 'var(--accent)',
+                    padding: '10px 12px',
+                    borderRadius: '8px',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    marginBottom: '16px',
+                    border: (selectedGame.status !== "agendado" || Date.now() >= (selectedGame.matchTimeUtc - (currentGroup?.lockMinutes || 15) * 60 * 1000)) ? '1px solid var(--phone-border)' : '1px solid var(--accent-light)'
+                  }}>
+                    <Icon name={(selectedGame.status !== "agendado" || Date.now() >= (selectedGame.matchTimeUtc - (currentGroup?.lockMinutes || 15) * 60 * 1000)) ? "lock" : "info"} size={16} color={(selectedGame.status !== "agendado" || Date.now() >= (selectedGame.matchTimeUtc - (currentGroup?.lockMinutes || 15) * 60 * 1000)) ? 'var(--phone-muted)' : 'var(--accent)'} />
+                    {(selectedGame.status !== "agendado" || Date.now() >= (selectedGame.matchTimeUtc - (currentGroup?.lockMinutes || 15) * 60 * 1000)) ? (
+                      <span>Palpites trancados</span>
+                    ) : (
+                      <span>Tranca em {Math.floor(Math.max(0, Math.floor(((selectedGame.matchTimeUtc - (currentGroup?.lockMinutes || 15) * 60 * 1000) - Date.now()) / 1000)) / 60)}m {Math.max(0, Math.floor(((selectedGame.matchTimeUtc - (currentGroup?.lockMinutes || 15) * 60 * 1000) - Date.now()) / 1000)) % 60}s</span>
+                    )}
+                  </div>
                 )}
 
-                {/* Public Transparency Ledger Title */}
-                <div className="flex-between mb-8">
+                {/* PredictionInputCard */}
+                <div className="app-card">
+                  <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--phone-fg)', marginBottom: '8px' }}>Seu Palpite</h4>
+                  {!(selectedGame.status !== "agendado" || Date.now() >= (selectedGame.matchTimeUtc - (currentGroup?.lockMinutes || 15) * 60 * 1000)) ? (
+                    <div>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', margin: '12px 0' }}>
+                        <span style={{ fontSize: '13px', color: 'var(--phone-muted)', flex: 1 }}>{selectedGame.team1}</span>
+                        <input 
+                          type="text" 
+                          maxLength="2" 
+                          className="prediction-box" 
+                          style={{ width: '45px', height: '40px', fontSize: '18px', textAlign: 'center' }}
+                          placeholder="-"
+                          value={localScore1}
+                          onChange={(e) => setLocalScore1(e.target.value.replace(/\D/g, ''))}
+                        />
+                        <span style={{ color: 'var(--phone-muted)' }}>x</span>
+                        <input 
+                          type="text" 
+                          maxLength="2" 
+                          className="prediction-box" 
+                          style={{ width: '45px', height: '40px', fontSize: '18px', textAlign: 'center' }}
+                          placeholder="-"
+                          value={localScore2}
+                          onChange={(e) => setLocalScore2(e.target.value.replace(/\D/g, ''))}
+                        />
+                        <span style={{ fontSize: '13px', color: 'var(--phone-muted)', flex: 1, textAlign: 'right' }}>{selectedGame.team2}</span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                        <button 
+                          className="app-button" 
+                          style={{ flex: 1 }}
+                          onClick={() => {
+                            const s1 = localScore1.trim();
+                            const s2 = localScore2.trim();
+                            if ((s1 === "" && s2 !== "") || (s1 !== "" && s2 === "")) {
+                              showToast("Preencha ambos os placares!");
+                              return;
+                            }
+                            setGames(prev => prev.map(g => {
+                              if (g.id === selectedGame.id) {
+                                const newPredStr = (s1 === "" && s2 === "") ? "" : `${s1}x${s2}`;
+                                const newPredictions = g.predictions.map(p => 
+                                  p.name === "Você" ? { ...p, prediction: newPredStr } : p
+                                );
+                                return { ...g, prediction: { score1: s1, score2: s2 }, predictions: newPredictions };
+                              }
+                              return g;
+                            }));
+                            showToast("Palpite gravado com sucesso!");
+                          }}
+                        >
+                          Salvar
+                        </button>
+                        <button 
+                          className="app-button-outline" 
+                          onClick={() => {
+                            setLocalScore1("");
+                            setLocalScore2("");
+                            clearPrediction(selectedGame.id);
+                          }}
+                        >
+                          Limpar
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0' }}>
+                      <span style={{ fontSize: '13px', color: 'var(--phone-muted)' }}>Palpite registrado:</span>
+                      <span style={{ fontSize: '15px', fontWeight: '700', color: 'var(--phone-fg)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Icon name="lock" size={14} color="var(--phone-muted)" />
+                        {(selectedGame.predictions.find(p => p.name === "Você")?.prediction) ? (
+                          `${selectedGame.predictions.find(p => p.name === "Você").prediction.split('x')[0]} x ${selectedGame.predictions.find(p => p.name === "Você").prediction.split('x')[1]}`
+                        ) : "Sem palpite"}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* ParticipationCard */}
+                <div className="app-card" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--phone-fg)', margin: 0 }}>Participar do pote</h4>
+                      <p style={{ fontSize: '12px', color: 'var(--phone-muted)', margin: '2px 0 0 0' }}>
+                        Custo de {formatMoney(entryFee)} se participar.
+                      </p>
+                    </div>
+                    <label className="ios-switch" style={{ opacity: (selectedGame.status !== "agendado" || Date.now() >= (selectedGame.matchTimeUtc - (currentGroup?.lockMinutes || 15) * 60 * 1000)) ? 0.6 : 1, cursor: (selectedGame.status !== "agendado" || Date.now() >= (selectedGame.matchTimeUtc - (currentGroup?.lockMinutes || 15) * 60 * 1000)) ? 'not-allowed' : 'pointer' }}>
+                      <input 
+                        type="checkbox" 
+                        checked={selectedGame.predictions.find(p => p.name === "Você")?.isInPot ?? true} 
+                        disabled={(selectedGame.status !== "agendado" || Date.now() >= (selectedGame.matchTimeUtc - (currentGroup?.lockMinutes || 15) * 60 * 1000))}
+                        onChange={() => handleToggleParticipation(selectedGame.id)}
+                      />
+                      <span className="slider"></span>
+                    </label>
+                  </div>
+                  {!(selectedGame.predictions.find(p => p.name === "Você")?.isInPot ?? true) && (
+                    <div style={{ marginTop: '8px', borderTop: '1px solid var(--phone-border)', paddingTop: '8px' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--danger)', fontWeight: '600' }}>
+                        Fora do pote {selectedGame.predictions.find(p => p.name === "Você")?.optOutTime && `(opt-out em ${selectedGame.predictions.find(p => p.name === "Você").optOutTime})`}
+                      </div>
+                      <div style={{ fontSize: '11px', color: 'var(--phone-muted)', marginTop: '2px' }}>
+                        Nota: Este opt-out vale só para este jogo.
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Palpites da Galera (GroupPredictionsList) */}
+                {(selectedGame.status !== "agendado" || Date.now() >= (selectedGame.matchTimeUtc - (currentGroup?.lockMinutes || 15) * 60 * 1000)) && (
+                  <div className="app-card">
+                    <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--phone-fg)', marginBottom: '8px' }}>Palpites do Grupo</h4>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px' }}>
+                      {selectedGame.predictions
+                        .slice()
+                        .sort((a, b) => a.name.localeCompare(b.name))
+                        .map(p => (
+                          <div key={p.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--phone-border)' }}>
+                            <span style={{ fontSize: '13px', color: p.name === 'Você' ? 'var(--accent)' : 'var(--phone-fg)', fontWeight: p.name === 'Você' ? '700' : '400' }}>
+                              {p.name} {p.name === 'Você' && '(Você)'}
+                            </span>
+                            <span style={{ fontSize: '13px', fontWeight: '600', color: p.isInPot ? 'var(--phone-fg)' : 'var(--phone-muted)' }}>
+                              {p.isInPot ? (p.prediction || "Sem palpite") : "🚫 Fora do Pote"}
+                            </span>
+                          </div>
+                        ))
+                      }
+                    </div>
+                  </div>
+                )}
+
+                {/* Ledger de Pagamentos (PaymentLedgerCard) */}
+                {selectedGame.status === "encerrado" && selectedGame.predictions.filter(p => p.won).length > 0 && (
+                  <div className="app-card" style={{ borderColor: 'var(--gold)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--gold)' }}>Ledger de Pagamentos</h4>
+                      <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--phone-muted)' }}>
+                        {selectedGame.predictions.filter(p => !p.won && p.isInPot && !p.paid).length} pendente(s) · {selectedGame.predictions.filter(p => !p.won && p.isInPot && p.paid).length} pago(s)
+                      </span>
+                    </div>
+
+                    {/* If user is loser and unpaid, show "Já paguei" button */}
+                    {!selectedGame.predictions.find(p => p.name === "Você")?.won && selectedGame.predictions.find(p => p.name === "Você")?.isInPot && !selectedGame.predictions.find(p => p.name === "Você")?.paid && (
+                      <div style={{ background: 'rgba(239, 68, 68, 0.1)', padding: '12px', borderRadius: '8px', marginBottom: '16px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                        <p style={{ fontSize: '13px', color: 'var(--phone-fg)', margin: '0 0 10px 0' }}>
+                          Você errou o palpite. Deve transferir <strong>{formatMoney(entryFee)}</strong> para <strong>{getPayeeName(selectedGame.predictions.find(p => p.name === "Você"))}</strong>.
+                        </p>
+                        <button 
+                          className="app-button" 
+                          style={{ background: 'var(--danger)', width: '100%' }}
+                          onClick={() => {
+                            handleTogglePaid("Você");
+                            showToast("Seu pagamento foi declarado! 🟢");
+                          }}
+                        >
+                          Já paguei
+                        </button>
+                      </div>
+                    )}
+
+                    {/* If user is winner, show a golden receiver banner */}
+                    {selectedGame.predictions.find(p => p.name === "Você")?.won && (
+                      <div style={{ background: 'rgba(234, 179, 8, 0.1)', padding: '12px', borderRadius: '8px', marginBottom: '16px', border: '1px solid var(--gold)' }}>
+                        <p style={{ fontSize: '13px', color: 'var(--phone-fg)', margin: 0, fontWeight: '600' }}>
+                          🎉 Você acertou em cheio! Recebe {formatMoney(calculatePot(selectedGame) / selectedGame.predictions.filter(p => p.won).length)} do pote.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Transparency List */}
+                <div className="flex-between mb-8" style={{ marginTop: '24px' }}>
                   <span style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--phone-muted)' }}>
-                    Fila de Transparência do Grupo
+                    {selectedGame.status === 'encerrado' ? "Fila de Transparência do Grupo" : "Participantes do Grupo"}
                   </span>
                   <span style={{ fontSize: '11px', color: 'var(--phone-muted)' }}>
-                    {participants.filter(p => p.paid || p.won).length} de {participants.length} resolvidos
+                    {selectedGame.status === 'encerrado' 
+                      ? `${selectedGame.predictions.filter(p => p.paid || p.won).length} de ${selectedGame.predictions.length} resolvidos`
+                      : `${selectedGame.predictions.filter(p => p.isInPot).length} no pote`
+                    }
                   </span>
                 </div>
 
-                {/* Filter Search */}
-                <div className="transparency-search">
+                <div className="transparency-search" style={{ marginBottom: '16px' }}>
                   <input 
                     type="text" 
                     className="app-input" 
@@ -1951,166 +3284,178 @@
                   />
                 </div>
 
-                {/* Grouped Ledger List */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  {/* Group 1: Ainda não pagou */}
-                  {filteredParticipants.filter(p => !p.won && !p.paid).length > 0 && (
-                    <div>
-                      <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--danger)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--danger)' }}></span>
-                        Pessoas pendentes ({filteredParticipants.filter(p => !p.won && !p.paid).length})
-                      </div>
-                      <div className="ledger-list" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {filteredParticipants.filter(p => !p.won && !p.paid).map((p, idx) => (
-                          <div key={p.name} className="ledger-row" style={{ borderLeft: '3px solid var(--danger)' }}>
-                            <div>
-                              <div style={{ fontSize: '14px', fontWeight: '700', color: p.name === 'Você' ? 'var(--accent)' : 'var(--phone-fg)' }}>
-                                {p.name} {p.name === 'Você' && '(Você)'}
-                              </div>
-                              <div style={{ fontSize: '12px', color: 'var(--phone-muted)' }}>
-                                Palpite: {p.prediction}
-                              </div>
-                              {currentWinners.length > 0 && (
-                                <div style={{ fontSize: '11px', color: 'var(--phone-muted)', marginTop: '4px' }}>
-                                  {currentWinners.length > 1 ? (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                      <span>Pagar a:</span>
-                                      <select
-                                        value={getPayeeName(p) || ""}
-                                        onChange={(e) => {
-                                          const val = e.target.value;
-                                          setParticipants(prev => prev.map(item => 
-                                            item.name === p.name ? { ...item, payee: val } : item
-                                          ));
-                                          showToast(`${p.name} pagará para ${val}`);
-                                        }}
-                                        style={{
-                                          fontSize: '11px',
-                                          background: 'var(--phone-bg)',
-                                          color: 'var(--phone-fg)',
-                                          border: '1px solid var(--phone-border)',
-                                          borderRadius: '4px',
-                                          padding: '2px 4px',
-                                          outline: 'none',
-                                          fontWeight: '600'
-                                        }}
-                                      >
-                                        {currentWinners.map(w => (
-                                          <option key={w.name} value={w.name}>{w.name}</option>
-                                        ))}
-                                      </select>
-                                    </div>
-                                  ) : (
-                                    <span>Pagar a: <strong>{getPayeeName(p)}</strong></span>
-                                  )}
+                {selectedGame.status === 'encerrado' ? (
+                  /* Grouped Ledger rows for Ended Games */
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    
+                    {/* Group 1: Pessoas Pendentes */}
+                    {selectedGame.predictions.filter(p => !p.won && !p.paid && p.isInPot && p.name.toLowerCase().includes(searchQuery.toLowerCase())).length > 0 && (
+                      <div>
+                        <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--danger)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--danger)' }}></span>
+                          Pessoas pendentes ({selectedGame.predictions.filter(p => !p.won && !p.paid && p.isInPot && p.name.toLowerCase().includes(searchQuery.toLowerCase())).length})
+                        </div>
+                        <div className="ledger-list" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {selectedGame.predictions.filter(p => !p.won && !p.paid && p.isInPot && p.name.toLowerCase().includes(searchQuery.toLowerCase())).map((p) => (
+                            <div key={p.name} className="ledger-row" style={{ borderLeft: '3px solid var(--danger)' }}>
+                              <div>
+                                <div style={{ fontSize: '14px', fontWeight: '700', color: p.name === 'Você' ? 'var(--accent)' : 'var(--phone-fg)' }}>
+                                  {p.name} {p.name === 'Você' && '(Você)'}
                                 </div>
-                              )}
+                                <div style={{ fontSize: '12px', color: 'var(--phone-muted)' }}>Palpite: {p.prediction || "Sem palpite"}</div>
+                                {selectedGame.predictions.filter(x => x.won).length > 0 && (
+                                  <div style={{ fontSize: '11px', color: 'var(--phone-muted)', marginTop: '4px' }}>
+                                    {selectedGame.predictions.filter(x => x.won).length > 1 ? (
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <span>Pagar a:</span>
+                                        <select
+                                          value={getPayeeName(p) || ""}
+                                          onChange={(e) => {
+                                            const val = e.target.value;
+                                            handlePayeeChange(p.name, val);
+                                            showToast(`${p.name} pagará para ${val}`);
+                                          }}
+                                          style={{ fontSize: '11px', background: 'var(--phone-bg)', color: 'var(--phone-fg)', border: '1px solid var(--phone-border)', borderRadius: '4px', padding: '2px 4px', fontWeight: '600' }}
+                                        >
+                                          {selectedGame.predictions.filter(x => x.won).map(w => <option key={w.name} value={w.name}>{w.name}</option>)}
+                                        </select>
+                                      </div>
+                                    ) : (
+                                      <span>Pagar a: <strong>{getPayeeName(p)}</strong></span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                              <button 
+                                className="status-badge status-unpaid" 
+                                style={{ border: 'none', cursor: 'pointer' }}
+                                onClick={() => {
+                                  handleTogglePaid(p.name);
+                                  showToast(`Status de ${p.name} atualizado!`);
+                                }}
+                              >
+                                🔴 Ainda não pagou
+                              </button>
                             </div>
-                            
-                            <button 
-                              className="status-badge status-unpaid"
-                              style={{ border: 'none', cursor: 'pointer' }}
-                              onClick={() => {
-                                setParticipants(prev => prev.map(item => 
-                                  item.name === p.name ? { ...item, paid: true } : item
-                                ));
-                                showToast(`Status de ${p.name} atualizado!`);
-                              }}
-                            >
-                              🔴 Pendente
-                            </button>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {/* Group 2: Pagamento Declarado */}
-                  {filteredParticipants.filter(p => !p.won && p.paid).length > 0 && (
-                    <div>
-                      <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--success)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--success)' }}></span>
-                        Pagamento Declarado ({filteredParticipants.filter(p => !p.won && p.paid).length})
-                      </div>
-                      <div className="ledger-list" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {filteredParticipants.filter(p => !p.won && p.paid).map((p, idx) => (
-                          <div key={p.name} className="ledger-row" style={{ borderLeft: '3px solid var(--success)' }}>
-                            <div>
-                              <div style={{ fontSize: '14px', fontWeight: '700', color: p.name === 'Você' ? 'var(--accent)' : 'var(--phone-fg)' }}>
-                                {p.name} {p.name === 'Você' && '(Você)'}
-                              </div>
-                              <div style={{ fontSize: '12px', color: 'var(--phone-muted)' }}>
-                                Palpite: {p.prediction}
-                              </div>
-                              {currentWinners.length > 0 && (
-                                <div style={{ fontSize: '11px', color: 'var(--phone-muted)', marginTop: '4px' }}>
-                                  <span>Pago a: <strong style={{ color: 'var(--phone-fg)' }}>{getPayeeName(p)}</strong></span>
+                    {/* Group 2: Pagamento Declarado */}
+                    {selectedGame.predictions.filter(p => !p.won && p.paid && p.isInPot && p.name.toLowerCase().includes(searchQuery.toLowerCase())).length > 0 && (
+                      <div>
+                        <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--success)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--success)' }}></span>
+                          Pagamento Declarado ({selectedGame.predictions.filter(p => !p.won && p.paid && p.isInPot && p.name.toLowerCase().includes(searchQuery.toLowerCase())).length})
+                        </div>
+                        <div className="ledger-list" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {selectedGame.predictions.filter(p => !p.won && p.paid && p.isInPot && p.name.toLowerCase().includes(searchQuery.toLowerCase())).map((p) => (
+                            <div key={p.name} className="ledger-row" style={{ borderLeft: '3px solid var(--success)' }}>
+                              <div>
+                                <div style={{ fontSize: '14px', fontWeight: '700', color: p.name === 'Você' ? 'var(--accent)' : 'var(--phone-fg)' }}>
+                                  {p.name} {p.name === 'Você' && '(Você)'}
                                 </div>
-                              )}
+                                <div style={{ fontSize: '12px', color: 'var(--phone-muted)' }}>Palpite: {p.prediction || "Sem palpite"}</div>
+                                {selectedGame.predictions.filter(x => x.won).length > 0 && (
+                                  <div style={{ fontSize: '11px', color: 'var(--phone-muted)', marginTop: '4px' }}>
+                                    <span>Pago a: <strong style={{ color: 'var(--phone-fg)' }}>{getPayeeName(p)}</strong></span>
+                                  </div>
+                                )}
+                              </div>
+                              <button 
+                                className="status-badge status-paid" 
+                                style={{ border: 'none', cursor: 'pointer' }}
+                                onClick={() => {
+                                  handleTogglePaid(p.name);
+                                  showToast(`Status de ${p.name} atualizado!`);
+                                }}
+                              >
+                                🟢 Pagamento Declarado
+                              </button>
                             </div>
-                            
-                            <button 
-                              className="status-badge status-paid"
-                              style={{ border: 'none', cursor: 'pointer' }}
-                              onClick={() => {
-                                setParticipants(prev => prev.map(item => 
-                                  item.name === p.name ? { ...item, paid: false } : item
-                                ));
-                                showToast(`Status de ${p.name} atualizado!`);
-                              }}
-                            >
-                              🟢 Pago
-                            </button>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {/* Group 3: Ganhadores */}
-                  {filteredParticipants.filter(p => p.won).length > 0 && (
-                    <div>
-                      <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--gold)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--gold)' }}></span>
-                        Vencedores ({filteredParticipants.filter(p => p.won).length})
-                      </div>
-                      <div className="ledger-list" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {filteredParticipants.filter(p => p.won).map((p, idx) => (
-                          <div key={p.name} className="ledger-row" style={{ borderLeft: '3px solid var(--gold)' }}>
-                            <div>
-                              <div style={{ fontSize: '14px', fontWeight: '700', color: p.name === 'Você' ? 'var(--accent)' : 'var(--phone-fg)' }}>
-                                {p.name} {p.name === 'Você' && '(Você)'}
+                    {/* Group 3: Ganhadores */}
+                    {selectedGame.predictions.filter(p => p.won && p.name.toLowerCase().includes(searchQuery.toLowerCase())).length > 0 && (
+                      <div>
+                        <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--gold)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--gold)' }}></span>
+                          Vencedores ({selectedGame.predictions.filter(p => p.won && p.name.toLowerCase().includes(searchQuery.toLowerCase())).length})
+                        </div>
+                        <div className="ledger-list" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {selectedGame.predictions.filter(p => p.won && p.name.toLowerCase().includes(searchQuery.toLowerCase())).map((p) => (
+                            <div key={p.name} className="ledger-row" style={{ borderLeft: '3px solid var(--gold)', borderColor: 'var(--gold)' }}>
+                              <div>
+                                <div style={{ fontSize: '14px', fontWeight: '700', color: p.name === 'Você' ? 'var(--accent)' : 'var(--phone-fg)' }}>
+                                  {p.name} {p.name === 'Você' && '(Você)'}
+                                </div>
+                                <div style={{ fontSize: '12px', color: 'var(--phone-muted)' }}>Palpite: {p.prediction}</div>
+                                <div style={{ fontSize: '11px', color: 'var(--gold)', marginTop: '4px', fontWeight: '600' }}>
+                                  Recebe do pote ({formatMoney(calculatePot(selectedGame) / selectedGame.predictions.filter(x => x.won).length)} cada)
+                                </div>
                               </div>
-                              <div style={{ fontSize: '12px', color: 'var(--phone-muted)' }}>
-                                Palpite: {p.prediction}
-                              </div>
-                              <div style={{ fontSize: '11px', color: 'var(--gold)', marginTop: '4px', fontWeight: '600' }}>
-                                Recebe do pote ({currency} {calculatePot(selectedGame) / currentWinners.length} cada)
-                              </div>
+                              <span className="status-badge status-winner">🏆 Vencedor</span>
                             </div>
-                            
-                            <span className="status-badge status-winner">
-                              🏆 Vencedor
-                            </span>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {/* Empty state */}
-                  {filteredParticipants.length === 0 && (
-                    <div style={{ padding: '24px', textAlign: 'center', color: 'var(--phone-muted)', fontSize: '13px' }}>
-                      Nenhum participante encontrado
-                    </div>
-                  )}
-                </div>
-
+                    {/* Group 4: Fora do Pote */}
+                    {selectedGame.predictions.filter(p => !p.isInPot && p.name.toLowerCase().includes(searchQuery.toLowerCase())).length > 0 && (
+                      <div>
+                        <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--phone-muted)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--phone-muted)' }}></span>
+                          Fora do Pote ({selectedGame.predictions.filter(p => !p.isInPot && p.name.toLowerCase().includes(searchQuery.toLowerCase())).length})
+                        </div>
+                        <div className="ledger-list" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {selectedGame.predictions.filter(p => !p.isInPot && p.name.toLowerCase().includes(searchQuery.toLowerCase())).map((p) => (
+                            <div key={p.name} className="ledger-row" style={{ borderLeft: '3px solid var(--phone-border)', opacity: 0.7 }}>
+                              <div>
+                                <div style={{ fontSize: '14px', fontWeight: '700', color: p.name === 'Você' ? 'var(--accent)' : 'var(--phone-fg)' }}>
+                                  {p.name} {p.name === 'Você' && '(Você)'}
+                                </div>
+                                <div style={{ fontSize: '12px', color: 'var(--phone-muted)' }}>Não participou desta rodada</div>
+                              </div>
+                              <span className="status-badge badge-scheduled">🚫 Fora</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  /* Simple Participant Rows for Scheduled/Live Games */
+                  <div className="ledger-list" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {selectedGame.predictions
+                      .filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                      .sort((a, b) => a.name.localeCompare(b.name))
+                      .map(p => (
+                        <div key={p.name} className="ledger-row" style={{ borderLeft: p.isInPot ? '3px solid var(--accent)' : '3px solid var(--phone-border)' }}>
+                          <div>
+                            <div style={{ fontSize: '14px', fontWeight: '700', color: p.name === 'Você' ? 'var(--accent)' : 'var(--phone-fg)' }}>
+                              {p.name} {p.name === 'Você' && '(Você)'}
+                            </div>
+                            <div style={{ fontSize: '12px', color: 'var(--phone-muted)' }}>
+                              {p.isInPot ? 'Participando do Pote' : 'Fora do Pote'}
+                            </div>
+                          </div>
+                          <span className={`status-badge ${p.isInPot ? 'status-paid' : 'badge-scheduled'}`}>
+                            {p.isInPot ? "🟢 No Pote" : "🚫 Fora"}
+                          </span>
+                        </div>
+                      ))
+                    }
+                  </div>
+                )}
               </div>
             )}
 
           </div>
-
         </div>
       );
     }

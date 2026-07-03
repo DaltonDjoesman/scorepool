@@ -110,6 +110,39 @@ export function placeholderTeamId(matchId: number, slot: 'home' | 'away'): strin
   return `TBD_${matchId}_${slot === 'home' ? 'H' : 'A'}`;
 }
 
+export type FirestoreTeamDoc = {
+  name: string;
+  crest?: string;
+  source: typeof MATCH_SOURCE;
+};
+
+export function teamDocFromApi(
+  team: FootballDataTeam | undefined,
+  teamId: string,
+): FirestoreTeamDoc | null {
+  if (!teamId || teamId.startsWith('TBD_')) return null;
+
+  const name = team?.shortName?.trim() || team?.name?.trim() || teamId;
+  const crest = team?.crest?.trim();
+  return {
+    name,
+    ...(crest ? { crest } : {}),
+    source: MATCH_SOURCE,
+  };
+}
+
+export function collectTeamsFromMatch(
+  match: FootballDataMatch,
+  doc: FirestoreMatchDoc,
+): Array<{ id: string; doc: FirestoreTeamDoc }> {
+  const teams: Array<{ id: string; doc: FirestoreTeamDoc }> = [];
+  const home = teamDocFromApi(match.homeTeam, doc.homeTeamId);
+  if (home) teams.push({ id: doc.homeTeamId, doc: home });
+  const away = teamDocFromApi(match.awayTeam, doc.awayTeamId);
+  if (away) teams.push({ id: doc.awayTeamId, doc: away });
+  return teams;
+}
+
 export function toFirestoreMatchDoc(match: FootballDataMatch): FirestoreMatchDoc | null {
   if (match.id == null) return null;
 

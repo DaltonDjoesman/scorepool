@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../firestore/firestore_paths.dart';
 import '../models/debt.dart';
@@ -7,11 +8,23 @@ import '../models/match.dart';
 import '../models/member.dart';
 import '../models/prediction.dart';
 import '../models/round_participation.dart';
+import '../models/tournament_team.dart';
+import '../models/user_group_membership.dart';
+import '../models/user_profile.dart';
+import '../services/group_match_reconciliation.dart';
 
 class FirestoreRepository {
   FirestoreRepository(this.db);
 
   final FirebaseFirestore db;
+
+  Future<void> _ensureFirestoreAuth() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw StateError('Faça login antes de usar o Firestore.');
+    }
+    await user.getIdToken();
+  }
 
   CollectionReference<Map<String, Object?>> groups() =>
       db.collection(FirestorePaths.groups);
@@ -33,6 +46,123 @@ class FirestoreRepository {
   CollectionReference<Map<String, Object?>> groupMatches(String groupId) =>
       db.collection(FirestorePaths.groupMatches(groupId));
 
+  DocumentReference<Map<String, Object?>> userRef(String uid) =>
+      db.doc(FirestorePaths.user(uid));
+
+  Future<void> _addUserGroup(String uid, String groupId) async {
+    await userRef(uid).set({
+      'groupIds': FieldValue.arrayUnion([groupId]),
+    }, SetOptions(merge: true));
+  }
+
+  Future<void> _removeUserGroup(String uid, String groupId) async {
+    await userRef(uid).set({
+      'groupIds': FieldValue.arrayRemove([groupId]),
+    }, SetOptions(merge: true));
+  }
+
+  List<String> _groupIdsFromUserData(Map<String, Object?>? data) {
+    return ((data?['groupIds'] as List?) ?? const [])
+        .whereType<String>()
+        .toList(growable: false);
+  }
+
+  Future<List<String>> _discoverGroupIdsFromMembership(String uid) async {
+    final byUidField = await db
+        .collectionGroup('members')
+        .where('uid', isEqualTo: uid)
+        .get();
+    final groupIds = <String>{
+      for (final doc in byUidField.docs)
+        if (doc.reference.parent.parent?.id case final groupId?) groupId,
+    };
+
+    if (groupIds.isNotEmpty) return groupIds.toList(growable: false);
+
+    final allMine = await db.collectionGroup('members').get();
+    for (final doc in allMine.docs.where((doc) => doc.id == uid)) {
+      final groupId = doc.reference.parent.parent?.id;
+      if (groupId != null) groupIds.add(groupId);
+    }
+    return groupIds.toList(growable: false);
+  }
+
+  Future<List<String>> _userGroupIds(String uid) async {
+    final userSnap = await userRef(uid).get();
+    var groupIds = _groupIdsFromUserData(userSnap.data());
+    if (groupIds.isNotEmpty) return groupIds;
+
+    groupIds = await _discoverGroupIdsFromMembership(uid);
+    if (groupIds.isNotEmpty) {
+      await userRef(uid).set({'groupIds': groupIds}, SetOptions(merge: true));
+    }
+    return groupIds;
+  }
+
+  Future<({String displayName, String? photoUrl})> resolveMemberDisplay({
+    required String uid,
+    String fallbackName = '',
+    String? fallbackPhoto,
+  }) async {
+    final snap = await userRef(uid).get();
+    final data = snap.data();
+    final savedName = (data?['displayName'] as String?)?.trim() ?? '';
+    final savedPhoto = data?['photoUrl'] as String?;
+    final name = savedName.isNotEmpty ? savedName : fallbackName.trim();
+    return (displayName: name, photoUrl: savedPhoto ?? fallbackPhoto);
+  }
+
+  Future<UserProfile?> fetchUserProfile(String uid) async {
+    final snap = await userRef(uid).get();
+    final data = snap.data();
+    if (data == null) return null;
+    return UserProfile.fromMap(uid: uid, map: data);
+  }
+
+  Stream<UserProfile?> watchUserProfile(String uid) {
+    return userRef(uid).snapshots().map((snap) {
+      final data = snap.data();
+      if (data == null) return null;
+      return UserProfile.fromMap(uid: uid, map: data);
+    });
+  }
+
+  Future<void> updateUserProfile({
+    required String uid,
+    required String displayName,
+  }) async {
+    await _ensureFirestoreAuth();
+    final trimmed = displayName.trim();
+    if (trimmed.isEmpty) {
+      throw StateError('Informe um nome para o perfil.');
+    }
+
+    await userRef(uid).set({
+      'uid': uid,
+      'displayName': trimmed,
+    }, SetOptions(merge: true));
+
+    final groupIds = await _userGroupIds(uid);
+    if (groupIds.isEmpty) return;
+
+    var batch = db.batch();
+    var ops = 0;
+    for (final groupId in groupIds) {
+      batch.update(members(groupId).doc(uid), {
+        'displayName': trimmed,
+      });
+      ops += 1;
+      if (ops >= 450) {
+        await batch.commit();
+        batch = db.batch();
+        ops = 0;
+      }
+    }
+    if (ops > 0) {
+      await batch.commit();
+    }
+  }
+
   Future<String> createGroup({
     required String name,
     required String currency,
@@ -43,6 +173,14 @@ class FirestoreRepository {
     required String? creatorPhotoUrl,
     GroupMatchFilter? matchFilter,
   }) async {
+    await _ensureFirestoreAuth();
+
+    final resolved = await resolveMemberDisplay(
+      uid: creatorUid,
+      fallbackName: creatorDisplayName,
+      fallbackPhoto: creatorPhotoUrl,
+    );
+
     final doc = groups().doc();
 
     final group = Group(
@@ -57,21 +195,47 @@ class FirestoreRepository {
       carryOverPotCents: 0,
     );
 
-    final batch = db.batch();
-    batch.set(doc, group.toMap());
-
+    final creatorMemberRef = members(doc.id).doc(creatorUid);
     final creatorProfile = MemberProfile(
       uid: creatorUid,
-      displayName: creatorDisplayName,
-      photoUrl: creatorPhotoUrl,
-      role: GroupRole.admin,
+      displayName: resolved.displayName,
+      photoUrl: resolved.photoUrl,
+      role: GroupRole.member,
       perfectScoresCount: 0,
     );
-    batch.set(members(doc.id).doc(creatorUid), creatorProfile.toMap());
 
-    await batch.commit();
+    await doc.set(group.toMap());
+    await creatorMemberRef.set(creatorProfile.toMap());
+    await creatorMemberRef.update({'role': GroupRole.admin.name});
+
+    await GroupMatchReconciliation(db).reconcileGroup(
+      groupId: doc.id,
+      matchFilter: group.matchFilter,
+      predictionLockMinutes: predictionLockMinutes,
+    );
+
+    await _addUserGroup(creatorUid, doc.id);
+    await userRef(creatorUid).set({
+      'uid': creatorUid,
+      'displayName': resolved.displayName,
+      'photoUrl': resolved.photoUrl,
+    }, SetOptions(merge: true));
 
     return doc.id;
+  }
+
+  Future<void> reconcileGroupMatches(String groupId) async {
+    await _ensureFirestoreAuth();
+    final snap = await groupRef(groupId).get();
+    final data = snap.data();
+    if (data == null) return;
+
+    final group = Group.fromMap(id: snap.id, map: data);
+    await GroupMatchReconciliation(db).reconcileGroup(
+      groupId: groupId,
+      matchFilter: group.matchFilter,
+      predictionLockMinutes: group.predictionLockMinutes,
+    );
   }
 
   Stream<Group?> watchGroup(String groupId) {
@@ -82,6 +246,86 @@ class FirestoreRepository {
     });
   }
 
+  Future<bool> isMember({required String groupId, required String uid}) async {
+    final memberSnap = await members(groupId).doc(uid).get();
+    if (!memberSnap.exists) return false;
+    final memberData = memberSnap.data();
+    if (memberData != null && memberData['uid'] != uid) {
+      await members(groupId).doc(uid).update({'uid': uid});
+    }
+    await _addUserGroup(uid, groupId);
+    final groupSnap = await groupRef(groupId).get();
+    return groupSnap.exists;
+  }
+
+  Future<List<UserGroupMembership>> fetchUserGroups(String uid) async {
+    final groupIds = await _userGroupIds(uid);
+    return _membershipsFromGroupIds(uid, groupIds);
+  }
+
+  Stream<List<UserGroupMembership>> watchUserGroups(String uid) {
+    return userRef(uid).snapshots().asyncMap((userSnap) async {
+      var groupIds = _groupIdsFromUserData(userSnap.data());
+      if (groupIds.isEmpty) {
+        groupIds = await _discoverGroupIdsFromMembership(uid);
+        if (groupIds.isNotEmpty) {
+          await userRef(uid).set({'groupIds': groupIds}, SetOptions(merge: true));
+        }
+      }
+      return _membershipsFromGroupIds(uid, groupIds);
+    });
+  }
+
+  Future<List<UserGroupMembership>> _membershipsFromGroupIds(
+    String uid,
+    List<String> groupIds,
+  ) async {
+    final memberships = <UserGroupMembership>[];
+    for (final groupId in groupIds) {
+      final memberSnap = await members(groupId).doc(uid).get();
+      if (!memberSnap.exists) {
+        await _removeUserGroup(uid, groupId);
+        continue;
+      }
+
+      final groupSnap = await groupRef(groupId).get();
+      final data = groupSnap.data();
+      if (data == null) {
+        await _removeUserGroup(uid, groupId);
+        continue;
+      }
+
+      memberships.add(
+        UserGroupMembership(
+          groupId: groupId,
+          group: Group.fromMap(id: groupId, map: data),
+          role: MemberProfile.fromMap(uid: uid, map: memberSnap.data()!).role,
+        ),
+      );
+    }
+
+    memberships.sort((a, b) => a.group.name.compareTo(b.group.name));
+    return memberships;
+  }
+
+  Future<void> deleteGroup(String groupId) async {
+    await _ensureFirestoreAuth();
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    await groupRef(groupId).delete();
+    if (uid != null) {
+      await _removeUserGroup(uid, groupId);
+    }
+  }
+
+  Future<void> leaveGroup({
+    required String groupId,
+    required String uid,
+  }) async {
+    await _ensureFirestoreAuth();
+    await members(groupId).doc(uid).delete();
+    await _removeUserGroup(uid, groupId);
+  }
+
   Stream<List<MemberProfile>> watchMembers(String groupId) {
     return members(groupId).snapshots().map(
       (snap) => snap.docs
@@ -90,11 +334,38 @@ class FirestoreRepository {
     );
   }
 
+  Future<void> updateMemberPerfectScoresCount({
+    required String groupId,
+    required String uid,
+    required int perfectScoresCount,
+  }) async {
+    await _ensureFirestoreAuth();
+    if (perfectScoresCount < 0) {
+      throw ArgumentError.value(perfectScoresCount, 'perfectScoresCount');
+    }
+    await members(groupId).doc(uid).update({
+      'perfectScoresCount': perfectScoresCount,
+    });
+  }
+
   Future<void> updateGroupMatchFilter({
     required String groupId,
     required GroupMatchFilter matchFilter,
   }) async {
+    await _ensureFirestoreAuth();
+    final groupSnap = await groupRef(groupId).get();
+    final group = groupSnap.data();
+    if (group == null) return;
+
     await groupRef(groupId).update({'matchFilter': matchFilter.toMap()});
+
+    final lockMinutes =
+        (group['predictionLockMinutes'] as num?)?.toInt() ?? 15;
+    await GroupMatchReconciliation(db).reconcileGroup(
+      groupId: groupId,
+      matchFilter: matchFilter,
+      predictionLockMinutes: lockMinutes,
+    );
   }
 
   Stream<List<GroupMatchOverlay>> watchGroupMatches({
@@ -165,6 +436,24 @@ class FirestoreRepository {
         });
   }
 
+  /// All explicit round-participation docs for a match (uid → isInPot).
+  Stream<Map<String, bool>> watchMatchParticipations({
+    required String groupId,
+    required String matchId,
+  }) {
+    return db
+        .collection(FirestorePaths.groupRoundUsers(groupId, matchId))
+        .snapshots()
+        .map((snap) {
+          final map = <String, bool>{};
+          for (final doc in snap.docs) {
+            final data = doc.data();
+            map[doc.id] = (data['isInPot'] as bool?) ?? true;
+          }
+          return map;
+        });
+  }
+
   Future<void> updateRoundParticipation({
     required String groupId,
     required String matchId,
@@ -184,19 +473,63 @@ class FirestoreRepository {
         .set(data, SetOptions(merge: true));
   }
 
+  Future<void> joinGroup({
+    required String groupId,
+    required String uid,
+    required String displayName,
+    required String? photoUrl,
+  }) async {
+    await _ensureFirestoreAuth();
+
+    final groupSnap = await groupRef(groupId).get();
+    if (!groupSnap.exists) {
+      throw StateError('Grupo não encontrado. Verifique o código.');
+    }
+
+    final resolved = await resolveMemberDisplay(
+      uid: uid,
+      fallbackName: displayName,
+      fallbackPhoto: photoUrl,
+    );
+
+    final memberDoc = members(groupId).doc(uid);
+    final existing = await memberDoc.get();
+    if (existing.exists) {
+      await memberDoc.update({
+        'uid': uid,
+        'displayName': resolved.displayName,
+        'photoUrl': resolved.photoUrl,
+      });
+    } else {
+      await memberDoc.set({
+        'uid': uid,
+        'displayName': resolved.displayName,
+        'photoUrl': resolved.photoUrl,
+        'role': GroupRole.member.name,
+        'perfectScoresCount': 0,
+      });
+    }
+    await _addUserGroup(uid, groupId);
+    await userRef(uid).set({
+      'uid': uid,
+      'displayName': resolved.displayName,
+      'photoUrl': resolved.photoUrl,
+    }, SetOptions(merge: true));
+  }
+
   Future<void> upsertMemberProfile({
     required String groupId,
     required String uid,
     required String displayName,
     required String? photoUrl,
   }) async {
+    await _ensureFirestoreAuth();
     final doc = members(groupId).doc(uid);
-    await doc.set({
+    await doc.update({
+      'uid': uid,
       'displayName': displayName,
       'photoUrl': photoUrl,
-      'role': GroupRole.member.name,
-      'perfectScoresCount': 0,
-    }, SetOptions(merge: true));
+    });
   }
 
   Future<void> saveFcmToken({
@@ -217,6 +550,7 @@ class FirestoreRepository {
     required int? predictedHomeScore,
     required int? predictedAwayScore,
   }) async {
+    await _ensureFirestoreAuth();
     final id = Prediction.makeId(uid: uid, matchId: matchId);
     final prediction = Prediction(
       id: id,
@@ -279,6 +613,17 @@ class FirestoreRepository {
     });
   }
 
+  Future<void> updateDebtRecipient({
+    required String groupId,
+    required String matchId,
+    required String debtItemId,
+    required String toUid,
+  }) async {
+    await debtItems(groupId: groupId, matchId: matchId).doc(debtItemId).update({
+      'toUid': toUid,
+    });
+  }
+
   static List<DebtItem> sortDebtsForLedger(List<DebtItem> debts) {
     final copy = [...debts];
     copy.sort((a, b) {
@@ -291,11 +636,46 @@ class FirestoreRepository {
     return copy;
   }
 
+  Future<List<TournamentTeam>> listTournamentTeams(String tournamentId) async {
+    await _ensureFirestoreAuth();
+
+    final teamsSnap =
+        await db.collection(FirestorePaths.tournamentTeams(tournamentId)).get();
+    if (teamsSnap.docs.isNotEmpty) {
+      final teams = teamsSnap.docs
+          .map(
+            (doc) => TournamentTeam.fromMap(id: doc.id, data: doc.data()),
+          )
+          .where((team) => !team.id.startsWith('TBD_'))
+          .toList();
+      teams.sort((a, b) => a.name.compareTo(b.name));
+      return teams;
+    }
+
+    final matchesSnap =
+        await db.collection(FirestorePaths.tournamentMatches(tournamentId)).get();
+    final byId = <String, TournamentTeam>{};
+    for (final doc in matchesSnap.docs) {
+      final data = doc.data();
+      for (final field in ['homeTeamId', 'awayTeamId']) {
+        final id = data[field] as String?;
+        if (id == null || id.startsWith('TBD_')) continue;
+        byId.putIfAbsent(id, () => TournamentTeam(id: id, name: id));
+      }
+    }
+
+    final teams = byId.values.toList()
+      ..sort((a, b) => a.name.compareTo(b.name));
+    return teams;
+  }
+
   Future<int> countIncludedCatalogMatches({
     required String tournamentId,
     required List<String> teamIds,
     required List<String> stages,
   }) async {
+    await _ensureFirestoreAuth();
+
     final matches = db.collection(FirestorePaths.tournamentMatches(tournamentId));
 
     final ids = <String>{};

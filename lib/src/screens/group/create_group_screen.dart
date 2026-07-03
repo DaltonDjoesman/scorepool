@@ -1,9 +1,19 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app.dart';
+import '../../routing/navigation_helpers.dart';
 import '../../models/group.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
+import '../../widgets/alert_box.dart';
+import '../../widgets/app_button.dart';
+import '../../widgets/app_card.dart';
 import '../feed/feed_screen.dart';
+import 'group_match_filter_stages.dart';
+import 'group_screen.dart';
+import 'tournament_team_picker.dart';
 
 class CreateGroupScreen extends StatefulWidget {
   const CreateGroupScreen({super.key});
@@ -42,30 +52,13 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
 
   static const _tournamentId = 'wc2026';
 
-  static const _teams = <({String id, String name})>[
-    (id: 'BRA', name: 'Brasil'),
-    (id: 'ARG', name: 'Argentina'),
-    (id: 'URU', name: 'Uruguai'),
-    (id: 'USA', name: 'Estados Unidos'),
-    (id: 'MEX', name: 'México'),
-    (id: 'FRA', name: 'França'),
-    (id: 'ESP', name: 'Espanha'),
-    (id: 'POR', name: 'Portugal'),
-    (id: 'ENG', name: 'Inglaterra'),
-    (id: 'GER', name: 'Alemanha'),
-    (id: 'ITA', name: 'Itália'),
-    (id: 'NED', name: 'Holanda'),
-  ];
-
-  static const _stages = <({String id, String label})>[
-    (id: 'group', label: 'Grupos'),
-    (id: 'round_of_32', label: '32 avos'),
-    (id: 'round_of_16', label: 'Oitavas'),
-    (id: 'quarterfinal', label: 'Quartas'),
-    (id: 'semifinal', label: 'Semi'),
-    (id: 'third_place', label: '3º lugar'),
-    (id: 'final', label: 'Final'),
-  ];
+  String _friendlyFirestoreError(FirebaseException error) {
+    if (error.code == 'permission-denied') {
+      return 'Sem permissão no Firestore. Confirme que você está logado e que as '
+          'regras foram publicadas (firebase deploy --only firestore:rules).';
+    }
+    return error.message ?? error.toString();
+  }
 
   int? _parseEntryFeeToCents(String raw) {
     final normalized = raw.trim().replaceAll(',', '.');
@@ -100,6 +93,9 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       );
       if (!mounted) return;
       setState(() => _includedMatchesCount = count);
+    } on FirebaseException catch (e) {
+      if (!mounted) return;
+      setState(() => _error = _friendlyFirestoreError(e));
     } catch (e) {
       if (!mounted) return;
       setState(() => _error = e.toString());
@@ -124,6 +120,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
     });
 
     try {
+      await user.getIdToken(true);
       final entryFeeCents = _parseEntryFeeToCents(_entryFeeController.text)!;
       final lockMinutes = _parsePositiveInt(_lockMinutesController.text)!;
       final matchFilter = GroupMatchFilter(
@@ -145,6 +142,8 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       state.setCurrentGroupId(groupId);
       if (!mounted) return;
       context.go(FeedScreen.routePath);
+    } on FirebaseException catch (e) {
+      setState(() => _error = _friendlyFirestoreError(e));
     } catch (e) {
       setState(() => _error = e.toString());
     } finally {
@@ -154,17 +153,37 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = appColors(context);
+    final feePreview = _parseEntryFeeToCents(_entryFeeController.text);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Criar grupo')),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            Text(
-              'Configuração do bolão',
-              style: Theme.of(context).textTheme.titleLarge,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('CONFIGURAR BOLÃO', style: AppTextStyles.titleCaps(context)),
+                      const SizedBox(height: 4),
+                      Text('Novo Grupo', style: AppTextStyles.displayHeadline(context, size: 24)),
+                    ],
+                  ),
+                ),
+                AppButtonOutline(
+                  label: 'Cancelar',
+                  expand: false,
+                  onPressed: _submitting
+                      ? null
+                      : () => navigateBack(context, fallback: GroupScreen.routePath),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Form(
               key: _formKey,
               child: Column(
@@ -174,8 +193,8 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                     controller: _nameController,
                     enabled: !_submitting,
                     decoration: const InputDecoration(
-                      labelText: 'Nome do grupo',
-                      hintText: 'Ex.: Família 2026',
+                      labelText: 'Nome do Grupo',
+                      hintText: 'Ex: Bolão do Trabalho ou Família Silva',
                     ),
                     textInputAction: TextInputAction.next,
                     validator: (value) {
@@ -186,54 +205,59 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                     },
                   ),
                   const SizedBox(height: 12),
-                  DropdownButtonFormField<String>(
-                    initialValue: _currency,
-                    decoration: const InputDecoration(labelText: 'Moeda'),
-                    items: const [
-                      DropdownMenuItem(
-                        value: 'BRL',
-                        child: Text('BRL (R\$)'),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          initialValue: _currency,
+                          decoration: const InputDecoration(labelText: 'Moeda'),
+                          items: const [
+                            DropdownMenuItem(value: 'BRL', child: Text('Real (BRL)')),
+                            DropdownMenuItem(value: 'EUR', child: Text('Euro (EUR)')),
+                            DropdownMenuItem(value: 'USD', child: Text('Dólar (USD)')),
+                          ],
+                          onChanged: _submitting
+                              ? null
+                              : (v) => setState(() => _currency = v ?? 'BRL'),
+                        ),
                       ),
-                      DropdownMenuItem(
-                        value: 'EUR',
-                        child: Text('EUR (€)'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'USD',
-                        child: Text('USD (\$)'),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _entryFeeController,
+                          enabled: !_submitting,
+                          decoration: const InputDecoration(
+                            labelText: 'Taxa por Partida',
+                          ),
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                            signed: false,
+                          ),
+                          validator: (value) {
+                            final cents = _parseEntryFeeToCents(value ?? '');
+                            if (cents == null) return 'Valor inválido.';
+                            if (cents <= 0) return 'Maior que 0.';
+                            return null;
+                          },
+                        ),
                       ),
                     ],
-                    onChanged: _submitting
-                        ? null
-                        : (v) => setState(() => _currency = v ?? 'BRL'),
                   ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _entryFeeController,
-                    enabled: !_submitting,
-                    decoration: const InputDecoration(
-                      labelText: 'Taxa de entrada',
-                      helperText: 'Valor por jogo (ex.: 10.00)',
+                  if (feePreview != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        'Armazenado: $feePreview centavos',
+                        style: AppTextStyles.sub(context),
+                      ),
                     ),
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                      signed: false,
-                    ),
-                    textInputAction: TextInputAction.next,
-                    validator: (value) {
-                      final cents = _parseEntryFeeToCents(value ?? '');
-                      if (cents == null) return 'Informe um valor válido.';
-                      if (cents <= 0) return 'A taxa precisa ser maior que 0.';
-                      return null;
-                    },
-                  ),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _lockMinutesController,
                     enabled: !_submitting,
                     decoration: const InputDecoration(
-                      labelText: 'Tranca do palpite (minutos)',
-                      helperText: 'Ex.: 15 (tranca 15 min antes do jogo)',
+                      labelText: 'Tranca de Palpites (Minutos)',
+                      helperText: 'Tempo limite antes de cada início de partida.',
                     ),
                     keyboardType: TextInputType.number,
                     textInputAction: TextInputAction.done,
@@ -246,10 +270,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                     onFieldSubmitted: (_) => _submitting ? null : _createGroup(),
                   ),
                   const SizedBox(height: 20),
-                  Text(
-                    'Filtro de jogos',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+                  Text('Filtro de Seleções', style: AppTextStyles.body(context, weight: FontWeight.w700)),
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _teamSearchController,
@@ -261,47 +282,22 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                     onChanged: (_) => setState(() {}),
                   ),
                   const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      for (final team in _teams
-                          .where((t) {
-                            final q = _teamSearchController.text.trim().toLowerCase();
-                            if (q.isEmpty) return true;
-                            return t.name.toLowerCase().contains(q) ||
-                                t.id.toLowerCase().contains(q);
-                          })
-                          .take(24))
-                        FilterChip(
-                          label: Text(team.name),
-                          selected: _selectedTeamIds.contains(team.id),
-                          onSelected: _submitting
-                              ? null
-                              : (selected) {
-                                  setState(() {
-                                    if (selected) {
-                                      _selectedTeamIds.add(team.id);
-                                    } else {
-                                      _selectedTeamIds.remove(team.id);
-                                    }
-                                    _includedMatchesCount = null;
-                                  });
-                                },
-                        ),
-                    ],
+                  TournamentTeamPicker(
+                    tournamentId: _tournamentId,
+                    searchController: _teamSearchController,
+                    selectedTeamIds: _selectedTeamIds,
+                    enabled: !_submitting,
+                    onSelectionChanged: () =>
+                        setState(() => _includedMatchesCount = null),
                   ),
                   const SizedBox(height: 12),
-                  Text(
-                    'Fases',
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
+                  Text('Fases do Torneio', style: AppTextStyles.body(context, weight: FontWeight.w600)),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      for (final stage in _stages)
+                      for (final stage in groupMatchFilterStages)
                         FilterChip(
                           label: Text(stage.label),
                           selected: _selectedStages.contains(stage.id),
@@ -321,40 +317,49 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          _includedMatchesCount == null
-                              ? 'Jogos incluídos: —'
-                              : 'Jogos incluídos: $_includedMatchesCount',
+                  AppCard(
+                    backgroundColor: colors.accentLight.withValues(alpha: 0.25),
+                    borderColor: colors.accent.withValues(alpha: 0.2),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Total de Jogos no Filtro:',
+                              style: AppTextStyles.body(context, weight: FontWeight.w700),
+                            ),
+                            Text(
+                              '${_includedMatchesCount ?? '—'}',
+                              style: TextStyle(
+                                color: colors.accent,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      TextButton(
-                        onPressed:
-                            (_submitting || _countingMatches) ? null : _recountIncludedMatches,
-                        child: _countingMatches
-                            ? const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : const Text('Recalcular'),
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        AppButtonOutline(
+                          label: 'Recalcular Jogos',
+                          onPressed: (_submitting || _countingMatches)
+                              ? null
+                              : _recountIncludedMatches,
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 16),
-                  FilledButton(
+                  AppButton(
+                    label: 'Criar Grupo & Ir para o Feed',
                     onPressed: _submitting ? null : _createGroup,
-                    child: const Text('Criar grupo'),
+                    isLoading: _submitting,
                   ),
                   if (_error != null) ...[
                     const SizedBox(height: 12),
-                    Text(
-                      _error!,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
-                      ),
+                    AlertBox(
+                      variant: AlertBoxVariant.danger,
+                      child: Text(_error!),
                     ),
                   ],
                 ],
