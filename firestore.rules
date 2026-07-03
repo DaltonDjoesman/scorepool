@@ -1,0 +1,140 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function groupRef(groupId) {
+      return /databases/$(database)/documents/groups/$(groupId);
+    }
+
+    function memberRef(groupId, uid) {
+      return /databases/$(database)/documents/groups/$(groupId)/members/$(uid);
+    }
+
+    function groupExists(groupId) {
+      return exists(groupRef(groupId));
+    }
+
+    function isGroupMember(groupId) {
+      return signedIn() && exists(memberRef(groupId, request.auth.uid));
+    }
+
+    function isGroupAdmin(groupId) {
+      return isGroupMember(groupId) && get(memberRef(groupId, request.auth.uid)).data.role == "admin";
+    }
+
+    function matchRef(matchId) {
+      return /databases/$(database)/documents/tournaments/wc2026/matches/$(matchId);
+    }
+
+    function matchTimeUtc(matchId) {
+      return get(matchRef(matchId)).data.matchTimeUtc;
+    }
+
+    function lockTimeForMatch(groupId, matchId) {
+      return matchTimeUtc(matchId) - duration.value(get(groupRef(groupId)).data.predictionLockMinutes, "m");
+    }
+
+    // Global tournament catalog (read-only from clients)
+    match /tournaments/wc2026/matches/{matchId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    // Groups root
+    match /groups/{groupId} {
+      allow read: if isGroupMember(groupId);
+      allow create: if signedIn();
+      allow update, delete: if isGroupAdmin(groupId);
+
+      // Members
+      match /members/{uid} {
+        allow read: if isGroupMember(groupId);
+
+        // Allow a user to create their own member profile document (join flow),
+        // but do not let them grant themselves admin.
+        allow create: if signedIn()
+          && request.auth.uid == uid
+          && groupExists(groupId)
+          && request.resource.data.role == "member";
+
+        // Users can update their own display fields; admins can update anything.
+        allow update: if isGroupAdmin(groupId)
+          || (
+            signedIn()
+            && request.auth.uid == uid
+            && request.resource.data.diff(resource.data).changedKeys().hasOnly([
+              "displayName",
+              "photoUrl"
+            ])
+          );
+
+        allow delete: if isGroupAdmin(groupId);
+      }
+
+      // Group match overlay: clients read only (managed by backend reconciliation).
+      match /matches/{matchId} {
+        allow read: if isGroupMember(groupId);
+        allow write: if false;
+      }
+
+      // Round participation per match
+      match /roundParticipants/{matchId}/users/{uid} {
+        allow read: if isGroupMember(groupId);
+
+        // Opt-out only for self and only before lock.
+        allow create, update: if isGroupMember(groupId)
+          && request.auth.uid == uid
+          && request.time < lockTimeForMatch(groupId, matchId)
+          && request.resource.data.diff(resource.data).changedKeys().hasOnly(["isInPot"]);
+
+        allow delete: if false;
+      }
+
+      // Predictions: one document per (uid, matchId) in a group
+      match /predictions/{predictionId} {
+        allow read: if isGroupMember(groupId);
+
+        allow create, update: if isGroupMember(groupId)
+          && request.resource.data.uid == request.auth.uid
+          && predictionId == (request.auth.uid + "_" + request.resource.data.matchId)
+          && request.time < lockTimeForMatch(groupId, request.resource.data.matchId)
+          && request.resource.data.diff(resource.data).changedKeys().hasOnly([
+            "groupId",
+            "uid",
+            "matchId",
+            "predictedHomeScore",
+            "predictedAwayScore"
+          ]);
+
+        allow delete: if false;
+      }
+
+      // Debts ledger: read-only except "declare paid" by the payer before kickoff.
+      match /debts/{matchId}/items/{itemId} {
+        allow read: if isGroupMember(groupId);
+
+        allow update: if isGroupMember(groupId)
+          && resource.data.fromUid == request.auth.uid
+          && request.time < matchTimeUtc(matchId)
+          && request.resource.data.status == "paid"
+          && request.resource.data.declaredPaidAt == request.time
+          && request.resource.data.diff(resource.data).changedKeys().hasOnly([
+            "status",
+            "declaredPaidAt"
+          ]);
+
+        allow create, delete: if false;
+      }
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
