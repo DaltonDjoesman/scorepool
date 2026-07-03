@@ -1,10 +1,25 @@
 # worldcupbettracker_app
 
-A new Flutter project.
+Flutter app for a simple World Cup 2026 “exact score” betting pool.
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+### Run (prototype UI mode)
+
+Firebase is **disabled by default** so you can run the UI skeleton without any external setup:
+
+```bash
+flutter pub get
+flutter run
+```
+
+### Run (Firebase mode)
+
+Follow `docs/firebase_setup.md`, then run:
+
+```bash
+flutter run --dart-define=FIREBASE_ENABLED=true --dart-define=APP_ENV=dev
+```
 
 A few resources to get you started if this is your first Flutter project:
 
@@ -15,4 +30,4 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
-# worldcup-pool-tracker-app
+
