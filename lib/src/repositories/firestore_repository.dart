@@ -28,6 +28,47 @@ class FirestoreRepository {
     required String matchId,
   }) => db.collection(FirestorePaths.groupDebtItems(groupId, matchId));
 
+  Future<String> createGroup({
+    required String name,
+    required String currency,
+    required int entryFeeCents,
+    required int predictionLockMinutes,
+    required String creatorUid,
+    required String creatorDisplayName,
+    required String? creatorPhotoUrl,
+    GroupMatchFilter? matchFilter,
+  }) async {
+    final doc = groups().doc();
+
+    final group = Group(
+      id: doc.id,
+      name: name,
+      currency: currency,
+      entryFeeCents: entryFeeCents,
+      predictionLockMinutes: predictionLockMinutes,
+      adminUids: [creatorUid],
+      matchFilter:
+          matchFilter ?? GroupMatchFilter(teamIds: const [], stages: const []),
+      carryOverPotCents: 0,
+    );
+
+    final batch = db.batch();
+    batch.set(doc, group.toMap());
+
+    final creatorProfile = MemberProfile(
+      uid: creatorUid,
+      displayName: creatorDisplayName,
+      photoUrl: creatorPhotoUrl,
+      role: GroupRole.admin,
+      perfectScoresCount: 0,
+    );
+    batch.set(members(doc.id).doc(creatorUid), creatorProfile.toMap());
+
+    await batch.commit();
+
+    return doc.id;
+  }
+
   Stream<Group?> watchGroup(String groupId) {
     return groupRef(groupId).snapshots().map((snap) {
       final data = snap.data();
@@ -42,6 +83,13 @@ class FirestoreRepository {
           .map((d) => MemberProfile.fromMap(uid: d.id, map: d.data()))
           .toList(growable: false),
     );
+  }
+
+  Future<void> updateGroupMatchFilter({
+    required String groupId,
+    required GroupMatchFilter matchFilter,
+  }) async {
+    await groupRef(groupId).update({'matchFilter': matchFilter.toMap()});
   }
 
   Future<void> upsertMemberProfile({
@@ -88,5 +136,45 @@ class FirestoreRepository {
           .map((d) => DebtItem.fromMap(id: d.id, map: d.data()))
           .toList(growable: false),
     );
+  }
+
+  Future<int> countIncludedCatalogMatches({
+    required String tournamentId,
+    required List<String> teamIds,
+    required List<String> stages,
+  }) async {
+    final matches = db.collection(FirestorePaths.tournamentMatches(tournamentId));
+
+    final ids = <String>{};
+
+    if (stages.isNotEmpty) {
+      final chunks = _chunks(stages, 10);
+      for (final chunk in chunks) {
+        final snap = await matches.where('stage', whereIn: chunk).get();
+        for (final d in snap.docs) {
+          ids.add(d.id);
+        }
+      }
+    }
+
+    if (teamIds.isNotEmpty) {
+      final chunks = _chunks(teamIds, 10);
+      for (final chunk in chunks) {
+        final snap = await matches.where('teamIds', arrayContainsAny: chunk).get();
+        for (final d in snap.docs) {
+          ids.add(d.id);
+        }
+      }
+    }
+
+    return ids.length;
+  }
+
+  static Iterable<List<T>> _chunks<T>(List<T> items, int size) sync* {
+    if (items.isEmpty) return;
+    for (var i = 0; i < items.length; i += size) {
+      final end = (i + size) < items.length ? (i + size) : items.length;
+      yield items.sublist(i, end);
+    }
   }
 }
