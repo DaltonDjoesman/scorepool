@@ -199,6 +199,17 @@ class FirestoreRepository {
     }, SetOptions(merge: true));
   }
 
+  Future<void> saveFcmToken({
+    required String groupId,
+    required String uid,
+    required String token,
+  }) async {
+    await members(groupId).doc(uid).set({
+      'fcmToken': token,
+      'fcmTokenUpdatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
   Future<void> upsertPrediction({
     required String groupId,
     required String uid,

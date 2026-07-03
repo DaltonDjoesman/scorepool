@@ -11,6 +11,7 @@ import {
 } from './footballDataOrg';
 import { GroupDoc, reconcileGroupMatches } from './groupMatchReconciliation';
 import { closeoutCatalogMatch } from './matchCloseout';
+import { dispatchMatchNotifications } from './matchNotifications';
 
 admin.initializeApp();
 
@@ -145,5 +146,12 @@ export const closeoutOnCatalogMatchFinished = onDocumentWritten(
       matchId: event.params.matchId,
       groupsClosed: closed,
     });
+  },
+);
+
+export const dispatchMatchNotificationsJob = onSchedule(
+  'every 15 minutes',
+  async () => {
+    await dispatchMatchNotifications(admin.firestore());
   },
 );
