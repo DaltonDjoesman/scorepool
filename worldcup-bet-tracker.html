@@ -1,0 +1,2121 @@
+
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CopaBolão 2026 — Protótipo de Bolão</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* Reset & Base System */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --primary-hue: 142;
+      --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      
+      /* App Default Dark Colors (Mockup Base) */
+      --accent: oklch(62% 0.16 var(--primary-hue));
+      --accent-hover: oklch(55% 0.16 var(--primary-hue));
+      --accent-light: oklch(95% 0.04 var(--primary-hue));
+      --gold: oklch(76% 0.15 85);
+      --gold-light: oklch(96% 0.03 85);
+      --danger: oklch(60% 0.15 25);
+      --success: oklch(62% 0.16 142);
+    }
+
+    body {
+      min-height: 100vh;
+      background-color: #0b0f0c;
+      background-image: 
+        radial-gradient(at 0% 0%, oklch(20% 0.04 142 / 0.2) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, oklch(20% 0.04 85 / 0.1) 0px, transparent 50%),
+        linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 30px 30px, 30px 30px;
+      font-family: var(--font-body);
+      color: #e3ece6;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 32px 16px;
+      overflow-x: hidden;
+    }
+
+    /* Outer Presentation Grid */
+    .dashboard-container {
+      display: grid;
+      grid-template-columns: 320px auto 320px;
+      gap: 32px;
+      max-width: 1140px;
+      width: 100%;
+      align-items: start;
+    }
+
+    @media (max-width: 1024px) {
+      .dashboard-container {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        gap: 24px;
+      }
+      .sidebar, .sidebar-right {
+        max-width: 420px;
+        width: 100%;
+      }
+    }
+
+    /* Sidebars */
+    .sidebar {
+      background: #111813;
+      border: 1px solid #1f2a22;
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .sidebar-right {
+      background: #111813;
+      border: 1px solid #1f2a22;
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .panel-title {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 16px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-divider {
+      height: 1px;
+      background: #1f2a22;
+      margin: 16px 0;
+    }
+
+    .rule-item {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #a3b8ab;
+    }
+
+    .rule-bullet {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* iPhone Viewport Wrapper */
+    .phone-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .phone-frame {
+      width: 375px;
+      height: 780px;
+      border-radius: 48px;
+      border: 12px solid #232e27;
+      background-color: var(--phone-bg);
+      position: relative;
+      box-shadow: 
+        0 25px 60px -15px rgba(0, 0, 0, 0.8),
+        0 0 0 1px rgba(255, 255, 255, 0.05);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Phone Themes dynamic definitions */
+    .phone-theme-dark {
+      --phone-bg: #0c110d;
+      --phone-surface: #141b16;
+      --phone-surface-hover: #1b261f;
+      --phone-fg: #ecf3ee;
+      --phone-muted: #809689;
+      --phone-border: #1e2a21;
+      --phone-input-bg: #070a08;
+      --phone-nav-bg: rgba(12, 17, 13, 0.85);
+      --phone-status-fg: #fff;
+      --phone-home-indicator: rgba(255, 255, 255, 0.3);
+    }
+
+    .phone-theme-light {
+      --phone-bg: #f3f7f4;
+      --phone-surface: #ffffff;
+      --phone-surface-hover: #f0f5f1;
+      --phone-fg: #131d16;
+      --phone-muted: #617769;
+      --phone-border: #dee8e1;
+      --phone-input-bg: #f8faf9;
+      --phone-nav-bg: rgba(243, 247, 244, 0.85);
+      --phone-status-fg: #131d16;
+      --phone-home-indicator: rgba(0, 0, 0, 0.2);
+    }
+
+    /* Notch & Status Area */
+    .dynamic-island {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 105px;
+      height: 26px;
+      background: #000;
+      border-radius: 13px;
+      z-index: 1000;
+    }
+
+    .status-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 44px;
+      padding: 0 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--phone-status-fg);
+      z-index: 999;
+      pointer-events: none;
+    }
+
+    .status-icons {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .home-indicator {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 4px;
+      background: var(--phone-home-indicator);
+      border-radius: 2px;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    /* Phone Internal Screens Viewport */
+    .phone-viewport {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow-y: auto;
+      padding: 44px 16px 80px;
+      scrollbar-width: none; /* Hide scrollbar for clean app look */
+    }
+    
+    .phone-viewport::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Screen Animations */
+    .screen-fade {
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* App Typography & Classes inside phone */
+    .app-title-caps {
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .app-headline {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--phone-fg);
+    }
+
+    .app-sub {
+      font-size: 14px;
+      color: var(--phone-muted);
+      line-height: 1.4;
+    }
+
+    /* Bottom Navbar in App */
+    .app-nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 68px;
+      background: var(--phone-nav-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid var(--phone-border);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding-bottom: 8px;
+      z-index: 998;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--phone-muted);
+      font-size: 10px;
+      font-weight: 600;
+      width: 60px;
+      transition: color 0.15s;
+    }
+
+    .nav-item-active {
+      color: var(--accent);
+    }
+
+    .nav-icon {
+      width: 22px;
+      height: 22px;
+      stroke-width: 1.8px;
+    }
+
+    /* Shared UI components inside phone */
+    .app-button {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 18px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      transition: background 0.15s;
+    }
+
+    .app-button:hover {
+      background: var(--accent-hover);
+    }
+
+    .app-button-outline {
+      background: transparent;
+      border: 1.5px solid var(--phone-border);
+      color: var(--phone-fg);
+      border-radius: 12px;
+      padding: 11px 18px;
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      transition: background 0.15s;
+    }
+
+    .app-button-outline:hover {
+      background: var(--phone-surface-hover);
+    }
+
+    .app-input {
+      width: 100%;
+      background: var(--phone-input-bg);
+      border: 1px solid var(--phone-border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      color: var(--phone-fg);
+      font-family: var(--font-body);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .app-input:focus {
+      border-color: var(--accent);
+    }
+
+    .app-card {
+      background: var(--phone-surface);
+      border: 1px solid var(--phone-border);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+      transition: background-color 0.15s;
+    }
+
+    /* Slider / Tweak Inputs */
+    .tweak-group {
+      margin-bottom: 16px;
+    }
+
+    .tweak-label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #839589;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .tweak-select {
+      width: 100%;
+      background: #19231c;
+      border: 1px solid #27382d;
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: #fff;
+      outline: none;
+      font-family: var(--font-body);
+      font-size: 14px;
+    }
+
+    .tweak-range {
+      width: 100%;
+      accent-color: var(--accent);
+      margin-top: 4px;
+    }
+
+    .tweak-btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .tweak-btn {
+      background: #19231c;
+      border: 1px solid #27382d;
+      color: #a3b8ab;
+      padding: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+
+    .tweak-btn-active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    /* Toast Notification inside App */
+    .toast-notif {
+      position: absolute;
+      top: 56px;
+      left: 16px;
+      right: 16px;
+      background: var(--phone-surface);
+      border: 1px solid var(--accent);
+      border-radius: 12px;
+      padding: 12px 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 1001;
+      animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideDown {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Screen Specifics */
+    /* Login */
+    .login-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      height: 100%;
+      gap: 24px;
+      padding: 0 8px;
+    }
+
+    .logo-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      text-align: center;
+    }
+
+    /* Match Feed & Cards */
+    .feed-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .ranking-pill {
+      background: var(--phone-surface);
+      border: 1px solid var(--phone-border);
+      border-radius: 99px;
+      padding: 4px 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--phone-fg);
+    }
+
+    .tab-control {
+      display: flex;
+      background: var(--phone-surface);
+      border: 1px solid var(--phone-border);
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 16px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      background: none;
+      border: none;
+      color: var(--phone-muted);
+      padding: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .tab-btn-active {
+      background: var(--phone-bg);
+      color: var(--phone-fg);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    /* Card Details */
+    .match-status-badge {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 3px 8px;
+      border-radius: 99px;
+      display: inline-block;
+      margin-bottom: 12px;
+    }
+
+    .badge-scheduled { background: var(--phone-border); color: var(--phone-muted); }
+    .badge-live { background: oklch(90% 0.04 25); color: var(--danger); animation: pulse 2s infinite; }
+    .badge-ended { background: var(--phone-border); color: var(--phone-fg); }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.6; }
+      100% { opacity: 1; }
+    }
+
+    .match-pot-banner {
+      background: var(--gold-light);
+      border: 1px solid var(--gold);
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--gold);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .match-teams-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 12px 0;
+    }
+
+    .team-display {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .team-name {
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--phone-fg);
+    }
+
+    .match-vs-score {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--phone-fg);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .prediction-inputs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .prediction-box {
+      width: 44px;
+      height: 40px;
+      background: var(--phone-input-bg);
+      border: 1px solid var(--phone-border);
+      border-radius: 8px;
+      text-align: center;
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--phone-fg);
+      outline: none;
+    }
+
+    .prediction-box:focus {
+      border-color: var(--accent);
+    }
+
+    .secadores-list {
+      margin-top: 16px;
+      border-t: 1px solid var(--phone-border);
+      padding-top: 12px;
+    }
+
+    .secador-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      padding: 6px 0;
+      color: var(--phone-muted);
+    }
+
+    .secador-name {
+      font-weight: 500;
+      color: var(--phone-fg);
+    }
+
+    /* Modal / Bottom Drawer for Secar Palpites */
+    .drawer-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 1002;
+      animation: fadeInOverlay 0.25s ease-out;
+    }
+
+    .drawer-content {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-height: 70%;
+      background: var(--phone-surface);
+      border-top: 1px solid var(--phone-border);
+      border-radius: 20px 20px 0 0;
+      padding: 20px 16px 32px;
+      z-index: 1003;
+      overflow-y: auto;
+      animation: slideUpDrawer 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes fadeInOverlay {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideUpDrawer {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    /* Match Details & Payment Audit Screen */
+    .postgame-hero {
+      background: var(--phone-surface);
+      border: 1px solid var(--phone-border);
+      border-radius: 20px;
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .pot-display {
+      font-family: var(--font-display);
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--gold);
+      margin: 12px 0 4px;
+    }
+
+    .audit-card {
+      background: oklch(96% 0.01 var(--primary-hue));
+      border: 1px dashed var(--accent);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .audit-card-unpaid {
+      background: oklch(96% 0.02 25);
+      border: 1px dashed var(--danger);
+    }
+
+    .transparency-search {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .ledger-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .ledger-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      background: var(--phone-surface);
+      border: 1px solid var(--phone-border);
+      border-radius: 12px;
+    }
+
+    .status-badge {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 4px 8px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .status-paid {
+      background: oklch(95% 0.02 142);
+      color: oklch(50% 0.12 142);
+    }
+
+    .status-unpaid {
+      background: oklch(95% 0.02 25);
+      color: oklch(50% 0.12 25);
+    }
+
+    .status-winner {
+      background: var(--gold-light);
+      color: var(--gold);
+    }
+
+    /* Podium Ranking */
+    .podium-container {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 12px;
+      height: 160px;
+      margin: 24px 0 16px;
+    }
+
+    .podium-block {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: var(--phone-surface);
+      border: 1px solid var(--phone-border);
+      border-bottom: none;
+      border-radius: 12px 12px 0 0;
+      position: relative;
+    }
+
+    .podium-1st { height: 130px; border-color: var(--gold); }
+    .podium-2nd { height: 100px; }
+    .podium-3rd { height: 80px; }
+
+    .podium-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--phone-border);
+      border: 2px solid var(--phone-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+      position: absolute;
+      top: -18px;
+    }
+
+    .podium-1st .podium-avatar {
+      border-color: var(--gold);
+      background: var(--gold-light);
+      color: var(--gold);
+    }
+
+    .podium-rank {
+      font-family: var(--font-display);
+      font-size: 28px;
+      font-weight: 800;
+      margin-top: 24px;
+      color: var(--phone-muted);
+    }
+
+    .podium-1st .podium-rank {
+      color: var(--gold);
+    }
+
+    .podium-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--phone-fg);
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 70px;
+      margin-top: 2px;
+    }
+
+    .podium-score {
+      font-size: 11px;
+      color: var(--phone-muted);
+      font-weight: 500;
+    }
+
+    /* Helpers */
+    .flex-center { display: flex; align-items: center; justify-content: center; }
+    .flex-between { display: flex; align-items: center; justify-content: space-between; }
+    .mb-8 { margin-bottom: 8px; }
+    .mb-16 { margin-bottom: 16px; }
+    .mt-12 { margin-top: 12px; }
+    .gap-8 { gap: 8px; }
+    .text-center { text-align: center; }
+    
+    .flag-holder {
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+      border: 1px solid rgba(255,255,255,0.08);
+      display: inline-block;
+      line-height: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="dashboard-container">
+    
+    <!-- Left Sidebar: Project Description -->
+    <div class="sidebar">
+      <div class="panel-title">
+        <svg class="nav-icon" style="stroke: var(--accent); fill: none;" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 16v-4" />
+          <path d="M12 8h.01" />
+        </svg>
+        CopaBolão 2026
+      </div>
+      <p style="font-size: 14px; color: #a3b8ab; line-height: 1.6; margin-bottom: 16px;">
+        Protótipo funcional de aplicativo para apostas entre familiares e amigos.
+      </p>
+      
+      <div class="panel-divider"></div>
+      
+      <div class="panel-title" style="font-size: 16px;">Como Funciona</div>
+      <div class="rule-item">
+        <span class="rule-bullet">1.</span>
+        <div><strong>Modelo Independente:</strong> Cada partida é uma aposta única. Sem pontos corridos complexos.</div>
+      </div>
+      <div class="rule-item">
+        <span class="rule-bullet">2.</span>
+        <div><strong>Placar Exato:</strong> Ganha apenas quem acertar o placar final em cheio (ex: 2x1 final, palpite 2x1).</div>
+      </div>
+      <div class="rule-item">
+        <span class="rule-bullet">3.</span>
+        <div><strong>Pote Acumulativo:</strong> Se ninguém acertar o placar, o prêmio acumula para o jogo seguinte.</div>
+      </div>
+      <div class="rule-item">
+        <span class="rule-bullet">4.</span>
+        <div><strong>Auditoria Social:</strong> Não há dinheiro no app. Os perdedores declaram o pagamento que é auditado em lista pública.</div>
+      </div>
+      
+      <div class="panel-divider"></div>
+      <div style="font-size: 12px; color: #627768; text-align: center;">
+        Feito para Amigos & Família • Copa do Mundo de 2026
+      </div>
+    </div>
+
+    <!-- Center Sandbox (Phone Container) -->
+    <div class="phone-container">
+      <div id="root"></div>
+    </div>
+
+    <!-- Right Sidebar: Interactive Tweaks -->
+    <div class="sidebar-right" id="tweaks-panel">
+      <div class="panel-title">
+        <svg class="nav-icon" style="stroke: var(--accent); fill: none;" viewBox="0 0 24 24">
+          <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+        Painel de Tweaks
+      </div>
+      <p style="font-size: 13px; color: #a3b8ab; line-height: 1.5; margin-bottom: 16px;">
+        Altere as regras e configurações do protótipo em tempo real:
+      </p>
+
+      <div class="tweak-group">
+        <label class="tweak-label">Tema do Aplicativo</label>
+        <div class="tweak-btn-group" id="tweak-theme-container">
+          <!-- Handled via React -->
+        </div>
+      </div>
+
+      <div class="tweak-group">
+        <label class="tweak-label">Resultado do Usuário (Jogo 4)</label>
+        <select class="tweak-select" id="tweak-user-status">
+          <option value="lost">Você Errou (Perdedor - R$ 10 pendente)</option>
+          <option value="won">Você Acertou (Vendedor - Divide o pote)</option>
+        </select>
+        <span style="font-size: 11px; color: #627768; margin-top: 4px; display: block;">
+          Altere para ver a tela de detalhes como vencedor ou perdedor.
+        </span>
+      </div>
+
+      <div class="tweak-group">
+        <label class="tweak-label">Moeda do Grupo</label>
+        <select class="tweak-select" id="tweak-currency">
+          <option value="R$">Real (R$)</option>
+          <option value="€">Euro (€)</option>
+          <option value="$">Dólar ($)</option>
+        </select>
+      </div>
+
+      <div class="tweak-group">
+        <label class="tweak-label">Valor de Entrada por Jogo</label>
+        <input type="number" class="app-input" id="tweak-fee" value="10" style="padding: 8px 12px; font-size: 14px;" />
+      </div>
+
+      <div class="tweak-group">
+        <label class="tweak-label">Tom de Cor Principal (Hue)</label>
+        <input type="range" class="tweak-range" id="tweak-hue" min="0" max="360" value="142" />
+        <div style="display: flex; justify-content: space-between; font-size: 11px; color: #839589; margin-top: 4px;">
+          <span>Vermelho (0)</span>
+          <span>Verde (142)</span>
+          <span>Azul (220)</span>
+        </div>
+      </div>
+
+      <div class="panel-divider"></div>
+      <button class="app-button-outline" id="tweak-reset" style="font-size: 13px; padding: 8px;">
+        Reiniciar Dados do Protótipo
+      </button>
+    </div>
+
+  </div>
+
+  <!-- React Dependencies -->
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <!-- React Code with Babel -->
+  <script type="text/babel">
+    const { useState, useEffect, useMemo } = React;
+
+    // Custom Local SVG Flags
+    const Flag = ({ code }) => {
+      const flags = {
+        br: (
+          <svg viewBox="0 0 100 70" width="100%" height="100%">
+            <rect width="100" height="70" fill="#009739" />
+            <polygon points="50,8 92,35 50,62 8,35" fill="#FEDF00" />
+            <circle cx="50" cy="35" r="16" fill="#002776" />
+            <path d="M35,38 Q50,30 65,38" stroke="#ffffff" strokeWidth="2" fill="none" />
+          </svg>
+        ),
+        es: (
+          <svg viewBox="0 0 100 70" width="100%" height="100%">
+            <rect width="100" height="70" fill="#C60B1E" />
+            <rect y="17.5" width="100" height="35" fill="#FBE122" />
+            <circle cx="25" cy="35" r="7" fill="#C60B1E" opacity="0.8" />
+          </svg>
+        ),
+        mx: (
+          <svg viewBox="0 0 100 70" width="100%" height="100%">
+            <rect width="33.3" height="70" fill="#006847" />
+            <rect x="33.3" width="33.4" height="70" fill="#ffffff" />
+            <rect x="66.7" width="33.3" height="70" fill="#CE1126" />
+            <circle cx="50" cy="35" r="6" fill="#8B5A2B" opacity="0.7" />
+          </svg>
+        ),
+        it: (
+          <svg viewBox="0 0 100 70" width="100%" height="100%">
+            <rect width="33.3" height="70" fill="#009246" />
+            <rect x="33.3" width="33.4" height="70" fill="#ffffff" />
+            <rect x="66.7" width="33.3" height="70" fill="#CD212A" />
+          </svg>
+        ),
+        pt: (
+          <svg viewBox="0 0 100 70" width="100%" height="100%">
+            <rect width="40" height="70" fill="#006600" />
+            <rect x="40" width="60" height="70" fill="#FF0000" />
+            <circle cx="40" cy="35" r="9" fill="#FFFF00" />
+            <rect x="37" y="32" width="6" height="6" fill="#FF0000" />
+          </svg>
+        ),
+        gh: (
+          <svg viewBox="0 0 100 70" width="100%" height="100%">
+            <rect width="100" height="23.3" fill="#DA291C" />
+            <rect y="23.3" width="100" height="23.4" fill="#FCD116" />
+            <rect y="46.7" width="100" height="23.3" fill="#00AA47" />
+            <polygon points="50,27 53,35 61,35 55,40 57,48 50,43 43,48 45,40 39,35 47,35" fill="#000000" />
+          </svg>
+        ),
+        us: (
+          <svg viewBox="0 0 100 70" width="100%" height="100%">
+            <rect width="100" height="70" fill="#ffffff" />
+            <rect y="0" width="100" height="5.3" fill="#B22234" />
+            <rect y="10.7" width="100" height="5.3" fill="#B22234" />
+            <rect y="21.5" width="100" height="5.3" fill="#B22234" />
+            <rect y="32.3" width="100" height="5.3" fill="#B22234" />
+            <rect y="43" width="100" height="5.3" fill="#B22234" />
+            <rect y="53.8" width="100" height="5.3" fill="#B22234" />
+            <rect y="64.6" width="100" height="5.4" fill="#B22234" />
+            <rect width="45" height="37.6" fill="#3C3B6E" />
+            <circle cx="10" cy="10" r="1.5" fill="#fff" />
+            <circle cx="22.5" cy="10" r="1.5" fill="#fff" />
+            <circle cx="35" cy="10" r="1.5" fill="#fff" />
+            <circle cx="16" cy="19" r="1.5" fill="#fff" />
+            <circle cx="28.5" cy="19" r="1.5" fill="#fff" />
+            <circle cx="10" cy="28" r="1.5" fill="#fff" />
+            <circle cx="22.5" cy="28" r="1.5" fill="#fff" />
+            <circle cx="35" cy="28" r="1.5" fill="#fff" />
+          </svg>
+        ),
+        gb: (
+          <svg viewBox="0 0 100 70" width="100%" height="100%">
+            <rect width="100" height="70" fill="#ffffff" />
+            <rect x="42.5" width="15" height="70" fill="#CF142B" />
+            <rect y="27.5" width="100" height="15" fill="#CF142B" />
+          </svg>
+        ),
+        ar: (
+          <svg viewBox="0 0 100 70" width="100%" height="100%">
+            <rect width="100" height="23.3" fill="#74ACDF" />
+            <rect y="23.3" width="100" height="23.4" fill="#ffffff" />
+            <rect y="46.7" width="100" height="23.3" fill="#74ACDF" />
+            <circle cx="50" cy="35" r="5" fill="#F8B125" stroke="#8A5A00" strokeWidth="1" />
+          </svg>
+        ),
+        fr: (
+          <svg viewBox="0 0 100 70" width="100%" height="100%">
+            <rect width="33.3" height="70" fill="#002395" />
+            <rect x="33.3" width="33.4" height="70" fill="#ffffff" />
+            <rect x="66.7" width="33.3" height="70" fill="#ED2939" />
+          </svg>
+        )
+      };
+
+      return (
+        <div className="flag-holder" style={{ width: '28px', height: '20px' }}>
+          {flags[code] || <div style={{ background: '#ccc', width: '100%', height: '100%' }} />}
+        </div>
+      );
+    };
+
+    // Shared Icons components
+    const TrophyIcon = () => (
+      <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+        <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+        <path d="M4 22h16" />
+        <path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34" />
+        <path d="M12 2a6 6 0 0 1 6 6v3.5c0 3.04-2.46 5.5-5.5 5.5h-1C8.46 17 6 14.54 6 11.5V8a6 6 0 0 1 6-6z" />
+      </svg>
+    );
+
+    const CalendarIcon = () => (
+      <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+        <line x1="16" y1="2" x2="16" y2="6" />
+        <line x1="8" y1="2" x2="8" y2="6" />
+        <line x1="3" y1="10" x2="21" y2="10" />
+      </svg>
+    );
+
+    const LockIcon = () => (
+      <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+      </svg>
+    );
+
+    const ChevronLeft = () => (
+      <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="15 18 9 12 15 6" />
+      </svg>
+    );
+
+    const BallIcon = () => (
+      <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+        <path d="M2 12h20" />
+      </svg>
+    );
+
+    // Initial Games Mock Database
+    const INITIAL_GAMES = [
+      {
+        id: 1,
+        team1: "México",
+        team2: "Itália",
+        team1Flag: "mx",
+        team2Flag: "it",
+        score1: null,
+        score2: null,
+        date: "15 Jun • 17:00",
+        potMultiplier: 12,
+        status: "agendado",
+        prediction: { score1: "", score2: "" },
+        accumulated: true,
+        potBonus: 80
+      },
+      {
+        id: 2,
+        team1: "Portugal",
+        team2: "Gana",
+        team1Flag: "pt",
+        team2Flag: "gh",
+        score1: null,
+        score2: null,
+        date: "15 Jun • 20:00",
+        potMultiplier: 12,
+        status: "agendado",
+        prediction: { score1: "", score2: "" },
+        accumulated: false,
+        potBonus: 0
+      },
+      {
+        id: 3,
+        team1: "EUA",
+        team2: "Inglaterra",
+        team1Flag: "us",
+        team2Flag: "gb",
+        score1: 1,
+        score2: 1,
+        date: "Ao Vivo • 75'",
+        potMultiplier: 12,
+        status: "em_andamento",
+        prediction: { score1: "2", score2: "1" },
+        accumulated: false,
+        potBonus: 0
+      },
+      {
+        id: 4,
+        team1: "Brasil",
+        team2: "Espanha",
+        team1Flag: "br",
+        team2Flag: "es",
+        score1: 3,
+        score2: 2,
+        date: "13 Jun • Encerrado",
+        potMultiplier: 12,
+        status: "encerrado",
+        prediction: { score1: "2", score2: "1" }, // defaults to loss
+        accumulated: false,
+        potBonus: 0,
+        winners: ["Bruno", "Camila"]
+      },
+      {
+        id: 5,
+        team1: "Argentina",
+        team2: "França",
+        team1Flag: "ar",
+        team2Flag: "fr",
+        score1: 0,
+        score2: 0,
+        date: "12 Jun • Encerrado",
+        potMultiplier: 12,
+        status: "encerrado",
+        prediction: { score1: "1", score2: "2" },
+        accumulated: true,
+        potBonus: 0,
+        winners: [] // Accumulated (no winners)
+      }
+    ];
+
+    // Initial Ledger database for Brasil vs Espanha
+    const INITIAL_PARTICIPANTS = [
+      { name: "Bruno", prediction: "3x2", won: true, paid: true },
+      { name: "Camila", prediction: "3x2", won: true, paid: true },
+      { name: "Você", prediction: "2x1", won: false, paid: false },
+      { name: "Thiago", prediction: "1x1", won: false, paid: true },
+      { name: "Mariana", prediction: "0x2", won: false, paid: false },
+      { name: "Pedro", prediction: "1x2", won: false, paid: true },
+      { name: "Ana", prediction: "2x2", won: false, paid: true }
+    ];
+
+    // App Component
+    function App() {
+      // Global Tweaks linked to HTML inputs
+      const [themeMode, setThemeMode] = useState("dark");
+      const [userStatus, setUserStatus] = useState("lost"); // "lost" | "won"
+      const [currency, setCurrency] = useState("R$");
+      const [entryFee, setEntryFee] = useState(10);
+      const [primaryHue, setPrimaryHue] = useState(142);
+
+      // App Navigation
+      const [loggedIn, setLoggedIn] = useState(false);
+      const [email, setEmail] = useState("");
+      const [roomCode, setRoomCode] = useState("FAMILIA26");
+      const [activeTab, setActiveTab] = useState("feed"); // "feed" | "ranking" | "rules"
+      const [currentScreen, setCurrentScreen] = useState("login"); // "login" | "app" | "details"
+      
+      // Screen States
+      const [feedTab, setFeedTab] = useState("scheduled"); // "scheduled" | "live" | "ended"
+      const [games, setGames] = useState(INITIAL_GAMES);
+      const [selectedGameId, setSelectedGameId] = useState(null);
+      const [participants, setParticipants] = useState(INITIAL_PARTICIPANTS);
+      
+      // Modals / Feedback
+      const [toastMsg, setToastMsg] = useState(null);
+      const [activeSecarGame, setActiveSecarGame] = useState(null);
+      const [searchQuery, setSearchQuery] = useState("");
+
+      // Link HTML Tweak Panel to React States
+      useEffect(() => {
+        const themeBtnContainer = document.getElementById("tweak-theme-container");
+        if (themeBtnContainer) {
+          themeBtnContainer.innerHTML = `
+            <button class="tweak-btn ${themeMode === 'light' ? 'tweak-btn-active' : ''}" id="btn-theme-light">Claro</button>
+            <button class="tweak-btn ${themeMode === 'dark' ? 'tweak-btn-active' : ''}" id="btn-theme-dark">Escuro</button>
+          `;
+          
+          document.getElementById("btn-theme-light").onclick = () => setThemeMode("light");
+          document.getElementById("btn-theme-dark").onclick = () => setThemeMode("dark");
+        }
+      }, [themeMode]);
+
+      useEffect(() => {
+        const select = document.getElementById("tweak-user-status");
+        if (select) {
+          select.value = userStatus;
+          select.onchange = (e) => {
+            setUserStatus(e.target.value);
+            // Sync user participant prediction to matches userStatus
+            setParticipants(prev => prev.map(p => {
+              if (p.name === "Você") {
+                return {
+                  ...p,
+                  prediction: e.target.value === "won" ? "3x2" : "2x1",
+                  won: e.target.value === "won"
+                };
+              }
+              return p;
+            }));
+          };
+        }
+      }, [userStatus]);
+
+      useEffect(() => {
+        const select = document.getElementById("tweak-currency");
+        if (select) {
+          select.value = currency;
+          select.onchange = (e) => setCurrency(e.target.value);
+        }
+      }, [currency]);
+
+      useEffect(() => {
+        const input = document.getElementById("tweak-fee");
+        if (input) {
+          input.value = entryFee;
+          input.oninput = (e) => setEntryFee(Number(e.target.value) || 0);
+        }
+      }, [entryFee]);
+
+      useEffect(() => {
+        const range = document.getElementById("tweak-hue");
+        if (range) {
+          range.value = primaryHue;
+          range.oninput = (e) => {
+            setPrimaryHue(e.target.value);
+            document.documentElement.style.setProperty('--primary-hue', e.target.value);
+          };
+        }
+      }, [primaryHue]);
+
+      useEffect(() => {
+        const resetBtn = document.getElementById("tweak-reset");
+        if (resetBtn) {
+          resetBtn.onclick = () => {
+            setThemeMode("dark");
+            setUserStatus("lost");
+            setCurrency("R$");
+            setEntryFee(10);
+            setPrimaryHue(142);
+            document.documentElement.style.setProperty('--primary-hue', '142');
+            setGames(INITIAL_GAMES);
+            setParticipants(INITIAL_PARTICIPANTS);
+            showToast("Dados reiniciados!");
+          };
+        }
+      }, []);
+
+      // Trigger Toast Utility
+      const showToast = (msg) => {
+        setToastMsg(msg);
+        setTimeout(() => setToastMsg(null), 2500);
+      };
+
+      // Handle predictive score entry
+      const handlePredictionChange = (gameId, team, value) => {
+        setGames(prev => prev.map(g => {
+          if (g.id === gameId) {
+            return {
+              ...g,
+              prediction: {
+                ...g.prediction,
+                [team]: value
+              }
+            };
+          }
+          return g;
+        }));
+      };
+
+      const savePrediction = (gameId) => {
+        const game = games.find(g => g.id === gameId);
+        if (game.prediction.score1 === "" || game.prediction.score2 === "") {
+          showToast("Preencha ambos os placares!");
+          return;
+        }
+        showToast("Palpite salvo com sucesso! ⚽");
+      };
+
+      // Filtered participants list for details page
+      const filteredParticipants = useMemo(() => {
+        return participants.filter(p => 
+          p.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      }, [participants, searchQuery]);
+
+      const currentWinners = useMemo(() => participants.filter(p => p.won), [participants]);
+      const currentLosers = useMemo(() => participants.filter(p => !p.won), [participants]);
+
+      const getAutoPayee = (participantName) => {
+        if (currentWinners.length === 0) return null;
+        const loserIndex = currentLosers.findIndex(l => l.name === participantName);
+        if (loserIndex === -1) return null;
+        return currentWinners[loserIndex % currentWinners.length].name;
+      };
+
+      const getPayeeName = (p) => {
+        if (p.payee) return p.payee;
+        return getAutoPayee(p.name);
+      };
+
+      // Estimate game pot values dynamically based on entry fee
+      const calculatePot = (game) => {
+        const base = entryFee * participants.length;
+        return base + (game.potBonus || 0);
+      };
+
+      const selectedGame = games.find(g => g.id === selectedGameId);
+
+      // Login Handler
+      const handleLogin = (e) => {
+        e.preventDefault();
+        if (email.trim() === "") {
+          showToast("Por favor, digite seu e-mail.");
+          return;
+        }
+        setLoggedIn(true);
+        setCurrentScreen("app");
+        setActiveTab("feed");
+        showToast(`Bem-vindo ao Bolão! 👋`);
+      };
+
+      // Logout handler
+      const handleLogout = () => {
+        setLoggedIn(false);
+        setCurrentScreen("login");
+      };
+
+      return (
+        <div className={`phone-frame phone-theme-${themeMode}`}>
+          {/* iOS status bar */}
+          <div className="status-bar">
+            <span>09:41</span>
+            <div className="status-icons">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                <path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9zm0 15c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/>
+              </svg>
+              <span style={{ fontSize: '10px' }}>5G</span>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                <path d="M17 5H3a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm1 12H3V7h15v10zm4-7v4a1 1 0 0 1-2 0v-4a1 1 0 0 1 2 0z"/>
+              </svg>
+            </div>
+          </div>
+          
+          <div className="dynamic-island"></div>
+          
+          {/* iOS home gesture indicator */}
+          <div className="home-indicator"></div>
+
+          {/* Floating Toast inside app screen */}
+          {toastMsg && (
+            <div className="toast-notif">
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--accent)" strokeWidth="2.5" fill="none">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--phone-fg)' }}>{toastMsg}</span>
+            </div>
+          )}
+
+          {/* Drawer for Secar Palpites */}
+          {activeSecarGame && (
+            <>
+              <div className="drawer-overlay" onClick={() => setActiveSecarGame(null)}></div>
+              <div className="drawer-content">
+                <div className="flex-between mb-16">
+                  <h4 style={{ fontFamily: 'var(--font-display)', fontSize: '18px', color: 'var(--phone-fg)' }}>
+                    Secar Palpites da Galera
+                  </h4>
+                  <button onClick={() => setActiveSecarGame(null)} style={{ background: 'none', border: 'none', color: 'var(--phone-muted)', fontSize: '20px', cursor: 'pointer' }}>×</button>
+                </div>
+                <p style={{ fontSize: '13px', color: 'var(--phone-muted)', marginBottom: '16px' }}>
+                  Acompanhando palpites trancados de todos os participantes.
+                </p>
+                <div className="ledger-list">
+                  {participants.map((p, idx) => (
+                    <div key={idx} className="flex-between" style={{ padding: '8px 12px', background: 'var(--phone-bg)', border: '1px solid var(--phone-border)', borderRadius: '8px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: '600', color: p.name === 'Você' ? 'var(--accent)' : 'var(--phone-fg)' }}>
+                        {p.name} {p.name === 'Você' && '(Você)'}
+                      </span>
+                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: '700', fontSize: '15px', color: 'var(--phone-fg)' }}>
+                        {p.name === 'Você' ? `${activeSecarGame.prediction.score1} - ${activeSecarGame.prediction.score2}` : p.prediction}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* RENDER SCREENS */}
+          <div className="phone-viewport">
+            
+            {/* LOGIN SCREEN */}
+            {!loggedIn && (
+              <div className="login-container screen-fade">
+                <div className="logo-container">
+                  <div style={{ background: 'var(--accent-light)', width: '64px', height: '64px', borderRadius: '20px', display: 'flex', alignItems: 'center', justifycontent: 'center', border: '1px solid var(--accent)' }}>
+                    <svg viewBox="0 0 24 24" width="32" height="32" stroke="var(--accent)" strokeWidth="1.8" fill="none">
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                      <path d="M2 12h20" />
+                    </svg>
+                  </div>
+                  <h1 className="app-headline" style={{ fontSize: '28px' }}>CopaBolão 2026</h1>
+                  <p className="app-sub">O bolão transparente jogo a jogo com sua família e amigos.</p>
+                </div>
+
+                <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: '700', color: 'var(--phone-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px', display: 'block' }}>E-mail de Acesso</label>
+                    <input 
+                      type="email" 
+                      className="app-input" 
+                      placeholder="seu.nome@exemplo.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: '700', color: 'var(--phone-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px', display: 'block' }}>Código do Bolão da Galera</label>
+                    <input 
+                      type="text" 
+                      className="app-input" 
+                      placeholder="FAMILIA26"
+                      value={roomCode}
+                      onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+                    />
+                  </div>
+
+                  <button type="submit" className="app-button" style={{ marginTop: '8px' }}>
+                    Entrar no Bolão
+                  </button>
+                </form>
+
+                <div className="text-center" style={{ margin: '12px 0' }}>
+                  <span style={{ fontSize: '12px', color: 'var(--phone-muted)' }}>Ou entre rápido com</span>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <button onClick={() => { setEmail("demo@copabolao.com"); setLoggedIn(true); setCurrentScreen("app"); }} className="app-button-outline" style={{ fontSize: '13px' }}>
+                    Acesso Rápido de Teste
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* MAIN APP CONTAINER */}
+            {loggedIn && currentScreen === "app" && (
+              <div className="screen-fade">
+                
+                {/* Header info */}
+                <div className="feed-header">
+                  <div>
+                    <span className="app-title-caps">GRUPO {roomCode}</span>
+                    <h2 className="app-headline" style={{ fontSize: '22px' }}>CopaBolão 2026</h2>
+                  </div>
+                  <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: 'var(--phone-muted)', fontSize: '12px', fontWeight: '600', textDecoration: 'underline', cursor: 'pointer' }}>
+                    Sair
+                  </button>
+                </div>
+
+                {/* FEED TAB */}
+                {activeTab === "feed" && (
+                  <div>
+                    {/* Inner feed switcher */}
+                    <div className="tab-control">
+                      <button 
+                        className={`tab-btn ${feedTab === 'scheduled' ? 'tab-btn-active' : ''}`}
+                        onClick={() => setFeedTab("scheduled")}
+                      >
+                        Próximos
+                      </button>
+                      <button 
+                        className={`tab-btn ${feedTab === 'live' ? 'tab-btn-active' : ''}`}
+                        onClick={() => setFeedTab("live")}
+                      >
+                        Ao Vivo
+                      </button>
+                      <button 
+                        className={`tab-btn ${feedTab === 'ended' ? 'tab-btn-active' : ''}`}
+                        onClick={() => setFeedTab("ended")}
+                      >
+                        Encerrados
+                      </button>
+                    </div>
+
+                    {/* Games lists according to tab selected */}
+                    {games.filter(g => {
+                      if (feedTab === "scheduled") return g.status === "agendado";
+                      if (feedTab === "live") return g.status === "em_andamento";
+                      return g.status === "encerrado";
+                    }).map(game => (
+                      <div key={game.id} className="app-card" style={{ cursor: game.status === 'encerrado' ? 'pointer' : 'default' }} onClick={() => { if(game.status === 'encerrado') { setSelectedGameId(game.id); setCurrentScreen("details"); } }}>
+                        
+                        {/* Pot accumulator alert banner */}
+                        {game.accumulated && (
+                          <div className="match-pot-banner">
+                            <span>🔥</span>
+                            <span>POTE ACUMULADO: {currency} {calculatePot(game)}</span>
+                          </div>
+                        )}
+
+                        <div className="flex-between">
+                          <span className={`match-status-badge ${game.status === 'agendado' ? 'badge-scheduled' : game.status === 'em_andamento' ? 'badge-live' : 'badge-ended'}`}>
+                            {game.status === 'agendado' ? 'Agendado' : game.status === 'em_andamento' ? 'Ao Vivo' : 'Encerrado'}
+                          </span>
+                          <span style={{ fontSize: '12px', color: 'var(--phone-muted)', fontWeight: '600' }}>
+                            {game.date}
+                          </span>
+                        </div>
+
+                        <div className="match-teams-row">
+                          <div className="team-display">
+                            <Flag code={game.team1Flag} />
+                            <span className="team-name">{game.team1}</span>
+                          </div>
+
+                          <div className="match-vs-score">
+                            {game.status === 'agendado' ? (
+                              <div className="prediction-inputs">
+                                <input 
+                                  type="text" 
+                                  maxLength="2" 
+                                  className="prediction-box" 
+                                  placeholder="-"
+                                  value={game.prediction.score1}
+                                  onChange={(e) => handlePredictionChange(game.id, 'score1', e.target.value.replace(/\D/g, ''))}
+                                />
+                                <span style={{ color: 'var(--phone-muted)' }}>x</span>
+                                <input 
+                                  type="text" 
+                                  maxLength="2" 
+                                  className="prediction-box" 
+                                  placeholder="-"
+                                  value={game.prediction.score2}
+                                  onChange={(e) => handlePredictionChange(game.id, 'score2', e.target.value.replace(/\D/g, ''))}
+                                />
+                              </div>
+                            ) : (
+                              <>
+                                <span>{game.score1}</span>
+                                <span style={{ fontSize: '16px', color: 'var(--phone-muted)' }}>x</span>
+                                <span>{game.score2}</span>
+                              </>
+                            )}
+                          </div>
+
+                          <div className="team-display">
+                            <Flag code={game.team2Flag} />
+                            <span className="team-name">{game.team2}</span>
+                          </div>
+                        </div>
+
+                        {/* Actions below match */}
+                        {game.status === 'agendado' && (
+                          <button 
+                            className="app-button" 
+                            style={{ padding: '8px 12px', fontSize: '13px', marginTop: '8px' }}
+                            onClick={() => savePrediction(game.id)}
+                          >
+                            Salvar Palpite
+                          </button>
+                        )}
+
+                        {game.status === 'em_andamento' && (
+                          <div style={{ marginTop: '12px', borderTop: '1px solid var(--phone-border)', paddingTop: '12px' }}>
+                            <div className="flex-between mb-8">
+                              <span style={{ fontSize: '12px', color: 'var(--phone-muted)' }}>Seu Palpite trancado:</span>
+                              <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--phone-fg)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <LockIcon /> {game.prediction.score1} x {game.prediction.score2}
+                              </span>
+                            </div>
+                            <button 
+                              className="app-button-outline"
+                              style={{ padding: '8px 12px', fontSize: '13px', width: '100%' }}
+                              onClick={() => setActiveSecarGame(game)}
+                            >
+                              Secar Palpites da Galera
+                            </button>
+                          </div>
+                        )}
+
+                        {game.status === 'encerrado' && (
+                          <div style={{ marginTop: '12px', borderTop: '1px solid var(--phone-border)', paddingTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: '12px', color: 'var(--phone-muted)' }}>
+                              {game.winners.length > 0 ? (
+                                <span>🏆 Vencedores: <strong>{game.winners.join(', ')}</strong></span>
+                              ) : (
+                                <span>Acumulou! Ninguém acertou em cheio.</span>
+                              )}
+                            </span>
+                            <span style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: '600', display: 'flex', alignItems: 'center' }}>
+                              Detalhes &gt;
+                            </span>
+                          </div>
+                        )}
+
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* RANKING TAB */}
+                {activeTab === "ranking" && (
+                  <div className="screen-fade">
+                    <h3 className="app-headline" style={{ fontSize: '20px', marginBottom: '8px' }}>Ranking de Bruxos</h3>
+                    <p className="app-sub" style={{ marginBottom: '16px' }}>Eficiência pura com base em acertos exatos do placar.</p>
+
+                    {/* Podium for top 3 */}
+                    <div className="podium-container">
+                      <div className="podium-block podium-2nd">
+                        <div className="podium-avatar">C</div>
+                        <span className="podium-rank">2º</span>
+                        <span className="podium-name">Camila</span>
+                        <span className="podium-score">3 acertos</span>
+                      </div>
+                      
+                      <div className="podium-block podium-1st">
+                        <div className="podium-avatar" style={{ top: '-24px', width: '44px', height: '44px', fontSize: '16px' }}>👑</div>
+                        <span className="podium-rank">1º</span>
+                        <span className="podium-name" style={{ fontWeight: '700' }}>Bruno</span>
+                        <span className="podium-score">4 acertos</span>
+                      </div>
+
+                      <div className="podium-block podium-3rd">
+                        <div className="podium-avatar">T</div>
+                        <span className="podium-rank">3º</span>
+                        <span className="podium-name">Thiago</span>
+                        <span className="podium-score">3 acertos</span>
+                      </div>
+                    </div>
+
+                    {/* Ranking Table List */}
+                    <div className="ledger-list" style={{ marginTop: '16px' }}>
+                      <div className="ledger-row" style={{ background: 'none', border: 'none', padding: '4px 12px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--phone-muted)' }}>Posição & Nome</span>
+                        <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--phone-muted)' }}>Acertos</span>
+                      </div>
+                      
+                      <div className="ledger-row">
+                        <span style={{ fontSize: '14px', fontWeight: '500', color: 'var(--phone-fg)' }}>4. Ana</span>
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: '700', color: 'var(--phone-fg)' }}>2</span>
+                      </div>
+                      <div className="ledger-row" style={{ borderColor: 'var(--accent)' }}>
+                        <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--accent)' }}>5. Você (Geral)</span>
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: '700', color: 'var(--accent)' }}>2</span>
+                      </div>
+                      <div className="ledger-row">
+                        <span style={{ fontSize: '14px', fontWeight: '500', color: 'var(--phone-fg)' }}>6. Pedro</span>
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: '700', color: 'var(--phone-fg)' }}>1</span>
+                      </div>
+                      <div className="ledger-row">
+                        <span style={{ fontSize: '14px', fontWeight: '500', color: 'var(--phone-fg)' }}>7. Mariana</span>
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: '700', color: 'var(--phone-fg)' }}>0</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* RULES TAB */}
+                {activeTab === "rules" && (
+                  <div className="screen-fade">
+                    <h3 className="app-headline" style={{ fontSize: '20px', marginBottom: '8px' }}>Regulamento</h3>
+                    <p className="app-sub" style={{ marginBottom: '16px' }}>Regras acordadas para este bolão.</p>
+
+                    <div className="app-card">
+                      <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                        <div style={{ background: 'var(--accent-light)', padding: '6px', borderRadius: '8px', color: 'var(--accent)' }}>💰</div>
+                        <div>
+                          <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--phone-fg)', marginBottom: '4px' }}>Aposta por Partida</h4>
+                          <p style={{ fontSize: '13px', color: 'var(--phone-muted)' }}>
+                            Cada jogo tem entrada fixa de {currency} {entryFee}. Pagos fora do aplicativo de forma transparente aos ganhadores do pote.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="app-card">
+                      <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                        <div style={{ background: 'var(--accent-light)', padding: '6px', borderRadius: '8px', color: 'var(--accent)' }}>🔒</div>
+                        <div>
+                          <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--phone-fg)', marginBottom: '4px' }}>Bloqueio de Palpites</h4>
+                          <p style={{ fontSize: '13px', color: 'var(--phone-muted)' }}>
+                            Tranca automaticamente 15 minutos antes do início de cada jogo. Sem alterações posteriores.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="app-card">
+                      <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                        <div style={{ background: 'var(--accent-light)', padding: '6px', borderRadius: '8px', color: 'var(--accent)' }}>🎯</div>
+                        <div>
+                          <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--phone-fg)', marginBottom: '4px' }}>Vencedor Único ou Divisão</h4>
+                          <p style={{ fontSize: '13px', color: 'var(--phone-muted)' }}>
+                            Somente acerto EXATO do placar ganha. Se 2 ou mais pessoas acertarem o placar exato, dividem o pote.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="app-card">
+                      <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                        <div style={{ background: 'var(--accent-light)', padding: '6px', borderRadius: '8px', color: 'var(--accent)' }}>❄️</div>
+                        <div>
+                          <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--phone-fg)', marginBottom: '4px' }}>Efeito Bola de Neve</h4>
+                          <p style={{ fontSize: '13px', color: 'var(--phone-muted)' }}>
+                            Caso ninguém acerte o placar exato da rodada, o pote acumula integralmente para a partida seguinte.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* BOTTOM NAVIGATION */}
+                <div className="app-nav">
+                  <button 
+                    className={`nav-item ${activeTab === 'feed' ? 'nav-item-active' : ''}`}
+                    onClick={() => setActiveTab("feed")}
+                  >
+                    <svg className="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <rect x="3" y="3" width="7" height="9" />
+                      <rect x="14" y="3" width="7" height="5" />
+                      <rect x="14" y="12" width="7" height="9" />
+                      <rect x="3" y="16" width="7" height="5" />
+                    </svg>
+                    Feed
+                  </button>
+                  
+                  <button 
+                    className={`nav-item ${activeTab === 'ranking' ? 'nav-item-active' : ''}`}
+                    onClick={() => setActiveTab("ranking")}
+                  >
+                    <svg className="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <line x1="18" y1="20" x2="18" y2="10" />
+                      <line x1="12" y1="20" x2="12" y2="4" />
+                      <line x1="6" y1="20" x2="6" y2="14" />
+                    </svg>
+                    Ranking
+                  </button>
+                  
+                  <button 
+                    className={`nav-item ${activeTab === 'rules' ? 'nav-item-active' : ''}`}
+                    onClick={() => setActiveTab("rules")}
+                  >
+                    <svg className="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="16" x2="12" y2="12" />
+                      <line x1="12" y1="8" x2="12.01" y2="8" />
+                    </svg>
+                    Regulamento
+                  </button>
+                </div>
+
+              </div>
+            )}
+
+            {/* SCREEN 3: GAME DETAILS & PAYMENT LEDGER */}
+            {loggedIn && currentScreen === "details" && selectedGame && (
+              <div className="screen-fade">
+                
+                {/* Back Navigation */}
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px', gap: '8px' }}>
+                  <button 
+                    onClick={() => setCurrentScreen("app")} 
+                    style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                  >
+                    <ChevronLeft />
+                  </button>
+                  <span className="app-title-caps">DETALHES DO JOGO</span>
+                </div>
+
+                {/* Postgame Hero Card */}
+                <div className="postgame-hero">
+                  <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--phone-muted)' }}>
+                    {selectedGame.date}
+                  </span>
+                  
+                  <div className="match-teams-row" style={{ margin: '16px 0' }}>
+                    <div className="team-display">
+                      <Flag code={selectedGame.team1Flag} />
+                      <span className="team-name">{selectedGame.team1}</span>
+                    </div>
+                    <div className="match-vs-score">
+                      <span>{selectedGame.score1}</span>
+                      <span style={{ fontSize: '16px', color: 'var(--phone-muted)' }}>x</span>
+                      <span>{selectedGame.score2}</span>
+                    </div>
+                    <div className="team-display">
+                      <Flag code={selectedGame.team2Flag} />
+                      <span className="team-name">{selectedGame.team2}</span>
+                    </div>
+                  </div>
+
+                  <div style={{ height: '1px', background: 'var(--phone-border)', margin: '12px 0' }}></div>
+                  
+                  <div style={{ fontSize: '13px', color: 'var(--phone-muted)' }}>Pote Acordado da Rodada</div>
+                  <div className="pot-display">
+                    {currency} {calculatePot(selectedGame)}
+                  </div>
+                  
+                  <div style={{ fontSize: '13px', color: 'var(--phone-fg)', fontWeight: '600' }}>
+                    {currentWinners.length > 0 ? (
+                      <span>🏆 Dividido entre: <strong>{currentWinners.map(w => w.name).join(' e ')}</strong> ({currency} {calculatePot(selectedGame) / currentWinners.length} para cada)</span>
+                    ) : (
+                      <span>Rodada acumulada para o próximo jogo! ❄️</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Audit & Inquiry System - Checks user prediction against final score */}
+                {currentWinners.length > 0 && (
+                  userStatus === "lost" ? (
+                    /* User Lost UI */
+                    <div className="audit-card audit-card-unpaid">
+                      <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--danger)', marginBottom: '4px' }}>
+                        Seu Status: Errou o Palpite 😔
+                      </h4>
+                      <p style={{ fontSize: '13px', color: 'var(--phone-muted)', marginBottom: '12px' }}>
+                        Seu palpite: <strong>{selectedGame.prediction.score1}x{selectedGame.prediction.score2}</strong>. Você precisa pagar <strong>{currency} {entryFee}</strong> para <strong>{getPayeeName(participants.find(p => p.name === "Você"))}</strong>.
+                      </p>
+                      
+                      {participants.find(p => p.name === "Você")?.paid ? (
+                        <div className="status-badge status-paid" style={{ width: '100%', justifyContent: 'center' }}>
+                          🟢 Pagamento Declarado. Aguardando auditoria.
+                        </div>
+                      ) : (
+                        <button 
+                          className="app-button" 
+                          style={{ background: 'var(--danger)' }}
+                          onClick={() => {
+                            setParticipants(prev => prev.map(p => p.name === "Você" ? { ...p, paid: true } : p));
+                            showToast("Pagamento registrado publicamente!");
+                          }}
+                        >
+                          Sim, já transferi o valor
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    /* User Won UI */
+                    <div className="audit-card" style={{ background: 'var(--gold-light)', borderColor: 'var(--gold)' }}>
+                      <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--gold)', marginBottom: '4px' }}>
+                        Seu Status: Acertou em Cheio! 🏆
+                      </h4>
+                      <p style={{ fontSize: '13px', color: 'var(--phone-muted)', marginBottom: '12px' }}>
+                        Seu palpite: <strong>{selectedGame.score1}x{selectedGame.score2}</strong>. Você divide o prêmio acumulado e receberá <strong>{currency} {calculatePot(selectedGame) / currentWinners.length}</strong>.
+                        {currentLosers.filter(l => getPayeeName(l) === "Você").length > 0 && (
+                          <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--phone-fg)', borderTop: '1px dashed var(--gold)', paddingTop: '8px' }}>
+                            👉 Você deve receber de: <strong>{currentLosers.filter(l => getPayeeName(l) === "Você").map(l => l.name).join(', ')}</strong> ({currency} {entryFee} de cada)
+                          </div>
+                        )}
+                      </p>
+                      <div className="status-badge status-winner" style={{ width: '100%', justifyContent: 'center' }}>
+                        🏆 Vencedor da rodada
+                      </div>
+                    </div>
+                  )
+                )}
+
+                {/* Public Transparency Ledger Title */}
+                <div className="flex-between mb-8">
+                  <span style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--phone-muted)' }}>
+                    Fila de Transparência do Grupo
+                  </span>
+                  <span style={{ fontSize: '11px', color: 'var(--phone-muted)' }}>
+                    {participants.filter(p => p.paid || p.won).length} de {participants.length} resolvidos
+                  </span>
+                </div>
+
+                {/* Filter Search */}
+                <div className="transparency-search">
+                  <input 
+                    type="text" 
+                    className="app-input" 
+                    placeholder="Buscar participante..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    style={{ padding: '8px 12px', fontSize: '13px', borderRadius: '8px' }}
+                  />
+                </div>
+
+                {/* Grouped Ledger List */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {/* Group 1: Ainda não pagou */}
+                  {filteredParticipants.filter(p => !p.won && !p.paid).length > 0 && (
+                    <div>
+                      <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--danger)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--danger)' }}></span>
+                        Pessoas pendentes ({filteredParticipants.filter(p => !p.won && !p.paid).length})
+                      </div>
+                      <div className="ledger-list" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {filteredParticipants.filter(p => !p.won && !p.paid).map((p, idx) => (
+                          <div key={p.name} className="ledger-row" style={{ borderLeft: '3px solid var(--danger)' }}>
+                            <div>
+                              <div style={{ fontSize: '14px', fontWeight: '700', color: p.name === 'Você' ? 'var(--accent)' : 'var(--phone-fg)' }}>
+                                {p.name} {p.name === 'Você' && '(Você)'}
+                              </div>
+                              <div style={{ fontSize: '12px', color: 'var(--phone-muted)' }}>
+                                Palpite: {p.prediction}
+                              </div>
+                              {currentWinners.length > 0 && (
+                                <div style={{ fontSize: '11px', color: 'var(--phone-muted)', marginTop: '4px' }}>
+                                  {currentWinners.length > 1 ? (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                      <span>Pagar a:</span>
+                                      <select
+                                        value={getPayeeName(p) || ""}
+                                        onChange={(e) => {
+                                          const val = e.target.value;
+                                          setParticipants(prev => prev.map(item => 
+                                            item.name === p.name ? { ...item, payee: val } : item
+                                          ));
+                                          showToast(`${p.name} pagará para ${val}`);
+                                        }}
+                                        style={{
+                                          fontSize: '11px',
+                                          background: 'var(--phone-bg)',
+                                          color: 'var(--phone-fg)',
+                                          border: '1px solid var(--phone-border)',
+                                          borderRadius: '4px',
+                                          padding: '2px 4px',
+                                          outline: 'none',
+                                          fontWeight: '600'
+                                        }}
+                                      >
+                                        {currentWinners.map(w => (
+                                          <option key={w.name} value={w.name}>{w.name}</option>
+                                        ))}
+                                      </select>
+                                    </div>
+                                  ) : (
+                                    <span>Pagar a: <strong>{getPayeeName(p)}</strong></span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                            
+                            <button 
+                              className="status-badge status-unpaid"
+                              style={{ border: 'none', cursor: 'pointer' }}
+                              onClick={() => {
+                                setParticipants(prev => prev.map(item => 
+                                  item.name === p.name ? { ...item, paid: true } : item
+                                ));
+                                showToast(`Status de ${p.name} atualizado!`);
+                              }}
+                            >
+                              🔴 Pendente
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Group 2: Pagamento Declarado */}
+                  {filteredParticipants.filter(p => !p.won && p.paid).length > 0 && (
+                    <div>
+                      <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--success)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--success)' }}></span>
+                        Pagamento Declarado ({filteredParticipants.filter(p => !p.won && p.paid).length})
+                      </div>
+                      <div className="ledger-list" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {filteredParticipants.filter(p => !p.won && p.paid).map((p, idx) => (
+                          <div key={p.name} className="ledger-row" style={{ borderLeft: '3px solid var(--success)' }}>
+                            <div>
+                              <div style={{ fontSize: '14px', fontWeight: '700', color: p.name === 'Você' ? 'var(--accent)' : 'var(--phone-fg)' }}>
+                                {p.name} {p.name === 'Você' && '(Você)'}
+                              </div>
+                              <div style={{ fontSize: '12px', color: 'var(--phone-muted)' }}>
+                                Palpite: {p.prediction}
+                              </div>
+                              {currentWinners.length > 0 && (
+                                <div style={{ fontSize: '11px', color: 'var(--phone-muted)', marginTop: '4px' }}>
+                                  <span>Pago a: <strong style={{ color: 'var(--phone-fg)' }}>{getPayeeName(p)}</strong></span>
+                                </div>
+                              )}
+                            </div>
+                            
+                            <button 
+                              className="status-badge status-paid"
+                              style={{ border: 'none', cursor: 'pointer' }}
+                              onClick={() => {
+                                setParticipants(prev => prev.map(item => 
+                                  item.name === p.name ? { ...item, paid: false } : item
+                                ));
+                                showToast(`Status de ${p.name} atualizado!`);
+                              }}
+                            >
+                              🟢 Pago
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Group 3: Ganhadores */}
+                  {filteredParticipants.filter(p => p.won).length > 0 && (
+                    <div>
+                      <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--gold)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--gold)' }}></span>
+                        Vencedores ({filteredParticipants.filter(p => p.won).length})
+                      </div>
+                      <div className="ledger-list" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {filteredParticipants.filter(p => p.won).map((p, idx) => (
+                          <div key={p.name} className="ledger-row" style={{ borderLeft: '3px solid var(--gold)' }}>
+                            <div>
+                              <div style={{ fontSize: '14px', fontWeight: '700', color: p.name === 'Você' ? 'var(--accent)' : 'var(--phone-fg)' }}>
+                                {p.name} {p.name === 'Você' && '(Você)'}
+                              </div>
+                              <div style={{ fontSize: '12px', color: 'var(--phone-muted)' }}>
+                                Palpite: {p.prediction}
+                              </div>
+                              <div style={{ fontSize: '11px', color: 'var(--gold)', marginTop: '4px', fontWeight: '600' }}>
+                                Recebe do pote ({currency} {calculatePot(selectedGame) / currentWinners.length} cada)
+                              </div>
+                            </div>
+                            
+                            <span className="status-badge status-winner">
+                              🏆 Vencedor
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Empty state */}
+                  {filteredParticipants.length === 0 && (
+                    <div style={{ padding: '24px', textAlign: 'center', color: 'var(--phone-muted)', fontSize: '13px' }}>
+                      Nenhum participante encontrado
+                    </div>
+                  )}
+                </div>
+
+              </div>
+            )}
+
+          </div>
+
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
