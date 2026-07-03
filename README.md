@@ -160,3 +160,13 @@ npm run test:reconciliation # group filter reconciliation tests
 ## Project status
 
 Personal / learning project — actively developed during the 2026 World Cup cycle. Not intended for production use beyond the group it was built for.
+
+---
+
+## AI assistance
+
+This project was built with the help of AI tools — specifically [Cursor](https://cursor.com) (AI-powered IDE) and [Gemini](https://gemini.google.com). They were used for code generation, architecture discussion, debugging, and documentation.
+
+All decisions about what to build, how to structure it, and what trade-offs to make were mine. The AI acted as a pair-programmer and sounding board, not as the author. I reviewed, understood, and took responsibility for every piece of code that ended up in the project.
+
+I'm including this note because I think honesty about tooling matters — the same way you'd cite a library or a Stack Overflow answer.
