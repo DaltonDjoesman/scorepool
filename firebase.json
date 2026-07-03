@@ -1,0 +1,36 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "worldcup-pool-tracker-app",
+          "appId": "1:921052882014:android:579ec2804418b9617300cf",
+          "fileOutput": "android/app/google-services.json"
+        },
+        "buildConfigurations": {
+          ".": {
+            "projectId": "worldcup-pool-tracker-app",
+            "appId": "1:921052882014:android:579ec2804418b9617300cf",
+            "fileOutput": "android/app/google-services.json"
+          }
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "worldcup-pool-tracker-app",
+          "configurations": {
+            "android": "1:921052882014:android:579ec2804418b9617300cf",
+            "ios": "1:921052882014:ios:70ea311087e173507300cf"
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "functions": {
+    "source": "functions"
+  }
+}
