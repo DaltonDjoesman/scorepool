@@ -1,4 +1,5 @@
 import * as admin from 'firebase-admin';
+import { onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { logger } from 'firebase-functions';
 
@@ -8,6 +9,7 @@ import {
   fetchWc2026Matches,
   toFirestoreMatchDoc,
 } from './footballDataOrg';
+import { GroupDoc, reconcileGroupMatches } from './groupMatchReconciliation';
 
 admin.initializeApp();
 
@@ -84,3 +86,31 @@ export const ingestWc2026MatchCatalog = onSchedule('every 6 hours', async () => 
 
   logger.info('Ingestion complete', { upserted, skipped, resultSetCount: resultSet.count });
 });
+
+function matchFilterChanged(
+  before: admin.firestore.DocumentData | undefined,
+  after: admin.firestore.DocumentData,
+): boolean {
+  if (!before) return true;
+  return JSON.stringify(before.matchFilter ?? {}) !== JSON.stringify(after.matchFilter ?? {});
+}
+
+export const reconcileGroupMatchesOnFilterChange = onDocumentWritten(
+  'groups/{groupId}',
+  async (event) => {
+    const afterSnap = event.data?.after;
+    if (!afterSnap?.exists) return;
+
+    const before = event.data?.before?.data();
+    const after = afterSnap.data();
+    if (!after?.matchFilter) return;
+    if (!matchFilterChanged(before, after)) return;
+
+    const groupId = event.params.groupId;
+    await reconcileGroupMatches(
+      admin.firestore(),
+      groupId,
+      after as GroupDoc,
+    );
+  },
+);

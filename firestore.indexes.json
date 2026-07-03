@@ -5,6 +5,22 @@
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "excludedByFilter", "order": "ASCENDING" },
+        { "fieldPath": "matchTimeUtc", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "matches",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "excludedByFilter", "order": "ASCENDING" },
+        { "fieldPath": "matchTimeUtc", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "matches",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "excludedByFilter", "order": "ASCENDING" },
         { "fieldPath": "status", "order": "ASCENDING" },
         { "fieldPath": "matchTimeUtc", "order": "ASCENDING" }
       ]

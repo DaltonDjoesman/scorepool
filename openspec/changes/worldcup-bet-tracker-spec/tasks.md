@@ -46,9 +46,9 @@
 ## 7. Group Match Reconciliation (Filter → Group Matches)
 > GitHub issues: #23, #24, #25
 
-- [ ] 7.1 Implement reconciliation function triggered by group filter updates to add newly included future matches
-- [ ] 7.2 Implement removal behavior: pre-lock matches can be soft-excluded; post-lock/live/finished cannot be removed
-- [ ] 7.3 Ensure excluded matches are hidden from primary feed but accessible in “archived” view
+- [x] 7.1 Implement reconciliation function triggered by group filter updates to add newly included future matches
+- [x] 7.2 Implement removal behavior: pre-lock matches can be soft-excluded; post-lock/live/finished cannot be removed
+- [x] 7.3 Ensure excluded matches are hidden from primary feed but accessible in “archived” view
 
 ## 8. Round Participation (Default In-Pot + Opt-out)
 > GitHub issues: #26, #27, #28
