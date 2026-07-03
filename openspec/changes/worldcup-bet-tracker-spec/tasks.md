@@ -104,6 +104,6 @@
 ## 15. QA, Testability, and Release Readiness
 > GitHub issues: #48, #49, #50
 
-- [ ] 15.1 Add basic unit tests for pot/debt computation (rounding, multiple winners, no winners)
-- [ ] 15.2 Add integration tests for time-window enforcement (prediction lock, opt-out, paid until kickoff)
+- [x] 15.1 Add basic unit tests for pot/debt computation (rounding, multiple winners, no winners)
+- [x] 15.2 Add integration tests for time-window enforcement (prediction lock, opt-out, paid until kickoff)
 - [ ] 15.3 Validate Android+iOS behavior (auth, Firestore realtime, notifications) on physical devices or emulators
