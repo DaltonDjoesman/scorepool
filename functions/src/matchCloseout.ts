@@ -40,17 +40,21 @@ export async function closeoutGroupMatch(
   const accumulatedFromPreviousCents =
     (matchData.accumulatedFromPreviousCents as number | undefined) ?? 0;
 
-  const [participationSnap, predictionsSnap] = await Promise.all([
+  const [participationSnap, predictionsSnap, membersSnap] = await Promise.all([
     db.collection(`groups/${groupId}/roundParticipants/${matchId}/users`).get(),
     db
       .collection(`groups/${groupId}/predictions`)
       .where('matchId', '==', matchId)
       .get(),
+    db.collection(`groups/${groupId}/members`).get(),
   ]);
 
-  const inPotUids = participationSnap.docs
-    .filter((doc) => doc.data().isInPot !== false)
+  const participationByUid = new Map(
+    participationSnap.docs.map((doc) => [doc.id, doc.data().isInPot !== false]),
+  );
+  const inPotUids = membersSnap.docs
     .map((doc) => doc.id)
+    .filter((uid) => participationByUid.get(uid) ?? true)
     .sort();
 
   const predictions: PredictionScores[] = [];
@@ -159,15 +163,14 @@ export async function closeoutCatalogMatch(
   if (catalog.status !== 'finished') return 0;
   if (catalog.homeScore == null || catalog.awayScore == null) return 0;
 
-  const overlays = await db
-    .collectionGroup('matches')
-    .where('matchId', '==', matchId)
-    .get();
-
+  // Avoid collectionGroup query (needs a Firestore index). Iterate groups instead.
+  const groupsSnap = await db.collection('groups').get();
   let closed = 0;
-  for (const overlay of overlays.docs) {
-    const groupId = overlay.ref.parent.parent?.id;
-    if (!groupId) continue;
+  for (const groupDoc of groupsSnap.docs) {
+    const groupId = groupDoc.id;
+    const matchRef = db.doc(`groups/${groupId}/matches/${matchId}`);
+    const matchSnap = await matchRef.get();
+    if (!matchSnap.exists) continue;
 
     const didClose = await closeoutGroupMatch(
       db,

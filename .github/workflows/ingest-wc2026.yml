@@ -48,3 +48,9 @@ jobs:
           GOOGLE_APPLICATION_CREDENTIALS: /tmp/firebase/sa.json
         run: npm run ingest:wc2026
 
+      - name: Backfill match closeouts
+        working-directory: functions
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: /tmp/firebase/sa.json
+        run: npm run backfill:closeouts
+
