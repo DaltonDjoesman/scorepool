@@ -90,6 +90,8 @@ export async function closeoutGroupMatch(
       closeoutAt,
       status: 'finished',
       lockedInGroup: true,
+      homeScore: finalHomeScore,
+      awayScore: finalAwayScore,
     },
     { merge: true },
   );

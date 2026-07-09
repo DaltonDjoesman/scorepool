@@ -190,6 +190,35 @@ export const closeoutOnCatalogMatchFinished = onDocumentWritten(
   },
 );
 
+// Safety net: periodically backfill closeouts for finished matches.
+// This handles cases where Functions were deployed late or triggers were missed.
+export const backfillFinishedMatchCloseouts = onSchedule('every 30 minutes', async () => {
+  const db = admin.firestore();
+  const finishedSnap = await db
+    .collection(`tournaments/${TOURNAMENT_ID}/matches`)
+    .where('status', '==', 'finished')
+    .get();
+
+  let processed = 0;
+  for (const doc of finishedSnap.docs) {
+    const data = doc.data();
+    const homeScore = data.homeScore;
+    const awayScore = data.awayScore;
+    if (typeof homeScore !== 'number' || typeof awayScore !== 'number') continue;
+    processed += 1;
+    await closeoutCatalogMatch(db, doc.id, {
+      homeScore,
+      awayScore,
+      status: 'finished',
+    });
+  }
+
+  logger.info('Backfill closeouts finished', {
+    finishedCatalogMatches: finishedSnap.size,
+    processedWithScores: processed,
+  });
+});
+
 export const dispatchMatchNotificationsJob = onSchedule(
   'every 15 minutes',
   async () => {

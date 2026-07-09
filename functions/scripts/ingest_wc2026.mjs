@@ -11,6 +11,7 @@ const {
   toFirestoreMatchDoc,
 } = require("../lib/footballDataOrg.js");
 const { enrichTournamentCrests } = require("../lib/teamCrestEnrichment.js");
+const { closeoutCatalogMatch } = require("../lib/matchCloseout.js");
 
 function requireEnv(name) {
   const value = process.env[name];
@@ -40,12 +41,25 @@ async function main() {
   let written = 0;
   let skipped = 0;
   const teamDocs = new Map();
+  const finishedForCloseout = [];
 
   for (const match of matches) {
     const doc = toFirestoreMatchDoc(match);
     if (!doc || match.id == null) {
       skipped += 1;
       continue;
+    }
+
+    if (
+      doc.status === "finished" &&
+      typeof doc.homeScore === "number" &&
+      typeof doc.awayScore === "number"
+    ) {
+      finishedForCloseout.push({
+        matchId: String(match.id),
+        homeScore: doc.homeScore,
+        awayScore: doc.awayScore,
+      });
     }
 
     for (const team of collectTeamsFromMatch(match, doc)) {
@@ -129,6 +143,21 @@ async function main() {
       crestEnrichedAt: admin.firestore.FieldValue.serverTimestamp(),
     },
     { merge: true },
+  );
+
+  // Closeout (pote/dívidas/pontos) without Cloud Functions:
+  // run it as part of ingestion, which already runs on GitHub Actions schedule.
+  let closedTotal = 0;
+  for (const finished of finishedForCloseout) {
+    const closed = await closeoutCatalogMatch(db, finished.matchId, {
+      status: "finished",
+      homeScore: finished.homeScore,
+      awayScore: finished.awayScore,
+    });
+    closedTotal += closed;
+  }
+  console.log(
+    `Closeout: processed ${finishedForCloseout.length} finished matches; groups closed=${closedTotal}.`,
   );
 }
 

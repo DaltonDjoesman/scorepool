@@ -199,6 +199,15 @@ class _GroupMatchList extends StatelessWidget {
           'Aguarde alguns minutos e abra o feed de novo.\n\n'
           'Se o erro persistir, rode: firebase deploy --only firestore:indexes';
     }
+    if (error is FirebaseException) {
+      final code = error.code.toLowerCase();
+      if (code == 'unavailable' ||
+          code == 'network-request-failed' ||
+          code == 'unknown') {
+        return 'Sem conexão com o Firebase/Firestore no momento.\n\n'
+            'Confira a internet do aparelho/emulador (DNS/rede) e abra o feed de novo.';
+      }
+    }
     return error.toString();
   }
 
