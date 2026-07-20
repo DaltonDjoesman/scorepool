@@ -6,10 +6,11 @@ import '../../app.dart';
 import '../../routing/navigation_helpers.dart';
 import '../../models/group.dart';
 import '../../theme/app_text_styles.dart';
+import '../../utils/included_match_recount.dart';
 import '../../widgets/alert_box.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_card.dart';
-import '../feed/feed_screen.dart';
+import '../shell/feed_shell_screen.dart';
 import 'group_match_filter_section.dart';
 import 'group_screen.dart';
 
@@ -83,23 +84,25 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       _error = null;
     });
 
-    try {
-      final count = await repos.firestore.countIncludedCatalogMatches(
-        tournamentId: _tournamentId,
-        teamIds: _selectedTeamIds.toList(growable: false),
-        stages: _selectedStages.toList(growable: false),
-      );
-      if (!mounted) return;
-      setState(() => _includedMatchesCount = count);
-    } on FirebaseException catch (e) {
-      if (!mounted) return;
-      setState(() => _error = _friendlyFirestoreError(e));
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _error = e.toString());
-    } finally {
-      if (mounted) setState(() => _countingMatches = false);
-    }
+    final result = await recountIncludedCatalogMatches(
+      matches: repos.matches,
+      tournamentId: _tournamentId,
+      teamIds: _selectedTeamIds,
+      stages: _selectedStages,
+      mapError: (e) {
+        if (e is FirebaseException) return _friendlyFirestoreError(e);
+        return e.toString();
+      },
+    );
+    if (!mounted) return;
+    setState(() {
+      _countingMatches = false;
+      if (result.isSuccess) {
+        _includedMatchesCount = result.count;
+      } else {
+        _error = result.errorMessage;
+      }
+    });
   }
 
   Future<void> _createGroup() async {
@@ -126,7 +129,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
         stages: _selectedStages.toList(growable: false),
       );
 
-      final groupId = await repos.firestore.createGroup(
+      final groupId = await repos.groups.createGroup(
         name: _nameController.text.trim(),
         currency: _currency,
         entryFeeCents: entryFeeCents,
@@ -139,7 +142,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
 
       state.setCurrentGroupId(groupId);
       if (!mounted) return;
-      context.go(FeedScreen.routePath);
+      context.go(FeedShellScreen.routePath);
     } on FirebaseException catch (e) {
       setState(() => _error = _friendlyFirestoreError(e));
     } catch (e) {

@@ -4,7 +4,7 @@ import '../../models/match.dart';
 import '../../models/prediction.dart';
 import '../../repositories/repositories.dart';
 import '../../theme/app_text_styles.dart';
-import 'inline_prediction_inputs.dart';
+import '../../utils/prediction_input.dart';
 
 class SecarPalpitesSheet extends StatelessWidget {
   const SecarPalpitesSheet({
@@ -85,7 +85,7 @@ class SecarPalpitesSheet extends StatelessWidget {
               const SizedBox(height: 16),
               Expanded(
                 child: StreamBuilder<List<Prediction>>(
-                  stream: repos.firestore.watchMatchPredictions(
+                  stream: repos.predictions.watchMatchPredictions(
                     groupId: groupId,
                     matchId: match.matchId,
                   ),

@@ -28,7 +28,7 @@ class RulesTab extends StatelessWidget {
     }
 
     return StreamBuilder<Group?>(
-      stream: repos.firestore.watchGroup(groupId),
+      stream: repos.groups.watchGroup(groupId),
       builder: (context, snapshot) {
         final group = snapshot.data;
         if (group == null && snapshot.connectionState == ConnectionState.waiting) {

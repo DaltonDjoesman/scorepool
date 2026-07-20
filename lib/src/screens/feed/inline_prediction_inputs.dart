@@ -5,6 +5,7 @@ import '../../app.dart';
 import '../../models/match.dart';
 import '../../models/prediction.dart';
 import '../../theme/app_colors.dart';
+import '../../utils/prediction_input.dart';
 import '../../widgets/app_toast.dart';
 
 class InlinePredictionInputs extends StatefulWidget {
@@ -34,21 +35,22 @@ class InlinePredictionInputsState extends State<InlinePredictionInputs> {
   void initState() {
     super.initState();
     _homeController = TextEditingController(
-      text: widget.prediction?.predictedHomeScore?.toString() ?? '',
+      text: predictionControllerText(widget.prediction?.predictedHomeScore),
     );
     _awayController = TextEditingController(
-      text: widget.prediction?.predictedAwayScore?.toString() ?? '',
+      text: predictionControllerText(widget.prediction?.predictedAwayScore),
     );
   }
 
   @override
   void didUpdateWidget(covariant InlinePredictionInputs oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (_saving) return;
-    final home = widget.prediction?.predictedHomeScore?.toString() ?? '';
-    final away = widget.prediction?.predictedAwayScore?.toString() ?? '';
-    if (_homeController.text != home) _homeController.text = home;
-    if (_awayController.text != away) _awayController.text = away;
+    syncPredictionControllers(
+      prediction: widget.prediction,
+      homeController: _homeController,
+      awayController: _awayController,
+      isSaving: _saving,
+    );
   }
 
   @override
@@ -63,32 +65,24 @@ class InlinePredictionInputsState extends State<InlinePredictionInputs> {
     final uid = appAuth(context)?.user?.uid;
     if (repos == null || uid == null) return;
 
-    final homeEmpty = _homeController.text.trim().isEmpty;
-    final awayEmpty = _awayController.text.trim().isEmpty;
-    int? home;
-    int? away;
-
-    if (!homeEmpty || !awayEmpty) {
-      if (homeEmpty != awayEmpty) {
-        AppToast.error(context, 'Preencha os dois placares ou deixe ambos vazios.');
-        return;
-      }
-      home = int.tryParse(_homeController.text.trim());
-      away = int.tryParse(_awayController.text.trim());
-      if (home == null || away == null || home < 0 || away < 0) {
-        AppToast.error(context, 'Use números inteiros ≥ 0.');
-        return;
-      }
+    final parsed = parsePredictionScores(
+      homeText: _homeController.text,
+      awayText: _awayController.text,
+    );
+    if (!parsed.isOk) {
+      AppToast.error(context, predictionParseErrorMessage(parsed.error!));
+      return;
     }
 
     setState(() => _saving = true);
     try {
-      await repos.firestore.upsertPrediction(
+      await persistPrediction(
+        predictions: repos.predictions,
         groupId: widget.groupId,
         uid: uid,
         matchId: widget.match.matchId,
-        predictedHomeScore: home,
-        predictedAwayScore: away,
+        predictedHomeScore: parsed.scores!.home,
+        predictedAwayScore: parsed.scores!.away,
       );
       if (!mounted) return;
       AppToast.success(context, 'Palpite salvo!');
@@ -170,11 +164,4 @@ class _ScoreBox extends StatelessWidget {
       ),
     );
   }
-}
-
-String formatPredictionLabel(Prediction? prediction) {
-  final home = prediction?.predictedHomeScore;
-  final away = prediction?.predictedAwayScore;
-  if (home == null || away == null) return 'Sem palpite';
-  return '$home x $away';
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../models/match.dart';
+import '../../utils/prediction_input.dart';
 import '../../utils/team_display.dart';
 import '../../models/match_status.dart';
 import '../../models/prediction.dart';
@@ -57,14 +58,13 @@ class _PredictionInputCardState extends State<PredictionInputCard> {
   }
 
   void _syncControllers() {
-    final key =
-        '${widget.prediction?.predictedHomeScore}_${widget.prediction?.predictedAwayScore}';
-    if (_loadedKey == key || _saving) return;
-    _loadedKey = key;
-    _homeController.text =
-        widget.prediction?.predictedHomeScore?.toString() ?? '';
-    _awayController.text =
-        widget.prediction?.predictedAwayScore?.toString() ?? '';
+    _loadedKey = syncPredictionControllersDeduped(
+      prediction: widget.prediction,
+      homeController: _homeController,
+      awayController: _awayController,
+      isSaving: _saving,
+      lastSyncedKey: _loadedKey,
+    );
   }
 
   @override
@@ -74,12 +74,6 @@ class _PredictionInputCardState extends State<PredictionInputCard> {
     super.dispose();
   }
 
-  int? _parseScore(String value) {
-    final trimmed = value.trim();
-    if (trimmed.isEmpty) return null;
-    return int.tryParse(trimmed);
-  }
-
   Future<void> _save({required int? home, required int? away}) async {
     setState(() {
       _saving = true;
@@ -87,7 +81,8 @@ class _PredictionInputCardState extends State<PredictionInputCard> {
     });
 
     try {
-      await widget.repos.firestore.upsertPrediction(
+      await persistPrediction(
+        predictions: widget.repos.predictions,
         groupId: widget.groupId,
         uid: widget.uid,
         matchId: widget.match.matchId,
@@ -105,34 +100,16 @@ class _PredictionInputCardState extends State<PredictionInputCard> {
   }
 
   Future<void> _submit() async {
-    final home = _parseScore(_homeController.text);
-    final away = _parseScore(_awayController.text);
-    final homeEmpty = _homeController.text.trim().isEmpty;
-    final awayEmpty = _awayController.text.trim().isEmpty;
-
-    if (homeEmpty && awayEmpty) {
-      await _save(home: null, away: null);
+    final parsed = parsePredictionScores(
+      homeText: _homeController.text,
+      awayText: _awayController.text,
+    );
+    if (!parsed.isOk) {
+      setState(() => _error = predictionParseErrorMessage(parsed.error!));
       return;
     }
 
-    if (homeEmpty != awayEmpty) {
-      setState(() => _error = 'Preencha os dois placares ou deixe ambos vazios.');
-      return;
-    }
-
-    if (home == null || away == null || home < 0 || away < 0) {
-      setState(() => _error = 'Use números inteiros maiores ou iguais a zero.');
-      return;
-    }
-
-    await _save(home: home, away: away);
-  }
-
-  String _readOnlyLabel() {
-    final home = widget.prediction?.predictedHomeScore;
-    final away = widget.prediction?.predictedAwayScore;
-    if (home == null || away == null) return 'Sem palpite';
-    return '$home x $away';
+    await _save(home: parsed.scores!.home, away: parsed.scores!.away);
   }
 
   @override
@@ -154,7 +131,10 @@ class _PredictionInputCardState extends State<PredictionInputCard> {
                 children: [
                   Icon(Icons.lock_outline, size: 14, color: appColors(context).phoneMuted),
                   const SizedBox(width: 6),
-                  Text(_readOnlyLabel(), style: AppTextStyles.body(context, weight: FontWeight.w700)),
+                  Text(
+                    formatPredictionLabel(widget.prediction),
+                    style: AppTextStyles.body(context, weight: FontWeight.w700),
+                  ),
                 ],
               ),
             ],
@@ -194,7 +174,7 @@ class _PredictionInputCardState extends State<PredictionInputCard> {
               Text(
                 widget.prediction == null
                     ? 'Sem palpite — você ainda entra no pote se estiver participando.'
-                    : 'Palpite atual: ${_readOnlyLabel()}',
+                    : 'Palpite atual: ${formatPredictionLabel(widget.prediction)}',
                 style: AppTextStyles.sub(context),
               ),
               const SizedBox(height: 12),

@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../auth/auth_controller.dart';
 import '../app_state/app_state.dart';
 import '../config/app_config.dart';
-import '../screens/feed/feed_screen.dart';
 import '../screens/group/group_screen.dart';
 import '../screens/group/create_group_screen.dart';
 import '../screens/group/edit_group_filter_screen.dart';
@@ -82,7 +81,7 @@ GoRouter createAppRouter({
         path: FeedShellScreen.routePath,
         builder: (context, state) {
           final tab = FeedShellTab.fromQuery(state.uri.queryParameters['tab']);
-          return FeedScreen(initialTab: tab);
+          return FeedShellScreen(initialTab: tab);
         },
       ),
       GoRoute(

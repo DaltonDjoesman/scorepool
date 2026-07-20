@@ -220,7 +220,7 @@ class _GroupMatchList extends StatelessWidget {
     }
 
     return StreamBuilder(
-      stream: repos.firestore.watchMembers(groupId),
+      stream: repos.profiles.watchMembers(groupId),
       builder: (context, membersSnap) {
         final memberNames = <String, String>{
           for (final member in membersSnap.data ?? [])
@@ -228,7 +228,7 @@ class _GroupMatchList extends StatelessWidget {
         };
 
         return StreamBuilder<Group?>(
-          stream: repos.firestore.watchGroup(groupId),
+          stream: repos.groups.watchGroup(groupId),
           builder: (context, groupSnap) {
             final group = groupSnap.data;
             final currency = group?.currency ?? 'BRL';
@@ -237,7 +237,7 @@ class _GroupMatchList extends StatelessWidget {
             final memberCount = (membersSnap.data ?? []).length;
 
             return StreamBuilder<List<GroupMatchOverlay>>(
-              stream: repos.firestore.watchGroupMatches(
+              stream: repos.matches.watchGroupMatches(
                 groupId: groupId,
                 excludedByFilter: excludedByFilter,
                 descending: descending,
@@ -325,7 +325,7 @@ class _MatchFeedCardLoader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<Map<String, bool>>(
-      stream: repos.firestore.watchMatchParticipations(
+      stream: repos.predictions.watchMatchParticipations(
         groupId: groupId,
         matchId: match.matchId,
       ),
@@ -352,7 +352,7 @@ class _MatchFeedCardLoader extends StatelessWidget {
         }
 
         return StreamBuilder<Prediction?>(
-          stream: repos.firestore.watchPrediction(
+          stream: repos.predictions.watchPrediction(
             groupId: groupId,
             uid: currentUid!,
             matchId: match.matchId,

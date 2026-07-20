@@ -4,6 +4,7 @@ import '../../app.dart';
 import '../../routing/navigation_helpers.dart';
 import '../../models/group.dart';
 import '../../theme/app_text_styles.dart';
+import '../../utils/included_match_recount.dart';
 import '../../widgets/alert_box.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_toast.dart';
@@ -48,20 +49,21 @@ class _EditGroupFilterScreenState extends State<EditGroupFilterScreen> {
       _error = null;
     });
 
-    try {
-      final count = await repos.firestore.countIncludedCatalogMatches(
-        tournamentId: _tournamentId,
-        teamIds: _selectedTeamIds.toList(growable: false),
-        stages: _selectedStages.toList(growable: false),
-      );
-      if (!mounted) return;
-      setState(() => _includedMatchesCount = count);
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _error = e.toString());
-    } finally {
-      if (mounted) setState(() => _countingMatches = false);
-    }
+    final result = await recountIncludedCatalogMatches(
+      matches: repos.matches,
+      tournamentId: _tournamentId,
+      teamIds: _selectedTeamIds,
+      stages: _selectedStages,
+    );
+    if (!mounted) return;
+    setState(() {
+      _countingMatches = false;
+      if (result.isSuccess) {
+        _includedMatchesCount = result.count;
+      } else {
+        _error = result.errorMessage;
+      }
+    });
   }
 
   Future<void> _save(String groupId) async {
@@ -76,7 +78,7 @@ class _EditGroupFilterScreenState extends State<EditGroupFilterScreen> {
     });
 
     try {
-      await repos.firestore.updateGroupMatchFilter(
+      await repos.groups.updateGroupMatchFilter(
         groupId: groupId,
         matchFilter: GroupMatchFilter(
           teamIds: _selectedTeamIds.toList(growable: false),
@@ -129,7 +131,7 @@ class _EditGroupFilterScreenState extends State<EditGroupFilterScreen> {
                 ),
               )
             : StreamBuilder<Group?>(
-              stream: repos.firestore.watchGroup(groupId),
+              stream: repos.groups.watchGroup(groupId),
               builder: (context, snapshot) {
                 final group = snapshot.data;
                 if (snapshot.connectionState == ConnectionState.waiting &&

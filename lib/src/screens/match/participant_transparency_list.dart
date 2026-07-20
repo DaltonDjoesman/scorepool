@@ -46,7 +46,7 @@ class _ParticipantTransparencyListState
     final colors = appColors(context);
 
     return StreamBuilder<List<MemberProfile>>(
-      stream: widget.repos.firestore.watchMembers(widget.groupId),
+      stream: widget.repos.profiles.watchMembers(widget.groupId),
       builder: (context, membersSnap) {
         final members = membersSnap.data ?? [];
         if (membersSnap.connectionState == ConnectionState.waiting &&
@@ -55,7 +55,7 @@ class _ParticipantTransparencyListState
         }
 
         return StreamBuilder<Map<String, bool>>(
-          stream: widget.repos.firestore.watchMatchParticipations(
+          stream: widget.repos.predictions.watchMatchParticipations(
             groupId: widget.groupId,
             matchId: widget.matchId,
           ),

@@ -52,7 +52,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
 
     try {
-      final profile = await repos.firestore.fetchUserProfile(user.uid);
+      final profile = await repos.profiles.fetchUserProfile(user.uid);
       if (!mounted) return;
       setState(() {
         _nameController.text = profile?.displayName.isNotEmpty == true
@@ -87,7 +87,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     });
 
     try {
-      await repos.firestore.updateUserProfile(
+      await repos.profiles.updateUserProfile(
         uid: user.uid,
         displayName: displayName,
       );

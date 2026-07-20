@@ -54,7 +54,7 @@ class PushNotificationsController {
     final targetUid = uid ?? _lastSyncedUid;
     if (targetGroupId == null || targetUid == null) return;
 
-    await _repos.firestore.saveFcmToken(
+    await _repos.profiles.saveFcmToken(
       groupId: targetGroupId,
       uid: targetUid,
       token: token,
