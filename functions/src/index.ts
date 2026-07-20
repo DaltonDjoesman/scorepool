@@ -12,7 +12,7 @@ import {
   type FirestoreTeamDoc,
 } from './footballDataOrg';
 import { enrichTournamentCrests } from './teamCrestEnrichment';
-import { GroupDoc, reconcileGroupMatches } from './groupMatchReconciliation';
+import { GroupDoc, reconcileGroupMatches, reconcileAllGroups } from './groupMatchReconciliation';
 import { closeoutCatalogMatch } from './matchCloseout';
 import { dispatchMatchNotifications } from './matchNotifications';
 
@@ -126,6 +126,9 @@ export const ingestWc2026MatchCatalog = onSchedule('every 6 hours', async () => 
     },
     { merge: true },
   );
+
+  const reconcileResult = await reconcileAllGroups(db);
+  logger.info('Post-ingest group overlay sync', reconcileResult);
 
   logger.info('Ingestion complete', { upserted, skipped, resultSetCount: resultSet.count });
 });

@@ -91,6 +91,25 @@ class GroupMatchReconciliation {
     return matches;
   }
 
+  Future<void> _mergeCatalogMatchesByIds(
+    Map<String, TournamentMatch> into,
+    Iterable<String> matchIds,
+  ) async {
+    final missing = matchIds.where((id) => !into.containsKey(id)).toList();
+    if (missing.isEmpty) return;
+
+    await Future.wait(
+      missing.map((matchId) async {
+        final snap = await db
+            .doc(FirestorePaths.tournamentMatch(tournamentId, matchId))
+            .get();
+        final data = snap.data();
+        if (!snap.exists || data == null) return;
+        into[snap.id] = TournamentMatch.fromMap(id: snap.id, map: data);
+      }),
+    );
+  }
+
   Map<String, Object?> _overlayPayload({
     required String groupId,
     required TournamentMatch match,
@@ -134,6 +153,7 @@ class GroupMatchReconciliation {
     final current = (now ?? DateTime.now()).toUtc();
     final catalogById = await _fetchCatalogMatches(matchFilter);
     final finishedById = await _fetchFinishedCatalogMatches();
+    catalogById.addAll(finishedById);
 
     final existingSnap = await db
         .collection(FirestorePaths.groupMatches(groupId))
@@ -142,9 +162,10 @@ class GroupMatchReconciliation {
       for (final doc in existingSnap.docs) doc.id: doc.data(),
     };
 
+    await _mergeCatalogMatchesByIds(catalogById, existingById.keys);
+
     final allMatchIds = <String>{
       ...catalogById.keys,
-      ...finishedById.keys,
       ...existingById.keys,
     };
 
@@ -160,7 +181,7 @@ class GroupMatchReconciliation {
     }
 
     for (final matchId in allMatchIds) {
-      final catalog = catalogById[matchId] ?? finishedById[matchId];
+      final catalog = catalogById[matchId];
       final existing = existingById[matchId];
       final included =
           catalog != null && matchIncludedInFilter(catalog, matchFilter);

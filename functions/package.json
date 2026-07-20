@@ -10,6 +10,7 @@
     "build:watch": "tsc -w",
     "ingest:wc2026": "npm run build && node ./scripts/ingest_wc2026.mjs",
     "backfill:closeouts": "npm run build && node ./scripts/backfill_closeouts.mjs",
+    "backfill:overlays": "npm run build && node ./scripts/backfill_group_overlays.mjs",
     "enrich:crests": "npm run build && node ./scripts/enrich_team_crests.mjs",
     "test:mapping": "npm run build && node ./scripts/test_football_data_mapping.mjs",
     "test:crests": "npm run build && node ./scripts/test_team_crest_enrichment.mjs",
