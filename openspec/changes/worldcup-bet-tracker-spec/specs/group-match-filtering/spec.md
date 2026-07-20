@@ -26,7 +26,7 @@ When an admin updates the group filter, the system MUST reconcile the group matc
 - **THEN** the match remains in the group history and is not removed
 
 ### Requirement: Removed matches are soft-excluded
-Matches that are removed due to filter changes before lock SHOULD be soft-excluded rather than hard-deleted, to preserve auditability.
+Matches that are removed due to filter changes before lock SHALL be soft-excluded rather than hard-deleted, to preserve auditability.
 
 #### Scenario: Excluded match is hidden from primary feed
 - **WHEN** a match is marked as excludedByFilter=true
