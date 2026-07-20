@@ -12,9 +12,17 @@ void main() {
     );
   });
 
-  test('displayCrestUrl keeps raster API crest', () {
+  test('displayCrestUrl prefers flagcdn over football-data PNG', () {
     const png = 'https://crests.football-data.org/762.png';
-    expect(displayCrestUrl(teamId: 'ARG', apiCrest: png), png);
+    expect(
+      displayCrestUrl(teamId: 'ARG', apiCrest: png),
+      'https://flagcdn.com/w80/ar.png',
+    );
+  });
+
+  test('displayCrestUrl keeps raster API crest when no flagcdn mapping', () {
+    const png = 'https://crests.football-data.org/99999.png';
+    expect(displayCrestUrl(teamId: 'XXX', apiCrest: png), png);
   });
 
   test('resolveCrestUrl maps WC2026 extras', () {

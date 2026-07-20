@@ -41,8 +41,13 @@ assertEqual(
 );
 assertEqual(
   displayCrestUrl("ARG", "https://crests.football-data.org/762.png"),
-  "https://crests.football-data.org/762.png",
-  "displayCrestUrl keeps PNG",
+  "https://flagcdn.com/w80/ar.png",
+  "displayCrestUrl prefers flagcdn over football-data PNG",
+);
+assertEqual(
+  displayCrestUrl("XXX", "https://crests.football-data.org/99999.png"),
+  "https://crests.football-data.org/99999.png",
+  "displayCrestUrl keeps PNG without flagcdn mapping",
 );
 assertEqual(isSvgCrestUrl("https://x.org/a.svg"), true, "isSvgCrestUrl");
 assertEqual(resolveCrestUrl("ZZZ"), null, "resolveCrestUrl unknown");
