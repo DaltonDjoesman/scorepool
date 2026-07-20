@@ -1,5 +1,6 @@
 import '../firestore/firestore_paths.dart';
 import '../models/match.dart';
+import '../models/match_status.dart';
 import '../models/tournament_team.dart';
 import 'firestore_client.dart';
 
@@ -47,6 +48,35 @@ class MatchesRepository {
         map: data,
       );
     });
+  }
+
+  static const tournamentId = 'wc2026';
+
+  /// Watches catalog matches for a knockout stage (`final`, `third_place`, …).
+  Stream<List<TournamentMatch>> watchCatalogMatchesByStage(String stage) {
+    return _client.db
+        .collection(FirestorePaths.tournamentMatches(tournamentId))
+        .where('stage', isEqualTo: stage)
+        .snapshots()
+        .map(
+          (snap) => snap.docs
+              .map((d) => TournamentMatch.fromMap(id: d.id, map: d.data()))
+              .toList(growable: false),
+        );
+  }
+
+  /// True when every WC2026 catalog match is finished.
+  Stream<bool> watchWorldCupFinished() {
+    return _client.db
+        .collection(FirestorePaths.tournamentMatches(tournamentId))
+        .snapshots()
+        .map((snap) {
+          if (snap.docs.isEmpty) return false;
+          return snap.docs.every((d) {
+            final status = d.data()['status'] as String? ?? '';
+            return status == MatchStatus.finished.name;
+          });
+        });
   }
 
   Future<List<TournamentTeam>> listTournamentTeams(String tournamentId) async {

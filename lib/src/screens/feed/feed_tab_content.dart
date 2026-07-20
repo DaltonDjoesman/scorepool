@@ -9,7 +9,9 @@ import '../../models/prediction.dart';
 import '../../repositories/repositories.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/pot_calculator.dart';
+import '../../utils/world_cup_standings.dart';
 import 'match_feed_card.dart';
+import 'world_cup_complete_banner.dart';
 
 /// Feed tab body used inside [FeedShellScreen].
 class FeedTabContent extends StatefulWidget {
@@ -27,9 +29,16 @@ class _FeedTabContentState extends State<FeedTabContent> {
 
   @override
   Widget build(BuildContext context) {
+    final repos = appRepos(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (repos != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+            child: _WorldCupFinaleSection(repos: repos),
+          ),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
           child: Row(
@@ -96,6 +105,42 @@ class _FeedTabContentState extends State<FeedTabContent> {
   }
 }
 
+class _WorldCupFinaleSection extends StatelessWidget {
+  const _WorldCupFinaleSection({required this.repos});
+
+  final Repositories repos;
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<bool>(
+      stream: repos.matches.watchWorldCupFinished(),
+      builder: (context, finishedSnap) {
+        if (finishedSnap.data != true) return const SizedBox.shrink();
+
+        return StreamBuilder<List<TournamentMatch>>(
+          stream: repos.matches.watchCatalogMatchesByStage('final'),
+          builder: (context, finalSnap) {
+            return StreamBuilder<List<TournamentMatch>>(
+              stream: repos.matches.watchCatalogMatchesByStage('third_place'),
+              builder: (context, thirdSnap) {
+                final standing = worldCupFinaleStanding(
+                  finalMatch: finalSnap.data?.isNotEmpty == true
+                      ? finalSnap.data!.first
+                      : null,
+                  thirdPlaceMatch: thirdSnap.data?.isNotEmpty == true
+                      ? thirdSnap.data!.first
+                      : null,
+                );
+                if (standing == null) return const SizedBox.shrink();
+                return WorldCupCompleteBanner(standing: standing);
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+}
 class _FeedToggleButton extends StatelessWidget {
   const _FeedToggleButton({
     required this.label,
