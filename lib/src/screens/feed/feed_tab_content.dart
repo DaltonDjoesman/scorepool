@@ -29,16 +29,9 @@ class _FeedTabContentState extends State<FeedTabContent> {
 
   @override
   Widget build(BuildContext context) {
-    final repos = appRepos(context);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (repos != null)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-            child: _WorldCupFinaleSection(repos: repos),
-          ),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
           child: Row(
@@ -90,6 +83,8 @@ class _FeedTabContentState extends State<FeedTabContent> {
                   },
             descending: _showArchived || _activeSubTab == 2,
             archived: _showArchived,
+            showWorldCupFinaleWhenEmpty:
+                !_showArchived && _activeSubTab == 0,
             emptyMessage: _showArchived
                 ? 'Nenhum jogo encerrado fora do filtro.'
                 : switch (_activeSubTab) {
@@ -105,42 +100,6 @@ class _FeedTabContentState extends State<FeedTabContent> {
   }
 }
 
-class _WorldCupFinaleSection extends StatelessWidget {
-  const _WorldCupFinaleSection({required this.repos});
-
-  final Repositories repos;
-
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<bool>(
-      stream: repos.matches.watchWorldCupFinished(),
-      builder: (context, finishedSnap) {
-        if (finishedSnap.data != true) return const SizedBox.shrink();
-
-        return StreamBuilder<List<TournamentMatch>>(
-          stream: repos.matches.watchCatalogMatchesByStage('final'),
-          builder: (context, finalSnap) {
-            return StreamBuilder<List<TournamentMatch>>(
-              stream: repos.matches.watchCatalogMatchesByStage('third_place'),
-              builder: (context, thirdSnap) {
-                final standing = worldCupFinaleStanding(
-                  finalMatch: finalSnap.data?.isNotEmpty == true
-                      ? finalSnap.data!.first
-                      : null,
-                  thirdPlaceMatch: thirdSnap.data?.isNotEmpty == true
-                      ? thirdSnap.data!.first
-                      : null,
-                );
-                if (standing == null) return const SizedBox.shrink();
-                return WorldCupCompleteBanner(standing: standing);
-              },
-            );
-          },
-        );
-      },
-    );
-  }
-}
 class _FeedToggleButton extends StatelessWidget {
   const _FeedToggleButton({
     required this.label,
@@ -229,6 +188,7 @@ class _GroupMatchList extends StatelessWidget {
     required this.archived,
     this.status,
     this.descending = false,
+    this.showWorldCupFinaleWhenEmpty = false,
   });
 
   final String groupId;
@@ -237,6 +197,7 @@ class _GroupMatchList extends StatelessWidget {
   final String emptyMessage;
   final MatchStatus? status;
   final bool descending;
+  final bool showWorldCupFinaleWhenEmpty;
 
   String _friendlyFeedError(Object? error) {
     if (error is FirebaseException && error.code == 'failed-precondition') {
@@ -310,6 +271,9 @@ class _GroupMatchList extends StatelessWidget {
                           .toList(growable: false);
 
                 if (matches.isEmpty) {
+                  if (showWorldCupFinaleWhenEmpty) {
+                    return _WorldCupFinaleEmpty(repos: repos);
+                  }
                   return Center(child: Text(emptyMessage));
                 }
 
@@ -427,6 +391,54 @@ class _MatchFeedCardLoader extends StatelessWidget {
               prediction: prediction,
               canEditPrediction: canEdit,
               lockedForPredictions: locked,
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+/// Empty "Próximos" state: World Cup finale celebration when the tournament is done.
+class _WorldCupFinaleEmpty extends StatelessWidget {
+  const _WorldCupFinaleEmpty({required this.repos});
+
+  final Repositories repos;
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<bool>(
+      stream: repos.matches.watchWorldCupFinished(),
+      builder: (context, finishedSnap) {
+        if (finishedSnap.data != true) {
+          return const Center(child: Text('Nenhum jogo próximo.'));
+        }
+
+        return StreamBuilder<List<TournamentMatch>>(
+          stream: repos.matches.watchCatalogMatchesByStage('final'),
+          builder: (context, finalSnap) {
+            return StreamBuilder<List<TournamentMatch>>(
+              stream: repos.matches.watchCatalogMatchesByStage('third_place'),
+              builder: (context, thirdSnap) {
+                final standing = worldCupFinaleStanding(
+                  finalMatch: finalSnap.data?.isNotEmpty == true
+                      ? finalSnap.data!.first
+                      : null,
+                  thirdPlaceMatch: thirdSnap.data?.isNotEmpty == true
+                      ? thirdSnap.data!.first
+                      : null,
+                );
+                if (standing == null) {
+                  return const Center(child: Text('Nenhum jogo próximo.'));
+                }
+
+                return ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    WorldCupCompleteBanner(standing: standing),
+                  ],
+                );
+              },
             );
           },
         );
