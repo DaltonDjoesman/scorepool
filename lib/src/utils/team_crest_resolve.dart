@@ -28,9 +28,15 @@ bool isSvgCrestUrl(String url) {
   return path.endsWith('.svg');
 }
 
-/// Prefer raster API crests; fall back to flagcdn for SVG/missing URLs.
+/// Prefer flagcdn PNG for national teams; fall back to raster API crests.
+///
+/// football-data.org PNG crests are valid but often slower/less reliable than
+/// flagcdn for nation flags. SVG API crests are never used (Flutter Image.network).
 String? displayCrestUrl({required String teamId, String? apiCrest}) {
+  final flagcdn = resolveCrestUrl(teamId);
+  if (flagcdn != null) return flagcdn;
+
   final api = apiCrest?.trim();
   if (api != null && api.isNotEmpty && !isSvgCrestUrl(api)) return api;
-  return resolveCrestUrl(teamId);
+  return null;
 }

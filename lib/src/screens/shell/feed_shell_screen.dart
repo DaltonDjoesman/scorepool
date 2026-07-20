@@ -60,7 +60,7 @@ class _FeedShellScreenState extends State<FeedShellScreen> {
 
             final uid = appAuth(context)?.user?.uid;
             return StreamBuilder<Group?>(
-              stream: currentRepos.firestore.watchGroup(currentGroupId),
+              stream: currentRepos.groups.watchGroup(currentGroupId),
               builder: (context, snapshot) {
                 final group = snapshot.data;
                 final isAdmin =

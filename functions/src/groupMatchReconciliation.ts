@@ -136,6 +136,25 @@ async function fetchFinishedCatalogMatches(
   return matches;
 }
 
+/** Load catalog docs by id so existing overlays refresh TBD → real teams. */
+async function fetchCatalogMatchesByIds(
+  db: FirebaseFirestore.Firestore,
+  matchIds: Iterable<string>,
+  into: Map<string, CatalogMatch>,
+): Promise<void> {
+  const missing = [...matchIds].filter((id) => !into.has(id));
+  if (missing.length === 0) return;
+
+  await Promise.all(
+    missing.map(async (matchId) => {
+      const snap = await db.doc(`tournaments/${TOURNAMENT_ID}/matches/${matchId}`).get();
+      if (!snap.exists) return;
+      const match = toCatalogMatch(snap.id, snap.data()!);
+      if (match) into.set(snap.id, match);
+    }),
+  );
+}
+
 function overlayPayload(
   groupId: string,
   match: CatalogMatch,
@@ -173,7 +192,7 @@ export async function reconcileGroupMatches(
   const filter = group.matchFilter ?? { teamIds: [], stages: [] };
   const predictionLockMinutes = group.predictionLockMinutes ?? 15;
 
-  const [catalogById, finishedById, existingSnap, membersSnap] = await Promise.all([
+  const [filterCatalog, finishedById, existingSnap, membersSnap] = await Promise.all([
     fetchCatalogMatchesForFilter(db, filter),
     fetchFinishedCatalogMatches(db),
     db.collection(`groups/${groupId}/matches`).get(),
@@ -187,9 +206,14 @@ export async function reconcileGroupMatches(
     existingById.set(doc.id, doc.data());
   }
 
+  const catalogById = new Map<string, CatalogMatch>([
+    ...finishedById.entries(),
+    ...filterCatalog.entries(),
+  ]);
+  await fetchCatalogMatchesByIds(db, existingById.keys(), catalogById);
+
   const allMatchIds = new Set<string>([
     ...catalogById.keys(),
-    ...finishedById.keys(),
     ...existingById.keys(),
   ]);
   let batch = db.batch();
@@ -235,7 +259,7 @@ export async function reconcileGroupMatches(
   };
 
   for (const matchId of allMatchIds) {
-    const catalog = catalogById.get(matchId) ?? finishedById.get(matchId);
+    const catalog = catalogById.get(matchId);
     const existing = existingById.get(matchId);
     const included = catalog != null && matchIncludedInFilter(catalog, filter);
     const ref = db.doc(`groups/${groupId}/matches/${matchId}`);
@@ -339,4 +363,28 @@ export async function reconcileGroupMatches(
   });
 
   return { added, reactivated, excluded, updated, participationCreated };
+}
+
+/** Re-sync every group's match overlays from the tournament catalog. */
+export async function reconcileAllGroups(
+  db: FirebaseFirestore.Firestore,
+  now = new Date(),
+): Promise<{ groups: number; results: Array<{ groupId: string; updated: number; added: number }> }> {
+  const groupsSnap = await db.collection('groups').get();
+  const results: Array<{ groupId: string; updated: number; added: number }> = [];
+
+  for (const doc of groupsSnap.docs) {
+    const stats = await reconcileGroupMatches(db, doc.id, doc.data() as GroupDoc, now);
+    results.push({
+      groupId: doc.id,
+      updated: stats.updated,
+      added: stats.added,
+    });
+  }
+
+  logger.info('Reconciled all groups after catalog refresh', {
+    groups: results.length,
+  });
+
+  return { groups: results.length, results };
 }

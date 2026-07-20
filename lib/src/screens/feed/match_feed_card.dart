@@ -17,6 +17,7 @@ import '../../widgets/app_card.dart';
 import '../../widgets/match_status_badge.dart';
 import '../../widgets/team_flag.dart';
 import '../match/match_details_screen.dart';
+import '../../utils/prediction_input.dart';
 import 'inline_prediction_inputs.dart';
 import 'secar_palpites_sheet.dart';
 

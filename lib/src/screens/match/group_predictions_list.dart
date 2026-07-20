@@ -9,6 +9,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../utils/match_lock.dart';
 import '../../utils/match_score_display.dart';
+import '../../utils/prediction_input.dart';
 
 class GroupPredictionsList extends StatelessWidget {
   const GroupPredictionsList({
@@ -30,14 +31,6 @@ class GroupPredictionsList extends StatelessWidget {
 
   String _nameFor(String uid) => memberNames[uid] ?? uid;
 
-  String _formatPrediction(Prediction? prediction) {
-    if (prediction == null) return 'Sem palpite';
-    final home = prediction.predictedHomeScore;
-    final away = prediction.predictedAwayScore;
-    if (home == null || away == null) return 'Sem palpite';
-    return '$home x $away';
-  }
-
   bool? _isCorrect(Prediction? prediction) {
     if (match.status != MatchStatus.finished || !match.hasScoreline) return null;
     if (prediction == null) return null;
@@ -50,7 +43,7 @@ class GroupPredictionsList extends StatelessWidget {
     final colors = appColors(context);
 
     return StreamBuilder<List<MemberProfile>>(
-      stream: repos.firestore.watchMembers(groupId),
+      stream: repos.profiles.watchMembers(groupId),
       builder: (context, membersSnap) {
         final members = membersSnap.data ?? [];
         if (membersSnap.connectionState == ConnectionState.waiting &&
@@ -59,7 +52,7 @@ class GroupPredictionsList extends StatelessWidget {
         }
 
         return StreamBuilder<Map<String, bool>>(
-          stream: repos.firestore.watchMatchParticipations(
+          stream: repos.predictions.watchMatchParticipations(
             groupId: groupId,
             matchId: matchId,
           ),
@@ -67,7 +60,7 @@ class GroupPredictionsList extends StatelessWidget {
             final participations = partSnap.data ?? {};
 
             return StreamBuilder<List<Prediction>>(
-              stream: repos.firestore.watchMatchPredictions(
+              stream: repos.predictions.watchMatchPredictions(
                 groupId: groupId,
                 matchId: matchId,
               ),
@@ -96,7 +89,7 @@ class GroupPredictionsList extends StatelessWidget {
 
                     final rightLabel = !inPot
                         ? '🚫 Fora do Pote'
-                        : _formatPrediction(prediction);
+                        : formatPredictionLabel(prediction);
 
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 6),

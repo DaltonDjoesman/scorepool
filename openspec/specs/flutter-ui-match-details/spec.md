@@ -1,4 +1,10 @@
-## ADDED Requirements
+# flutter-ui-match-details Specification
+
+## Purpose
+Specifies the match details view including hero information, prediction status, and payment ledgers.
+
+## Requirements
+
 
 ### Requirement: Match details hero summarizes game outcome
 The match details screen SHALL open with a hero section showing date/time, phase, status, teams with flags, final or live score, distributed pot amount, and winner split summary (or accumulation message), matching the HTML `postgame-hero`.

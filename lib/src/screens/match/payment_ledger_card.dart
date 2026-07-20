@@ -4,12 +4,13 @@ import '../../models/debt.dart';
 import '../../models/match.dart';
 import '../../models/match_status.dart';
 import '../../models/prediction.dart';
-import '../../repositories/firestore_repository.dart';
+import '../../repositories/debts_repository.dart';
 import '../../repositories/repositories.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../utils/money_format.dart';
 import '../../utils/pot_calculator.dart';
+import '../../utils/prediction_input.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/status_badge.dart';
@@ -61,18 +62,10 @@ class _PaymentLedgerCardState extends State<PaymentLedgerCard> {
     return _nameFor(uid).toLowerCase().contains(q);
   }
 
-  String _formatPrediction(Prediction? prediction) {
-    if (prediction == null) return 'Sem palpite';
-    final home = prediction.predictedHomeScore;
-    final away = prediction.predictedAwayScore;
-    if (home == null || away == null) return 'Sem palpite';
-    return '$home x $away';
-  }
-
   Future<void> _declarePaid(DebtItem debt) async {
     setState(() => _declaring.add(debt.id));
     try {
-      await widget.repos.firestore.declareDebtPaid(
+      await widget.repos.debts.declareDebtPaid(
         groupId: widget.groupId,
         matchId: widget.matchId,
         debtItemId: debt.id,
@@ -89,7 +82,7 @@ class _PaymentLedgerCardState extends State<PaymentLedgerCard> {
 
   Future<void> _updateRecipient(DebtItem debt, String toUid) async {
     try {
-      await widget.repos.firestore.updateDebtRecipient(
+      await widget.repos.debts.updateDebtRecipient(
         groupId: widget.groupId,
         matchId: widget.matchId,
         debtItemId: debt.id,
@@ -117,7 +110,7 @@ class _PaymentLedgerCardState extends State<PaymentLedgerCard> {
     final perWinner = hasWinners ? pot ~/ widget.match.winnerUids.length : 0;
 
     return StreamBuilder<List<Prediction>>(
-      stream: widget.repos.firestore.watchMatchPredictions(
+      stream: widget.repos.predictions.watchMatchPredictions(
         groupId: widget.groupId,
         matchId: widget.matchId,
       ),
@@ -127,7 +120,7 @@ class _PaymentLedgerCardState extends State<PaymentLedgerCard> {
         };
 
         return StreamBuilder<Map<String, bool>>(
-          stream: widget.repos.firestore.watchMatchParticipations(
+          stream: widget.repos.predictions.watchMatchParticipations(
             groupId: widget.groupId,
             matchId: widget.matchId,
           ),
@@ -139,7 +132,7 @@ class _PaymentLedgerCardState extends State<PaymentLedgerCard> {
             }).toList();
 
             return StreamBuilder<List<DebtItem>>(
-              stream: widget.repos.firestore.watchDebtItems(
+              stream: widget.repos.debts.watchDebtItems(
                 groupId: widget.groupId,
                 matchId: widget.matchId,
               ),
@@ -154,7 +147,7 @@ class _PaymentLedgerCardState extends State<PaymentLedgerCard> {
                 }
 
                 final debts =
-                    FirestoreRepository.sortDebtsForLedger(snapshot.data!);
+                    DebtsRepository.sortDebtsForLedger(snapshot.data!);
                 final pending =
                     debts.where((d) => d.status == DebtStatus.pending);
                 final paid = debts.where((d) => d.status == DebtStatus.paid);
@@ -269,7 +262,7 @@ class _PaymentLedgerCardState extends State<PaymentLedgerCard> {
                                 debt: d,
                                 nameFor: _nameFor,
                                 currency: widget.currency,
-                                predictionLabel: _formatPrediction(
+                                predictionLabel: formatPredictionLabel(
                                   predictionsByUid[d.fromUid],
                                 ),
                                 declaring: _declaring.contains(d.id),
@@ -296,7 +289,7 @@ class _PaymentLedgerCardState extends State<PaymentLedgerCard> {
                                 debt: d,
                                 nameFor: _nameFor,
                                 currency: widget.currency,
-                                predictionLabel: _formatPrediction(
+                                predictionLabel: formatPredictionLabel(
                                   predictionsByUid[d.fromUid],
                                 ),
                                 declaring: false,
@@ -318,7 +311,7 @@ class _PaymentLedgerCardState extends State<PaymentLedgerCard> {
                                 contentPadding: EdgeInsets.zero,
                                 title: Text(_nameFor(uid)),
                                 subtitle: Text(
-                                  'Palpite: ${_formatPrediction(predictionsByUid[uid])}',
+                                  'Palpite: ${formatPredictionLabel(predictionsByUid[uid])}',
                                 ),
                                 trailing: const StatusBadge(
                                   label: '🏆 Vencedor',

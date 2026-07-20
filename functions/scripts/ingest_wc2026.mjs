@@ -12,6 +12,7 @@ const {
 } = require("../lib/footballDataOrg.js");
 const { enrichTournamentCrests } = require("../lib/teamCrestEnrichment.js");
 const { closeoutCatalogMatch } = require("../lib/matchCloseout.js");
+const { reconcileAllGroups } = require("../lib/groupMatchReconciliation.js");
 
 function requireEnv(name) {
   const value = process.env[name];
@@ -143,6 +144,12 @@ async function main() {
       crestEnrichedAt: admin.firestore.FieldValue.serverTimestamp(),
     },
     { merge: true },
+  );
+
+  // Keep group overlays in sync when knockout TBDs become real teams.
+  const reconcileResult = await reconcileAllGroups(db);
+  console.log(
+    `Group overlay sync: reconciled ${reconcileResult.groups} group(s).`,
   );
 
   // Closeout (pote/dívidas/pontos) without Cloud Functions:

@@ -65,13 +65,13 @@ class _WorldCupBetTrackerAppState extends State<WorldCupBetTrackerApp> {
 
     final savedGroupId = await _groupSelectionStore.load(user.uid);
     if (savedGroupId != null &&
-        await repos.firestore.isMember(groupId: savedGroupId, uid: user.uid)) {
+        await repos.groups.isMember(groupId: savedGroupId, uid: user.uid)) {
       _state.setCurrentGroupId(savedGroupId);
       _state.setSessionReady(true);
       return;
     }
 
-    final groups = await repos.firestore.fetchUserGroups(user.uid);
+    final groups = await repos.groups.fetchUserGroups(user.uid);
     if (groups.length == 1) {
       _state.setCurrentGroupId(groups.first.groupId);
       await _groupSelectionStore.save(user.uid, groups.first.groupId);

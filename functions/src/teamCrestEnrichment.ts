@@ -106,11 +106,14 @@ export function isSvgCrestUrl(url: string): boolean {
   return path.endsWith('.svg');
 }
 
-/** Flutter cannot render SVG; use flagcdn PNG when the API sends SVG. */
+/** Flutter cannot render SVG; prefer flagcdn PNG for national teams. */
 export function displayCrestUrl(teamId: string, apiCrest?: string | null): string | null {
+  const flagcdn = resolveCrestUrl(teamId);
+  if (flagcdn) return flagcdn;
+
   const api = apiCrest?.trim();
   if (api && !isSvgCrestUrl(api)) return api;
-  return resolveCrestUrl(teamId);
+  return null;
 }
 
 function isEmptyCrest(value: unknown): boolean {

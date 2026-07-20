@@ -34,7 +34,7 @@ class _RankingTabState extends State<RankingTab> {
 
     setState(() => _savingMemberUid = member.uid);
     try {
-      await repos.firestore.updateMemberPerfectScoresCount(
+      await repos.profiles.updateMemberPerfectScoresCount(
         groupId: widget.groupId,
         memberUid: member.uid,
         perfectScoresCount: newCount,
@@ -110,7 +110,7 @@ class _RankingTabState extends State<RankingTab> {
     }
 
     return StreamBuilder<List<MemberProfile>>(
-      stream: repos.firestore.watchMembers(widget.groupId),
+      stream: repos.profiles.watchMembers(widget.groupId),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Center(child: Text(snapshot.error.toString()));

@@ -1,4 +1,10 @@
-## ADDED Requirements
+# app-design-system Specification
+
+## Purpose
+Specifies design system requirements including theme, typography, components, and money formatting.
+
+## Requirements
+
 
 ### Requirement: Application theme matches HTML prototype tokens
 The Flutter app SHALL expose a centralized theme derived from `worldcup-bet-tracker.html` with primary accent hue ~142 (teal/green), semantic colors for gold (winners/pot), danger (unpaid), and success (paid), plus light and dark `ColorScheme` variants.

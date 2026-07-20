@@ -11,7 +11,7 @@ import '../../widgets/app_button.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/app_text_field.dart';
 import '../../widgets/status_badge.dart';
-import '../feed/feed_screen.dart';
+import '../shell/feed_shell_screen.dart';
 import 'create_group_screen.dart';
 import 'edit_profile_screen.dart';
 
@@ -38,7 +38,7 @@ class _GroupScreenState extends State<GroupScreen> {
 
   void _selectGroup(String groupId) {
     appState(context).setCurrentGroupId(groupId);
-    context.go(FeedScreen.routePath);
+    context.go(FeedShellScreen.routePath);
   }
 
   Future<void> _joinGroup() async {
@@ -60,7 +60,7 @@ class _GroupScreenState extends State<GroupScreen> {
     });
 
     try {
-      await repos.firestore.joinGroup(
+      await repos.groups.joinGroup(
         groupId: groupId,
         uid: user.uid,
         displayName: user.displayName ?? '',
@@ -69,7 +69,7 @@ class _GroupScreenState extends State<GroupScreen> {
 
       state.setCurrentGroupId(groupId);
       if (!mounted) return;
-      context.go(FeedScreen.routePath);
+      context.go(FeedShellScreen.routePath);
     } catch (e) {
       setState(() => _error = e.toString());
     } finally {
@@ -107,7 +107,7 @@ class _GroupScreenState extends State<GroupScreen> {
 
     setState(() => _busyGroupId = membership.groupId);
     try {
-      await repos.firestore.deleteGroup(membership.groupId);
+      await repos.groups.deleteGroup(membership.groupId);
       if (state.currentGroupId == membership.groupId) {
         state.clearCurrentGroupId();
       }
@@ -148,7 +148,7 @@ class _GroupScreenState extends State<GroupScreen> {
 
     setState(() => _busyGroupId = membership.groupId);
     try {
-      await repos.firestore.leaveGroup(
+      await repos.groups.leaveGroup(
         groupId: membership.groupId,
         uid: user.uid,
       );
@@ -220,7 +220,7 @@ class _GroupScreenState extends State<GroupScreen> {
                   const SizedBox(height: 16),
                   if (user != null && repos != null)
                     StreamBuilder(
-                      stream: repos.firestore.watchUserProfile(user.uid),
+                      stream: repos.profiles.watchUserProfile(user.uid),
                       builder: (context, profileSnap) {
                         final profile = profileSnap.data;
                         final displayName = profile?.displayName.isNotEmpty == true
@@ -294,7 +294,7 @@ class _GroupScreenState extends State<GroupScreen> {
                   const SizedBox(height: 16),
                   if (user != null && repos != null)
                     StreamBuilder<List<UserGroupMembership>>(
-                      stream: repos.firestore.watchUserGroups(user.uid),
+                      stream: repos.groups.watchUserGroups(user.uid),
                       builder: (context, snapshot) {
                         if (!snapshot.hasData) {
                           return const Center(

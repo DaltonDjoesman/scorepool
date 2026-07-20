@@ -1,4 +1,10 @@
-## ADDED Requirements
+# flutter-ui-group-setup Specification
+
+## Purpose
+Specifies group setup forms, admin options, phase/team filtering, and edit views.
+
+## Requirements
+
 
 ### Requirement: Create group form matches prototype structure
 The create-group screen SHALL collect name, currency, entry fee (with cent preview), prediction lock minutes, team filter with search and flag chips, phase filter grid, included-match count with recalculate action, and submit that creates the group and navigates to feed.

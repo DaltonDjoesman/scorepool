@@ -48,7 +48,7 @@ class _TournamentTeamPickerState extends State<TournamentTeamPicker> {
     if (repos == null) {
       return Future.value(const <TournamentTeam>[]);
     }
-    return repos.firestore.listTournamentTeams(widget.tournamentId);
+    return repos.matches.listTournamentTeams(widget.tournamentId);
   }
 
   void _reloadTeams() {

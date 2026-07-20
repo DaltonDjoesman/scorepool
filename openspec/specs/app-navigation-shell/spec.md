@@ -1,4 +1,10 @@
-## ADDED Requirements
+# app-navigation-shell Specification
+
+## Purpose
+Specifies the post-login bottom navigation shell layout, routing, redirects, and header behavior.
+
+## Requirements
+
 
 ### Requirement: Post-login main experience uses a bottom navigation shell
 After the user has selected a group, the primary in-app experience SHALL use a shell scaffold with bottom navigation for three tabs: Feed, Ranking, and Regulamento (Rules), matching the HTML `app-nav` structure.

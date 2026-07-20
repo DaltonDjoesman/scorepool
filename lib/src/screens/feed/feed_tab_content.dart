@@ -9,7 +9,9 @@ import '../../models/prediction.dart';
 import '../../repositories/repositories.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/pot_calculator.dart';
+import '../../utils/world_cup_standings.dart';
 import 'match_feed_card.dart';
+import 'world_cup_complete_banner.dart';
 
 /// Feed tab body used inside [FeedShellScreen].
 class FeedTabContent extends StatefulWidget {
@@ -81,6 +83,8 @@ class _FeedTabContentState extends State<FeedTabContent> {
                   },
             descending: _showArchived || _activeSubTab == 2,
             archived: _showArchived,
+            showWorldCupFinaleWhenEmpty:
+                !_showArchived && _activeSubTab == 0,
             emptyMessage: _showArchived
                 ? 'Nenhum jogo encerrado fora do filtro.'
                 : switch (_activeSubTab) {
@@ -184,6 +188,7 @@ class _GroupMatchList extends StatelessWidget {
     required this.archived,
     this.status,
     this.descending = false,
+    this.showWorldCupFinaleWhenEmpty = false,
   });
 
   final String groupId;
@@ -192,6 +197,7 @@ class _GroupMatchList extends StatelessWidget {
   final String emptyMessage;
   final MatchStatus? status;
   final bool descending;
+  final bool showWorldCupFinaleWhenEmpty;
 
   String _friendlyFeedError(Object? error) {
     if (error is FirebaseException && error.code == 'failed-precondition') {
@@ -220,7 +226,7 @@ class _GroupMatchList extends StatelessWidget {
     }
 
     return StreamBuilder(
-      stream: repos.firestore.watchMembers(groupId),
+      stream: repos.profiles.watchMembers(groupId),
       builder: (context, membersSnap) {
         final memberNames = <String, String>{
           for (final member in membersSnap.data ?? [])
@@ -228,7 +234,7 @@ class _GroupMatchList extends StatelessWidget {
         };
 
         return StreamBuilder<Group?>(
-          stream: repos.firestore.watchGroup(groupId),
+          stream: repos.groups.watchGroup(groupId),
           builder: (context, groupSnap) {
             final group = groupSnap.data;
             final currency = group?.currency ?? 'BRL';
@@ -237,7 +243,7 @@ class _GroupMatchList extends StatelessWidget {
             final memberCount = (membersSnap.data ?? []).length;
 
             return StreamBuilder<List<GroupMatchOverlay>>(
-              stream: repos.firestore.watchGroupMatches(
+              stream: repos.matches.watchGroupMatches(
                 groupId: groupId,
                 excludedByFilter: excludedByFilter,
                 descending: descending,
@@ -265,6 +271,9 @@ class _GroupMatchList extends StatelessWidget {
                           .toList(growable: false);
 
                 if (matches.isEmpty) {
+                  if (showWorldCupFinaleWhenEmpty) {
+                    return _WorldCupFinaleEmpty(repos: repos);
+                  }
                   return Center(child: Text(emptyMessage));
                 }
 
@@ -325,7 +334,7 @@ class _MatchFeedCardLoader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<Map<String, bool>>(
-      stream: repos.firestore.watchMatchParticipations(
+      stream: repos.predictions.watchMatchParticipations(
         groupId: groupId,
         matchId: match.matchId,
       ),
@@ -352,7 +361,7 @@ class _MatchFeedCardLoader extends StatelessWidget {
         }
 
         return StreamBuilder<Prediction?>(
-          stream: repos.firestore.watchPrediction(
+          stream: repos.predictions.watchPrediction(
             groupId: groupId,
             uid: currentUid!,
             matchId: match.matchId,
@@ -382,6 +391,54 @@ class _MatchFeedCardLoader extends StatelessWidget {
               prediction: prediction,
               canEditPrediction: canEdit,
               lockedForPredictions: locked,
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+/// Empty "Próximos" state: World Cup finale celebration when the tournament is done.
+class _WorldCupFinaleEmpty extends StatelessWidget {
+  const _WorldCupFinaleEmpty({required this.repos});
+
+  final Repositories repos;
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<bool>(
+      stream: repos.matches.watchWorldCupFinished(),
+      builder: (context, finishedSnap) {
+        if (finishedSnap.data != true) {
+          return const Center(child: Text('Nenhum jogo próximo.'));
+        }
+
+        return StreamBuilder<List<TournamentMatch>>(
+          stream: repos.matches.watchCatalogMatchesByStage('final'),
+          builder: (context, finalSnap) {
+            return StreamBuilder<List<TournamentMatch>>(
+              stream: repos.matches.watchCatalogMatchesByStage('third_place'),
+              builder: (context, thirdSnap) {
+                final standing = worldCupFinaleStanding(
+                  finalMatch: finalSnap.data?.isNotEmpty == true
+                      ? finalSnap.data!.first
+                      : null,
+                  thirdPlaceMatch: thirdSnap.data?.isNotEmpty == true
+                      ? thirdSnap.data!.first
+                      : null,
+                );
+                if (standing == null) {
+                  return const Center(child: Text('Nenhum jogo próximo.'));
+                }
+
+                return ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    WorldCupCompleteBanner(standing: standing),
+                  ],
+                );
+              },
             );
           },
         );

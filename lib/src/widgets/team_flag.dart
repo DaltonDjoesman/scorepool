@@ -43,6 +43,7 @@ class TeamFlag extends StatelessWidget {
           fit: BoxFit.cover,
           gaplessPlayback: true,
           filterQuality: FilterQuality.medium,
+          cacheWidth: (width * 3).round().clamp(48, 240),
           loadingBuilder: (context, child, progress) {
             if (progress == null) return child;
             return _loadingTile(colors);
