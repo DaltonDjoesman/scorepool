@@ -1,4 +1,10 @@
-## ADDED Requirements
+# flutter-ui-feed Specification
+
+## Purpose
+Specifies the match feed organization, tabs, states, and action flows.
+
+## Requirements
+
 
 ### Requirement: Feed organizes matches in active and archived views
 The feed tab SHALL provide a toggle between "Jogos Ativos" and "Arquivados" and, within active games, sub-tabs for Próximos, Ao vivo, and Encerrados, backed by existing Firestore queries (`excludedByFilter`, `MatchStatus`).

@@ -1,4 +1,10 @@
-## ADDED Requirements
+# flutter-ui-auth-group Specification
+
+## Purpose
+Specifies the login screen layout, flows, group selection, and navigation via the group hub.
+
+## Requirements
+
 
 ### Requirement: Login screen matches prototype layout and flows
 The login screen SHALL present the CopaBolão 2026 branding (logo, title), Firebase mode badge, email/password auth with register toggle, Google and Apple OAuth buttons when Firebase is enabled, prototype continue without Firebase, and active-session card when already signed in.

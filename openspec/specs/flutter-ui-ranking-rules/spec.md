@@ -1,4 +1,10 @@
-## ADDED Requirements
+# flutter-ui-ranking-rules Specification
+
+## Purpose
+Specifies group standings, ranking rules, podium presentation, and the rules reference layout.
+
+## Requirements
+
 
 ### Requirement: Ranking tab shows podium and full standings
 The Ranking tab inside the feed shell SHALL display a "Ranking de Bruxos" header, subtitle about exact scores, a podium for positions 1–3 when at least three members exist, and a scrollable list for all members sorted by `perfectScoresCount` descending then name.
