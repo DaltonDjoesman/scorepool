@@ -3,8 +3,8 @@ name: Ingest WC2026 fixtures
 on:
   workflow_dispatch: {}
   schedule:
-    # Near-real-time enough for a pool app; adjust later.
-    - cron: "*/5 * * * *"
+    # Once daily — tournament ended; keeps fixtures/closeouts in sync without burning Actions/Firestore quota.
+    - cron: "0 6 * * *"
 
 concurrency:
   group: ingest-wc2026
