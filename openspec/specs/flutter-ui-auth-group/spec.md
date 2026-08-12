@@ -7,7 +7,7 @@ Specifies the login screen layout, flows, group selection, and navigation via th
 
 
 ### Requirement: Login screen matches prototype layout and flows
-The login screen SHALL present the CopaBolão 2026 branding (logo, title), Firebase mode badge, email/password auth with register toggle, Google and Apple OAuth buttons when Firebase is enabled, prototype continue without Firebase, and active-session card when already signed in.
+The login screen SHALL present the CopaBolão 2026 branding (logo, title), Firebase mode badge, email/password auth with register toggle, prototype continue without Firebase when Firebase is disabled, and active-session card when already signed in. The login screen SHALL NOT require Google or Apple OAuth buttons unless those providers are implemented.
 
 #### Scenario: Prototype mode without Firebase
 - **WHEN** Firebase is disabled and the user taps "Continuar (Sem Firebase)"
@@ -20,6 +20,10 @@ The login screen SHALL present the CopaBolão 2026 branding (logo, title), Fireb
 #### Scenario: Register mode
 - **WHEN** the user toggles to create account mode
 - **THEN** a confirm-password field appears and submit label changes to register wording
+
+#### Scenario: Email password only
+- **WHEN** Firebase is enabled on the login screen
+- **THEN** the primary auth controls are email/password sign-in and register (no OAuth provider buttons required)
 
 ### Requirement: Group hub consolidates group selection and navigation
 The group hub screen SHALL replace the placeholder layout with: user session summary, active group card (name, id, entry fee badge), shortcuts to open feed and ranking, edit-filter entry for admins, join-by-code form, and create-new-group button.

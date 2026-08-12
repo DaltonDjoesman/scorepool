@@ -1,5 +1,6 @@
 # OpenSpec section → GitHub delivery map (worldcup-bet-tracker-spec)
 # Used by .github/scripts/openspec-section-*.sh and Cursor /opsx:apply workflow.
+# Historical map — all product sections delivered; kept for process documentation.
 
 repo: DaltonDjoesman/worldcup-pool-tracker-app
 project_owner: DaltonDjoesman
@@ -43,44 +44,44 @@ sections:
     title: group-match-reconciliation
     issues: [23, 24, 25]
     branch: feat/sec-7-group-match-reconciliation
-    done: false
+    done: true
   "8":
     title: round-participation-optout
     issues: [26, 27, 28]
     branch: feat/sec-8-round-participation-optout
-    done: false
+    done: true
   "9":
     title: predictions-locking
     issues: [29, 30, 31]
     branch: feat/sec-9-predictions-locking
-    done: false
+    done: true
   "10":
     title: pot-winners-accumulation
     issues: [32, 33, 34, 35, 36, 37]
     branch: feat/sec-10-pot-winners-accumulation
-    done: false
+    done: true
   "11":
     title: payment-ledger
     issues: [38, 39, 40]
     branch: feat/sec-11-payment-ledger
-    done: false
+    done: true
   "12":
     title: feed-screens
     issues: [41, 42, 43]
     branch: feat/sec-12-feed-screens
-    done: false
+    done: true
   "13":
     title: ranking-stats
     issues: [44, 45]
     branch: feat/sec-13-ranking-stats
-    done: false
+    done: true
   "14":
     title: notifications
     issues: [46, 47]
     branch: feat/sec-14-notifications
-    done: false
+    done: true
   "15":
     title: qa-release
     issues: [48, 49, 50]
     branch: feat/sec-15-qa-release
-    done: false
+    done: true

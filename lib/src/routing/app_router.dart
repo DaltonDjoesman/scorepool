@@ -20,8 +20,8 @@ GoRouter createAppRouter({
   AppState? appState,
 }) {
   final refresh = <Listenable>[
-    if (auth != null) auth,
-    if (appState != null) appState,
+    ?auth,
+    ?appState,
   ];
 
   return GoRouter(
