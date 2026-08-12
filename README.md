@@ -1,8 +1,12 @@
 # CopaBolão 2026
 
+[![Flutter CI](https://github.com/DaltonDjoesman/worldcup-pool-tracker-app/actions/workflows/flutter-ci.yml/badge.svg)](https://github.com/DaltonDjoesman/worldcup-pool-tracker-app/actions/workflows/flutter-ci.yml)
+
 > A full-stack mobile app for running an exact-score betting pool with friends and family during the 2026 FIFA World Cup.
 
-Built as a personal learning project to experiment end-to-end with Flutter, Firebase, TypeScript Cloud Functions, and real-time NoSQL data modelling.
+Built as a personal / portfolio project to learn end-to-end Flutter, Firebase, TypeScript backend logic, and real-time NoSQL modelling — and used by a real group of friends.
+
+**Languages:** in-app UI copy is **Portuguese**; documentation in this repository is **English**.
 
 ---
 
@@ -27,7 +31,7 @@ I'm a Computer Engineering student and I wanted a real-world project to put theo
 Specific things I wanted to learn:
 - Designing a production-grade Flutter app with a clean layered architecture
 - Modelling a relational-ish domain (groups, rounds, debts, carryover) on top of a NoSQL database
-- Writing server-side business rules in TypeScript Cloud Functions that the client cannot bypass
+- Writing server-side business rules in TypeScript that the client cannot bypass
 - Consuming an external API server-side to stay within free-tier quotas
 - Thinking about security: Firestore rules that enforce time windows and ownership
 
@@ -37,15 +41,16 @@ Specific things I wanted to learn:
 
 | Layer | Technology | Role |
 |---|---|---|
-| Mobile app | Flutter / Dart | Cross-platform Android & iOS |
-| Navigation | go_router | Declarative, type-safe routing |
-| Auth | Firebase Auth | Email/password + Google sign-in |
+| Mobile app | Flutter / Dart | Android & iOS |
+| Navigation | go_router | Declarative routing |
+| Auth | Firebase Auth | Email/password |
 | Database | Cloud Firestore | Real-time NoSQL; live payment ledger |
-| Backend | Cloud Functions (TypeScript, Node 18) | Match ingestion, pot closeout, carry-over, notifications |
-| Push notifications | Firebase Cloud Messaging + APNs | Kickoff reminders, rollover alerts |
+| Live ops (Spark) | GitHub Actions + Admin SDK scripts | Match catalog ingest, closeout / carry-over backfill |
+| Backend code | TypeScript under `functions/` | Same domain logic; deployable as Cloud Functions on Blaze |
+| Push | Firebase Cloud Messaging | Client stores FCM tokens; push *dispatch* needs deployed Functions |
 | Match data | football-data.org API *(server-side only)* | Schedule, scores, team crests |
 | Security | Firestore Security Rules | Server-enforced ownership and time-window rules |
-| UI prototype | React (inline Babel) + CSS | Interactive HTML mockup used for design exploration before Flutter implementation |
+| UI prototype | React (inline Babel) + CSS | Interactive HTML mockup used before Flutter |
 
 ---
 
@@ -55,8 +60,8 @@ Specific things I wanted to learn:
 ┌──────────────────────────────────────────┐
 │  Flutter app  (Android / iOS)            │
 │  · firebase_auth · cloud_firestore       │
-│  · firebase_messaging · go_router        │
-│  · Repository layer, models, screens     │
+│  · firebase_messaging (token persist)    │
+│  · go_router · repositories · screens    │
 └───────────────────┬──────────────────────┘
                     │  real-time listeners + writes
 ┌───────────────────▼──────────────────────┐
@@ -67,28 +72,45 @@ Specific things I wanted to learn:
 │  · predictions / roundParticipants       │
 │  · debts (payment ledger per match)      │
 └───────────────────┬──────────────────────┘
-                    │  Firestore triggers + scheduled jobs
-┌───────────────────▼──────────────────────┐
-│  Cloud Functions  (TypeScript)           │
-│  · ingestWc2026       — catalog sync     │
-│  · reconcileGroupMatches — filter logic  │
-│  · onMatchFinished    — closeout & debts │
-│  · applyCarryover     — pot accumulation │
-│  · matchNotifications — push dispatch    │
-└───────────────────┬──────────────────────┘
                     │
-┌───────────────────▼──────────────────────┐
+        ┌───────────┴───────────┐
+        ▼                       ▼
+┌───────────────────┐   ┌───────────────────┐
+│  GitHub Actions   │   │  functions/ (TS)  │
+│  (live on Spark)  │   │  deployable path  │
+│  · ingest catalog │   │  · same modules   │
+│  · closeout       │   │  · optional CF    │
+│    backfill       │   │    on Blaze       │
+└─────────┬─────────┘   └─────────┬─────────┘
+          └───────────┬───────────┘
+                      ▼
+┌──────────────────────────────────────────┐
 │  football-data.org API                   │
-│  (consumed server-side; results cached   │
-│   in Firestore to stay within free tier) │
+│  (server-side only; results cached in    │
+│   Firestore to stay within free tier)    │
 └──────────────────────────────────────────┘
 ```
+
+More detail: [`docs/architecture.md`](docs/architecture.md).
+
+---
+
+## Screenshots
+
+Placeholder paths — add PNG files under `docs/screenshots/` before publishing (see [`docs/screenshots/README.md`](docs/screenshots/README.md)).
+
+| Screen | Preview |
+|--------|---------|
+| Login | ![Login](docs/screenshots/01-login.png) |
+| Match feed | ![Feed](docs/screenshots/02-feed.png) |
+| Prediction | ![Prediction](docs/screenshots/03-prediction.png) |
+| Payment ledger | ![Ledger](docs/screenshots/04-ledger.png) |
+| Ranking | ![Ranking](docs/screenshots/05-ranking.png) |
+| Group hub | ![Group](docs/screenshots/06-group-hub.png) |
 
 ---
 
 ## Engineering highlights
-
-A few decisions that were more interesting to work through than I expected:
 
 **Pot math in integer cents** — all monetary amounts are stored and computed as integer cents (e.g. `200` for €2.00) to avoid floating-point drift. When the pot doesn't divide evenly across winners, the remainder is assigned deterministically to the first winner by stable sort so totals always balance exactly.
 
@@ -100,7 +122,7 @@ This lets groups follow specific national teams and also always include knockout
 
 **Updating the filter without breaking history** — when an admin edits the filter, future unstarted matches can be added or soft-removed (`excludedByFilter: true`). Matches that are live, finished, or past prediction lock are never removed — their financial history is immutable.
 
-**Server-enforced time windows** — prediction lock, opt-out deadline, and "paid" declaration deadline are all enforced by Firestore Security Rules and Cloud Functions. The client never has authority over these timestamps.
+**Server-enforced time windows** — prediction lock, opt-out deadline, and "paid" declaration deadline are enforced by Firestore Security Rules (and server scripts for settlement). The client never has authority over these timestamps.
 
 ---
 
@@ -108,7 +130,7 @@ This lets groups follow specific national teams and also always include knockout
 
 | Screen | Description |
 |---|---|
-| Login | Email/password sign-in; Google sign-in |
+| Login | Email/password sign-in and register |
 | Groups | Create a group (currency, entry fee, match filter); join via code |
 | Match feed | Tabs: Upcoming · Live · Finished; accumulated pot banner on rollover matches |
 | Prediction input | Score input with live countdown to lock; opt-out toggle |
@@ -121,26 +143,32 @@ This lets groups follow specific national teams and also always include knockout
 
 ---
 
+## How this was built
+
+Work was specified and delivered with [OpenSpec](openspec/): capability specs under [`openspec/specs/`](openspec/specs/), change proposals under `openspec/changes/` (completed ones archived), and a section → branch → PR workflow described in [`openspec/delivery.md`](openspec/delivery.md).
+
+---
+
 ## Running locally
 
 ### Prerequisites
 
 - Flutter SDK `>=3.11`
-- Node.js 18 (for Cloud Functions)
-- A Firebase project with Firestore, Auth, and Functions enabled
+- Node.js 20 (for ingest / Functions scripts)
+- A Firebase project with Firestore and Auth enabled
 
-See [`docs/firebase_setup.md`](docs/firebase_setup.md) for Firebase configuration steps and [`docs/security.md`](docs/security.md) before making the repo public.
+See [`docs/firebase_setup.md`](docs/firebase_setup.md) for Firebase configuration. Before making this repository **public**, complete [`docs/security.md`](docs/security.md).
 
 ### Flutter app
 
 ```bash
 flutter pub get
 flutter run                                     # production Firebase
-flutter run --dart-define=APP_ENV=dev           # dev Firebase project
+flutter run --dart-define=APP_ENV=dev           # same project today; reserved for a future dual-env setup
 flutter run --dart-define=FIREBASE_ENABLED=false # widget tests, no Firebase
 ```
 
-### Cloud Functions
+### Backend scripts (`functions/`)
 
 ```bash
 cd functions
@@ -157,9 +185,15 @@ npm run test:reconciliation # group filter reconciliation tests
 
 ---
 
+## Contributing
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for setup, analyze/test, and PR expectations.
+
+---
+
 ## Project status
 
-Personal / learning project — actively developed during the 2026 World Cup cycle. Not intended for production use beyond the group it was built for.
+Portfolio project with real-group usage during the 2026 World Cup cycle. Not a commercial product — documented honestly for recruiters and collaborators.
 
 ---
 
@@ -170,3 +204,7 @@ This project was built with the help of AI tools — specifically [Cursor](https
 All decisions about what to build, how to structure it, and what trade-offs to make were mine. The AI acted as a pair-programmer and sounding board, not as the author. I reviewed, understood, and took responsibility for every piece of code that ended up in the project.
 
 I'm including this note because I think honesty about tooling matters — the same way you'd cite a library or a Stack Overflow answer.
+
+## License
+
+[MIT](LICENSE)

@@ -3,11 +3,11 @@ import '../models/match_status.dart';
 
 extension GroupMatchOverlayScore on GroupMatchOverlay {
   bool get hasScoreline =>
-      this.homeScore != null &&
-      this.awayScore != null &&
+      homeScore != null &&
+      awayScore != null &&
       (status == MatchStatus.finished || status == MatchStatus.live);
 
-  String get scorelineLabel => '${this.homeScore} x ${this.awayScore}';
+  String get scorelineLabel => '$homeScore x $awayScore';
 }
 
 String matchCenterDisplay({

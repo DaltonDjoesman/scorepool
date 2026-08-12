@@ -1,18 +1,28 @@
 # Security checklist (public repo)
 
+Complete this checklist before making the repository public.
+
 ## Secrets — never commit
 
 | Secret | Where it lives |
 |--------|----------------|
-| Firebase service account JSON | GitHub `FIREBASE_SERVICE_ACCOUNT_JSON`, local `GOOGLE_APPLICATION_CREDENTIALS` |
+| Firebase service account JSON | GitHub `FIREBASE_SERVICE_ACCOUNT_JSON`; local path via `GOOGLE_APPLICATION_CREDENTIALS` **outside** this repo |
 | football-data.org token | GitHub `FOOTBALL_DATA_TOKEN`, Cloud Functions secret |
 | Android signing keystore | Local `key.properties` + `*.jks` (gitignored) |
+
+**Do not store service-account JSON inside the clone**, even when gitignored. A forgotten `git add -f` or IDE “share folder” can leak a private key. Prefer a path such as `~/secrets/…` and export:
+
+```bash
+export GOOGLE_APPLICATION_CREDENTIALS="$HOME/secrets/worldcup-pool-tracker-app.json"
+```
+
+The path `docs/worldcup-pool-tracker-app.json` remains in `.gitignore` as a safety net only.
 
 Verify before push:
 
 ```bash
 git ls-files docs/worldcup-pool-tracker-app.json   # must be empty
-git log -S "BEGIN PRIVATE KEY" --oneline            # must be empty
+git log -S "BEGIN PRIVATE KEY" --oneline            # must be empty of real keys
 ```
 
 ## Firebase client API keys
@@ -25,7 +35,7 @@ contain **client** API keys. They are expected in mobile repos but must be paire
 1. Open [Google Cloud Console → APIs & Services → Credentials](https://console.cloud.google.com/apis/credentials)
 2. Select project `worldcup-pool-tracker-app`
 3. For each Android/iOS API key:
-   - **Application restrictions**: Android apps → package `com.example.worldcupbettrackerApp` + SHA-1; iOS → bundle ID
+   - **Application restrictions**: Android apps → package `com.example.worldcupbettracker_app` + SHA-1; iOS → bundle ID `com.example.worldcupbettrackerApp`
    - **API restrictions**: limit to Firebase-related APIs (Identity Toolkit, FCM, etc.)
 
 ### 2. Firebase App Check

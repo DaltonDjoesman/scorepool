@@ -7,22 +7,25 @@ import '../utils/team_flag_emoji.dart';
 
 /// Team flag: raster crest URL (API PNG or flagcdn), else emoji, else code tile.
 class TeamFlag extends StatelessWidget {
-  TeamFlag({
+  const TeamFlag({
     super.key,
     required this.teamId,
     this.crestUrl,
-    double? size,
-    double width = 36,
-    double height = 26,
+    this.size,
+    this.width = 36,
+    this.height = 26,
     this.showCodeFallback = true,
-  })  : width = size != null ? size * 1.35 : width,
-        height = size ?? height;
+  });
 
   final String teamId;
   final String? crestUrl;
+  final double? size;
   final double width;
   final double height;
   final bool showCodeFallback;
+
+  double get _w => size != null ? size! * 1.35 : width;
+  double get _h => size ?? height;
 
   @override
   Widget build(BuildContext context) {
@@ -38,12 +41,12 @@ class TeamFlag extends StatelessWidget {
         borderRadius: BorderRadius.circular(4),
         child: Image.network(
           crest,
-          width: width,
-          height: height,
+          width: _w,
+          height: _h,
           fit: BoxFit.cover,
           gaplessPlayback: true,
           filterQuality: FilterQuality.medium,
-          cacheWidth: (width * 3).round().clamp(48, 240),
+          cacheWidth: (_w * 3).round().clamp(48, 240),
           loadingBuilder: (context, child, progress) {
             if (progress == null) return child;
             return _loadingTile(colors);
@@ -59,8 +62,8 @@ class TeamFlag extends StatelessWidget {
 
   Widget _loadingTile(AppColors colors) {
     return Container(
-      width: width,
-      height: height,
+      width: _w,
+      height: _h,
       decoration: BoxDecoration(
         color: colors.phoneSurfaceHover,
         borderRadius: BorderRadius.circular(4),
@@ -71,15 +74,15 @@ class TeamFlag extends StatelessWidget {
 
   Widget _placeholder(AppColors colors) {
     return Container(
-      width: width,
-      height: height,
+      width: _w,
+      height: _h,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: colors.phoneSurfaceHover,
         borderRadius: BorderRadius.circular(4),
         border: Border.all(color: colors.phoneMuted.withValues(alpha: 0.5)),
       ),
-      child: Icon(Icons.hourglass_empty, size: height * 0.45, color: colors.phoneMuted),
+      child: Icon(Icons.hourglass_empty, size: _h * 0.45, color: colors.phoneMuted),
     );
   }
 
@@ -87,18 +90,18 @@ class TeamFlag extends StatelessWidget {
     final emoji = flagEmojiForTeamId(teamId);
     if (emoji != '🏳️' || !showCodeFallback) {
       return SizedBox(
-        width: width,
-        height: height,
+        width: _w,
+        height: _h,
         child: Center(
-          child: Text(emoji, style: TextStyle(fontSize: height * 0.85)),
+          child: Text(emoji, style: TextStyle(fontSize: _h * 0.85)),
         ),
       );
     }
 
     final normalized = teamId.trim().toUpperCase();
     return Container(
-      width: width,
-      height: height,
+      width: _w,
+      height: _h,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: colors.phoneSurfaceHover,
@@ -108,7 +111,7 @@ class TeamFlag extends StatelessWidget {
       child: Text(
         normalized.length >= 3 ? normalized.substring(0, 3) : normalized,
         style: TextStyle(
-          fontSize: height * 0.38,
+          fontSize: _h * 0.38,
           fontWeight: FontWeight.w700,
           color: colors.phoneMuted,
         ),
