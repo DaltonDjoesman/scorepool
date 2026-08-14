@@ -8,8 +8,11 @@ import 'predictions_repository.dart';
 import 'profiles_repository.dart';
 
 class Repositories {
-  Repositories({FirebaseFirestore? db})
-    : _client = FirestoreClient(db ?? FirebaseFirestore.instance) {
+  Repositories({FirebaseFirestore? db, bool skipAuth = false})
+    : _client = FirestoreClient(
+        db ?? FirebaseFirestore.instance,
+        skipAuth: skipAuth,
+      ) {
     groups = GroupsRepository(_client);
     matches = MatchesRepository(_client);
     predictions = PredictionsRepository(_client);

@@ -13,8 +13,35 @@ Add PNG (or WebP) files here before making the repository public. The root READM
 | `05-ranking.png` | Ranking / podium |
 | `06-group-hub.png` | Group hub (active group + join/create) |
 
+## Capture with screenshot demo mode
+
+The World Cup catalog in production is finished, so live feeds would be empty. For portfolio shots, run an **in-memory** demo that does **not** write to Firebase:
+
+```bash
+flutter run --dart-define=SCREENSHOT_DEMO=true
+# or: flutter run -d linux --dart-define=SCREENSHOT_DEMO=true
+# or: flutter run -d chrome --dart-define=SCREENSHOT_DEMO=true
+```
+
+| Field | Value |
+|-------|--------|
+| Email | `ana@prints.demo` |
+| Password | `demo123` (any password ≥ 6 characters also works) |
+
+Suggested capture order:
+
+1. **Login** — take `01-login.png` **before** submitting.
+2. Sign in → feed opens on group `CopaBolão Prints`.
+3. **Feed** — `02-feed.png` on **Próximos** (final ESP–ARG); also check **Ao vivo** (ARG–ENG) and **Encerrados**.
+4. Open the final card → **prediction** countdown → `03-prediction.png`.
+5. Open finished SF ESP–FRA → ledger with pending + paid → `04-ledger.png`.
+6. Bottom nav **Ranking** → podium + list → `05-ranking.png`.
+7. Group hub (bolão ativo) → `06-group-hub.png`.
+
+The demo snapshot is **composed for screenshots**: real WC2026 knockout teams/scores where useful, with the timeline rewound so semis/final still look “in progress”. It is not a historical instant of the live bolão.
+
 ## Capture tips
 
 - Prefer a consistent device frame (phone portrait).
 - Use Portuguese UI as shipped.
-- Avoid showing real friends’ emails or private group codes; use a throwaway account when possible.
+- Avoid showing real friends’ emails or private group codes; the demo accounts above are throwaways.
