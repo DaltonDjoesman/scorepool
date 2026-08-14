@@ -5,11 +5,15 @@ import '../firestore/firestore_paths.dart';
 
 /// Shared Firestore plumbing for focused domain repositories.
 class FirestoreClient {
-  FirestoreClient(this.db);
+  FirestoreClient(this.db, {this.skipAuth = false});
 
   final FirebaseFirestore db;
 
+  /// When true (screenshot demo / fake Firestore), skip Firebase Auth token checks.
+  final bool skipAuth;
+
   Future<void> ensureFirebaseAuth() async {
+    if (skipAuth) return;
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       throw StateError('Faça login antes de usar o Firestore.');

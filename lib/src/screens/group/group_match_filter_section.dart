@@ -21,6 +21,7 @@ class GroupMatchFilterSection extends StatelessWidget {
     required this.onRecalculate,
     this.recalculateLabel = 'Recalcular Jogos',
     this.matchCountLabel = 'Total de Jogos no Filtro:',
+    this.teamPickerMaxHeight = 320,
   });
 
   final String tournamentId;
@@ -34,6 +35,7 @@ class GroupMatchFilterSection extends StatelessWidget {
   final VoidCallback onRecalculate;
   final String recalculateLabel;
   final String matchCountLabel;
+  final double teamPickerMaxHeight;
 
   void _toggleStage(Set<String> stages, String stageId, bool? checked) {
     if (!enabled || checked == null) return;
@@ -95,6 +97,7 @@ class GroupMatchFilterSection extends StatelessWidget {
             selectedTeamIds: selectedTeamIds,
             enabled: enabled,
             onSelectionChanged: onSelectionChanged,
+            maxGridHeight: teamPickerMaxHeight,
           ),
           const SizedBox(height: 20),
           Row(

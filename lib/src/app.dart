@@ -13,21 +13,34 @@ import 'routing/app_router.dart';
 import 'theme/app_theme.dart';
 
 class WorldCupBetTrackerApp extends StatefulWidget {
-  const WorldCupBetTrackerApp({super.key, required this.config});
+  const WorldCupBetTrackerApp({
+    super.key,
+    required this.config,
+    this.auth,
+    this.repos,
+  });
 
   final AppConfig config;
+
+  /// Injected by [main] after demo bootstrap, or created internally when Firebase is on.
+  final AuthController? auth;
+  final Repositories? repos;
 
   @override
   State<WorldCupBetTrackerApp> createState() => _WorldCupBetTrackerAppState();
 }
 
 class _WorldCupBetTrackerAppState extends State<WorldCupBetTrackerApp> {
-  late final AuthController? _auth = widget.config.firebaseEnabled
-      ? AuthController()
-      : null;
-  late final Repositories? _repos = widget.config.firebaseEnabled
-      ? Repositories()
-      : null;
+  late final AuthController? _auth =
+      widget.auth ??
+      (widget.config.firebaseEnabled && !widget.config.screenshotDemo
+          ? AuthController()
+          : null);
+  late final Repositories? _repos =
+      widget.repos ??
+      (widget.config.firebaseEnabled && !widget.config.screenshotDemo
+          ? Repositories()
+          : null);
   late final AppState _state = AppState();
   final _groupSelectionStore = GroupSelectionStore();
   PushNotificationsController? _push;
@@ -40,12 +53,16 @@ class _WorldCupBetTrackerAppState extends State<WorldCupBetTrackerApp> {
   @override
   void initState() {
     super.initState();
-    if (_repos != null) {
+    if (_repos != null && !widget.config.screenshotDemo) {
       _push = PushNotificationsController(repos: _repos);
       unawaited(_push!.initialize());
+    }
+    if (_repos != null) {
       _auth?.addListener(_onAuthChanged);
       _state.addListener(_onGroupSelectionChanged);
       unawaited(_onAuthChanged());
+    } else {
+      _state.setSessionReady(true);
     }
   }
 
@@ -113,6 +130,8 @@ class _WorldCupBetTrackerAppState extends State<WorldCupBetTrackerApp> {
     return MaterialApp.router(
       title: 'CopaBolão 2026',
       theme: AppTheme.dark(),
+      // Hide the red DEBUG ribbon so portfolio screenshots stay clean in debug.
+      debugShowCheckedModeBanner: !widget.config.screenshotDemo,
       routerConfig: router,
       builder: (context, child) => _AppScope(
         auth: _auth,

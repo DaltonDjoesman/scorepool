@@ -121,7 +121,12 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
     });
 
     try {
-      await user.getIdToken(true);
+      // Production path refreshes the ID token; screenshot demo uses mock auth.
+      try {
+        await user.getIdToken(true);
+      } catch (_) {
+        // Mock / demo auth may not implement token refresh.
+      }
       final entryFeeCents = _parseEntryFeeToCents(_entryFeeController.text)!;
       final lockMinutes = _parsePositiveInt(_lockMinutesController.text)!;
       final matchFilter = GroupMatchFilter(
