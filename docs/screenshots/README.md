@@ -8,8 +8,8 @@ Add PNG (or WebP) files here before making the repository public. The root READM
 |------|--------|
 | `01-login.png` | Login (email/password) |
 | `02-feed.png` | Match feed (Upcoming / Live / Finished) |
-| `03-prediction.png` | Live / match details with locked predictions |
-| `04-ledger.png` | Payment ledger ("Já paguei") — may be a tall scroll capture |
+| `03-prediction.png` | Final match details with prediction inputs + lock countdown |
+| `04-ledger.png` | Payment ledger ("Já paguei") — tall scroll capture; prefer native phone files over chat uploads |
 | `05-ranking.png` | Ranking / podium |
 | `06-group-hub.png` | Group hub (active group + join/create) |
 | `07-create-group.png` | Create group — name/fee + all 48 WC2026 teams selectable |
