@@ -97,16 +97,26 @@ More detail: [`docs/architecture.md`](docs/architecture.md).
 
 ## Screenshots
 
-Placeholder paths — add PNG files under `docs/screenshots/` before publishing (see [`docs/screenshots/README.md`](docs/screenshots/README.md)).
+Captured with `flutter run --dart-define=SCREENSHOT_DEMO=true` (see [`docs/screenshots/README.md`](docs/screenshots/README.md)). Gallery uses a **fixed width** so phone-framed shots stay aligned; taller scroll captures (match details / ledger) sit on their own rows.
 
-| Screen | Preview |
-|--------|---------|
-| Login | ![Login](docs/screenshots/01-login.png) |
-| Match feed | ![Feed](docs/screenshots/02-feed.png) |
-| Prediction | ![Prediction](docs/screenshots/03-prediction.png) |
-| Payment ledger | ![Ledger](docs/screenshots/04-ledger.png) |
-| Ranking | ![Ranking](docs/screenshots/05-ranking.png) |
-| Group hub | ![Group](docs/screenshots/06-group-hub.png) |
+<p align="center">
+  <img src="docs/screenshots/01-login.png" width="180" alt="Login"/>
+  <img src="docs/screenshots/02-feed.png" width="180" alt="Match feed"/>
+  <img src="docs/screenshots/05-ranking.png" width="180" alt="Ranking"/>
+</p>
+<p align="center"><em>Login · Feed (Próximos) · Ranking</em></p>
+
+<p align="center">
+  <img src="docs/screenshots/06-group-hub.png" width="180" alt="Group hub"/>
+  <img src="docs/screenshots/07-create-group.png" width="180" alt="Create group"/>
+</p>
+<p align="center"><em>Group hub · Create group (48 WC2026 teams)</em></p>
+
+<p align="center">
+  <img src="docs/screenshots/03-prediction.png" width="220" alt="Live match details"/>
+  <img src="docs/screenshots/04-ledger.png" width="220" alt="Payment ledger"/>
+</p>
+<p align="center"><em>Live match (locked predictions) · Finished match + payment ledger</em></p>
 
 ---
 

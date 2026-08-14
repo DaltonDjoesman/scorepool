@@ -5,6 +5,7 @@ import '../models/debt.dart';
 import '../models/match_status.dart';
 import '../models/member.dart';
 import '../utils/team_crest_resolve.dart';
+import '../utils/team_metadata.dart';
 
 /// Stable IDs for the in-memory screenshot demo (not written to production).
 abstract final class ScreenshotDemoIds {
@@ -23,12 +24,79 @@ abstract final class ScreenshotDemoIds {
   static const matchSfArgEng = 'demo-sf-arg-eng';
   static const matchThird = 'demo-third-fra-eng';
   static const matchFinal = 'demo-final-esp-arg';
+
+  /// Official FIFA World Cup 2026 field of 48 (FIFA TLA codes).
+  static const wc2026TeamIds = <String>[
+    'ALG',
+    'ARG',
+    'AUS',
+    'AUT',
+    'BEL',
+    'BIH',
+    'BRA',
+    'CAN',
+    'CIV',
+    'COD',
+    'COL',
+    'CPV',
+    'CRO',
+    'CUW',
+    'CZE',
+    'ECU',
+    'EGY',
+    'ENG',
+    'ESP',
+    'FRA',
+    'GER',
+    'GHA',
+    'HAI',
+    'IRN',
+    'IRQ',
+    'JOR',
+    'JPN',
+    'KOR',
+    'KSA',
+    'MAR',
+    'MEX',
+    'NED',
+    'NOR',
+    'NZL',
+    'PAN',
+    'PAR',
+    'POR',
+    'QAT',
+    'RSA',
+    'SCO',
+    'SEN',
+    'SUI',
+    'SWE',
+    'TUN',
+    'TUR',
+    'URU',
+    'USA',
+    'UZB',
+  ];
 }
 
 /// Populates [db] with a composed WC2026 knockout snapshot for portfolio screenshots.
 Future<void> seedScreenshotDemo(FirebaseFirestore db) async {
   final now = DateTime.now().toUtc();
   final groupId = ScreenshotDemoIds.groupId;
+
+  // Full WC2026 roster so create-group / filter pickers are screenshot-ready.
+  for (final teamId in ScreenshotDemoIds.wc2026TeamIds) {
+    await db
+        .doc(
+          FirestorePaths.tournamentTeam(
+            ScreenshotDemoIds.tournamentId,
+            teamId,
+          ),
+        )
+        .set({
+          'name': TeamMetadata.label(teamId),
+          'crest': resolveCrestUrl(teamId),
+        });
+  }
 
   final members = <({String uid, String name, GroupRole role, int scores})>[
     (uid: ScreenshotDemoIds.ana, name: 'Ana', role: GroupRole.admin, scores: 7),

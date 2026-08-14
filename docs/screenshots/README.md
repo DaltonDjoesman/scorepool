@@ -8,10 +8,15 @@ Add PNG (or WebP) files here before making the repository public. The root READM
 |------|--------|
 | `01-login.png` | Login (email/password) |
 | `02-feed.png` | Match feed (Upcoming / Live / Finished) |
-| `03-prediction.png` | Prediction input + lock countdown |
-| `04-ledger.png` | Payment ledger ("Já paguei") |
+| `03-prediction.png` | Live / match details with locked predictions |
+| `04-ledger.png` | Payment ledger ("Já paguei") — may be a tall scroll capture |
 | `05-ranking.png` | Ranking / podium |
 | `06-group-hub.png` | Group hub (active group + join/create) |
+| `07-create-group.png` | Create group — name/fee + all 48 WC2026 teams selectable |
+
+### README layout tip
+
+GitHub Markdown tables stretch every cell to the tallest image and look uneven. Prefer an HTML gallery with a **fixed `width`** (e.g. `width="180"`) so every phone shot shares the same column width; put taller scroll screenshots (ledger, full match details) on a separate row with a slightly larger width.
 
 ## Capture with screenshot demo mode
 
@@ -22,6 +27,8 @@ flutter run --dart-define=SCREENSHOT_DEMO=true
 # or: flutter run -d linux --dart-define=SCREENSHOT_DEMO=true
 # or: flutter run -d chrome --dart-define=SCREENSHOT_DEMO=true
 ```
+
+**Do not use `--release` or `--profile` with `SCREENSHOT_DEMO`.** The in-memory Firestore/Auth mocks crash in those modes (`MockPlatformInterfaceMixin is not intended for use in release builds`), so the app stays on a blank screen. Debug is fine for prints: the red DEBUG ribbon is turned off automatically in this flavor.
 
 | Field | Value |
 |-------|--------|
@@ -37,6 +44,7 @@ Suggested capture order:
 5. Open finished SF ESP–FRA → ledger with pending + paid → `04-ledger.png`.
 6. Bottom nav **Ranking** → podium + list → `05-ranking.png`.
 7. Group hub (bolão ativo) → `06-group-hub.png`.
+8. **+ Criar novo bolão** → scroll so the team grid shows several flags → `07-create-group.png` (all 48 WC2026 teams are in the picker).
 
 The demo snapshot is **composed for screenshots**: real WC2026 knockout teams/scores where useful, with the timeline rewound so semis/final still look “in progress”. It is not a historical instant of the live bolão.
 
