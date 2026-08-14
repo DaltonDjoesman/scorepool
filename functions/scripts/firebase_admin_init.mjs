@@ -6,7 +6,8 @@ const DEFAULT_PROJECT_ID = "worldcup-pool-tracker-app";
 
 /**
  * Initializes Firebase Admin for local scripts.
- * Prefers docs/worldcup-pool-tracker-app.json (same as verify:catalog).
+ * Prefer GOOGLE_APPLICATION_CREDENTIALS pointing at a JSON **outside** this
+ * repo (see docs/security.md). The docs/ fallback is gitignored only.
  */
 export function initFirebaseAdmin() {
   if (admin.apps.length > 0) return admin;

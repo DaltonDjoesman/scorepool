@@ -57,8 +57,25 @@ app.*.map.json
 /.idea/
 /.cursor/
 
+# Built mobile artifacts
+*.apk
+*.aab
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Signing / Apple push (never commit)
+key.properties
+*.jks
+*.keystore
+*.p8
+*.p12
+*.mobileprovision
+
 # Env / secrets (never commit)
 .env
 .env.*
 **/secrets/
 docs/worldcup-pool-tracker-app.json
+**/*firebase-adminsdk*.json
+**/serviceAccount*.json

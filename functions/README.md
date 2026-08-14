@@ -32,7 +32,7 @@ npm run ingest:wc2026   # requires FOOTBALL_DATA_TOKEN + GOOGLE_APPLICATION_CRED
 
 ## GitHub Actions (live path)
 
-Workflow `.github/workflows/ingest-wc2026.yml` runs on a schedule and upserts into `tournaments/wc2026/matches/{matchId}`, then runs closeout backfill. This is the production dispatcher on Spark.
+Workflow `.github/workflows/ingest-wc2026.yml` runs **once daily at 06:00 UTC** (and on manual dispatch). It upserts into `tournaments/wc2026/matches/{matchId}`, then runs closeout backfill. This is the production dispatcher on Spark. The tournament is over; a daily job avoids burning Actions/Firestore quota (it used to poll every 5 minutes during the event).
 
 ## Cloud Functions (deployable path)
 

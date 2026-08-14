@@ -31,7 +31,7 @@ Two paths share the same TypeScript modules under `functions/`:
 
 | Path | When | Role |
 |------|------|------|
-| **GitHub Actions** (`.github/workflows/ingest-wc2026.yml`) | **Live on Firebase Spark** | Scheduled catalog ingest + closeout / overlay backfill via Admin SDK scripts |
+| **GitHub Actions** (`.github/workflows/ingest-wc2026.yml`) | **Live on Firebase Spark** | Daily catalog ingest (06:00 UTC) + closeout backfill via Admin SDK scripts |
 | **Cloud Functions** (`functions/src`) | Deployable on Blaze | Same logic as callable/scheduled Functions |
 
 The client persists FCM tokens to the user profile. Push *dispatch* (kickoff reminders, etc.) requires deployed Functions (or another dispatcher) — not the Spark Actions path today.

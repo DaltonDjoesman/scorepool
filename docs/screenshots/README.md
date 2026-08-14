@@ -1,6 +1,6 @@
 # Screenshots
 
-Add PNG (or WebP) files here before making the repository public. The root README links these paths; broken images until then are expected.
+PNGs in this folder are linked from the root README gallery. Recapture with screenshot demo mode when UI changes.
 
 ## Expected filenames
 

@@ -1,60 +1,98 @@
-# Firebase setup (dev/prod)
+# Firebase setup
 
-The app requires Firebase (Auth + Firestore) by default.
+The app uses **one** Firebase project (`worldcup-pool-tracker-app`) on the **Spark** plan. Auth (email/password) and Cloud Firestore are required.
 
-## 1) Create Firebase projects
+`APP_ENV=dev` is reserved for a future dual-project setup. Today it still uses the same client config as production.
 
-Create either:
+Before making this repository public, complete [`security.md`](security.md).
 
-- **One Firebase project** with separate apps per platform, using an `APP_ENV` convention, or
-- **Two Firebase projects**: one for `dev`, one for `prod`.
+## 1) Console: enable Auth and Firestore
 
-## 2) Configure FlutterFire
+In the [Firebase console](https://console.firebase.google.com/project/worldcup-pool-tracker-app):
 
-Install and run FlutterFire CLI:
+1. **Authentication** → enable the **Email/Password** provider (no Google/Apple sign-in).
+2. **Firestore** → create a database if one does not exist (production mode is fine; rules in this repo are the source of truth).
+
+## 2) Client config (already in the repo)
+
+FlutterFire files are committed on purpose. They hold **client** API keys, not service-account private keys:
+
+| File | Platform |
+|------|----------|
+| `lib/firebase_options.dart` | Dart |
+| `android/app/google-services.json` | Android |
+| `ios/Runner/GoogleService-Info.plist` | iOS |
+
+Restrict those keys in Google Cloud Console (package name / bundle ID + API allowlist). Details: [`security.md`](security.md).
+
+If you **fork** and point at your own Firebase project:
 
 ```bash
 dart pub global activate flutterfire_cli
 flutterfire configure
 ```
 
-This will generate `lib/firebase_options.dart` and place:
+That regenerates the three files above. Do not commit a service-account JSON.
 
-- Android: `android/app/google-services.json`
-- iOS: `ios/Runner/GoogleService-Info.plist`
+## 3) Deploy rules and indexes
 
-## 4) Ingest World Cup 2026 matches (Spark-friendly)
-
-This repo is designed to keep Firebase on the **Spark** plan. Since Spark doesn't support Secret Manager-based workflows,
-we ingest WC2026 fixtures into Firestore using **GitHub Actions**.
-
-### GitHub secrets needed
-
-In your GitHub repo settings, add:
-
-- `FOOTBALL_DATA_TOKEN`: your [football-data.org](https://www.football-data.org/) API token
-- `FIREBASE_SERVICE_ACCOUNT_JSON`: a service account JSON (as a single-line JSON string) with permissions to write Firestore
-
-> **Note:** `API_FOOTBALL_KEY` is deprecated; ingestion now uses football-data.org (free tier includes WC 2026).
-
-See also `functions/README.md` for local ingest commands.
-
-### What it does
-
-The workflow runs every 5 minutes and upserts fixtures into:
-
-`tournaments/wc2026/matches/{matchId}`
-
-You can also run it manually using the "Run workflow" button in GitHub Actions.
-
-## 3) Run the app
+From the repo root (Firebase CLI logged in, project selected):
 
 ```bash
-flutter run
+firebase deploy --only firestore:rules,firestore:indexes --project worldcup-pool-tracker-app
 ```
 
-For a dev environment:
+Rules live in `firestore.rules`; indexes in `firestore.indexes.json`.
+
+## 4) Match catalog ingest (Spark)
+
+Spark does not run scheduled Cloud Functions with Secret Manager. Live ingest and closeout use **GitHub Actions** + the Admin SDK scripts under `functions/`.
+
+Workflow: [`.github/workflows/ingest-wc2026.yml`](../.github/workflows/ingest-wc2026.yml)
+
+| Trigger | When |
+|---------|------|
+| Cron | **Once daily at 06:00 UTC** — the 2026 tournament is over; this keeps catalog/closeouts in sync without burning Actions or Firestore quota |
+| Manual | Actions → “Ingest WC2026 fixtures” → Run workflow |
+
+What it does:
+
+1. Upserts fixtures into `tournaments/wc2026/matches/{matchId}` from [football-data.org](https://www.football-data.org/) (server-side token only).
+2. Runs closeout backfill so finished group matches settle pots / carry-over.
+
+### GitHub secrets
+
+Repo **Settings → Secrets and variables → Actions**:
+
+| Secret | Purpose |
+|--------|---------|
+| `FOOTBALL_DATA_TOKEN` | football-data.org API token (`X-Auth-Token`) |
+| `FIREBASE_SERVICE_ACCOUNT_JSON` | Service-account JSON (single-line string) with Firestore write access |
+
+> `API_FOOTBALL_KEY` is deprecated; ingestion uses football-data.org (free tier includes WC 2026).
+
+### Local ingest
+
+Put the service-account JSON **outside** this clone (see [`security.md`](security.md)):
 
 ```bash
-flutter run --dart-define=APP_ENV=dev
+export GOOGLE_APPLICATION_CREDENTIALS="$HOME/secrets/worldcup-pool-tracker-app.json"
+export FOOTBALL_DATA_TOKEN="…"
+
+cd functions
+npm ci
+npm run ingest:wc2026
+npm run backfill:closeouts
+```
+
+More scripts: [`functions/README.md`](../functions/README.md).
+
+## 5) Run the app
+
+```bash
+flutter pub get
+flutter run                                     # production Firebase
+flutter run --dart-define=APP_ENV=dev           # same project today
+flutter run --dart-define=FIREBASE_ENABLED=false
+flutter run --dart-define=SCREENSHOT_DEMO=true  # in-memory gallery; see docs/screenshots/README.md
 ```

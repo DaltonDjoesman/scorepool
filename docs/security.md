@@ -16,12 +16,12 @@ Complete this checklist before making the repository public.
 export GOOGLE_APPLICATION_CREDENTIALS="$HOME/secrets/worldcup-pool-tracker-app.json"
 ```
 
-The path `docs/worldcup-pool-tracker-app.json` remains in `.gitignore` as a safety net only.
+`.gitignore` also blocks Google’s default download name (`*firebase-adminsdk*.json`) and `docs/worldcup-pool-tracker-app.json` as a safety net only.
 
 Verify before push:
 
 ```bash
-git ls-files docs/worldcup-pool-tracker-app.json   # must be empty
+git ls-files '*firebase-adminsdk*' docs/worldcup-pool-tracker-app.json   # must be empty
 git log -S "BEGIN PRIVATE KEY" --oneline            # must be empty of real keys
 ```
 
