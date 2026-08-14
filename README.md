@@ -113,10 +113,10 @@ Captured with `flutter run --dart-define=SCREENSHOT_DEMO=true` (see [`docs/scree
 <p align="center"><em>Group hub · Create group (48 WC2026 teams)</em></p>
 
 <p align="center">
-  <img src="docs/screenshots/03-prediction.png" width="220" alt="Live match details"/>
+  <img src="docs/screenshots/03-prediction.png" width="220" alt="Prediction with lock countdown"/>
   <img src="docs/screenshots/04-ledger.png" width="220" alt="Payment ledger"/>
 </p>
-<p align="center"><em>Live match (locked predictions) · Finished match + payment ledger</em></p>
+<p align="center"><em>Final + prediction countdown · Finished match + payment ledger</em></p>
 
 ---
 
