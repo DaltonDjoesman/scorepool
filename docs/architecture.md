@@ -7,7 +7,8 @@ CopaBolão is a Flutter mobile client (Android / iOS) backed by Firebase Auth, C
 ```
 lib/
   main.dart                 # bootstrap, AppConfig
-  firebase_options.dart     # generated client Firebase config
+  firebase_options.dart     # production client Firebase config
+  firebase_options_demo.dart # public demo APK Firebase (copabolaao-demo)
   src/
     auth/                   # AuthController (email/password)
     app_state/              # session / selected group

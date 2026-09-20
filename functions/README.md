@@ -28,6 +28,7 @@ cd functions
 npm ci
 npm run test:mapping    # smoke test stage/status mapping
 npm run ingest:wc2026   # requires FOOTBALL_DATA_TOKEN + GOOGLE_APPLICATION_CREDENTIALS
+npm run seed:demo       # seed portfolio demo project (copabolaao-demo); Firebase CLI login
 ```
 
 ## GitHub Actions (live path)

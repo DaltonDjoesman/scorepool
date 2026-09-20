@@ -1,12 +1,9 @@
 import admin from "firebase-admin";
 import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
 
-const saPath =
-  process.env.GOOGLE_APPLICATION_CREDENTIALS ??
-  resolve(process.cwd(), "../docs/worldcup-pool-tracker-app.json");
+const saPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
 
-if (!existsSync(saPath)) {
+if (!saPath || !existsSync(saPath)) {
   console.error(
     "Set GOOGLE_APPLICATION_CREDENTIALS to a service-account JSON outside this repo.\n" +
       "See docs/security.md",

@@ -167,16 +167,21 @@ Work was specified and delivered with [OpenSpec](openspec/): capability specs un
 - Node.js 20 (for ingest / Functions scripts)
 - A Firebase project with Firestore and Auth enabled
 
-See [`docs/firebase_setup.md`](docs/firebase_setup.md) for Firebase configuration. Before making this repository **public**, complete [`docs/security.md`](docs/security.md).
+See [`docs/firebase_setup.md`](docs/firebase_setup.md) for Firebase configuration. Do not make this repository **public** until [`docs/security.md`](docs/security.md) is complete (API key restrictions + demo flavor; Firestore rules already deny listing `/groups`).
 
 ### Flutter app
 
 ```bash
 flutter pub get
-flutter run                                     # production Firebase
-flutter run --dart-define=APP_ENV=dev           # same project today; reserved for a future dual-env setup
+flutter run --flavor prod                       # production Firebase
+flutter run --flavor prod --dart-define=APP_ENV=dev  # same project today; reserved for a future dual-env setup
+flutter run --flavor demo --dart-define=APP_ENV=demo # sandbox Firebase (see docs/demo_apk.md)
 flutter run --dart-define=FIREBASE_ENABLED=false # widget tests, no Firebase
 ```
+
+### Demo APK (sandbox Firebase)
+
+Build locally with `--flavor demo` — it talks to `copabolaao-demo`, not production. A GitHub Release artefact is **not** attached yet; do not publish a production APK. Details: [`docs/demo_apk.md`](docs/demo_apk.md).
 
 ### Backend scripts (`functions/`)
 

@@ -1,8 +1,13 @@
 # Firebase setup
 
-The app uses **one** Firebase project (`worldcup-pool-tracker-app`) on the **Spark** plan. Auth (email/password) and Cloud Firestore are required.
+Two Firebase projects, both Spark:
 
-`APP_ENV=dev` is reserved for a future dual-project setup. Today it still uses the same client config as production.
+| Project | Flavor | Who uses it |
+|---------|--------|-------------|
+| `worldcup-pool-tracker-app` | `--flavor prod` | The real friends bolão |
+| `copabolaao-demo` | `--flavor demo` | Portfolio sandbox / public APK |
+
+`APP_ENV=dev` still uses the production client config today (reserved for a future split).
 
 Before making this repository public, complete [`security.md`](security.md).
 
@@ -91,8 +96,11 @@ More scripts: [`functions/README.md`](../functions/README.md).
 
 ```bash
 flutter pub get
-flutter run                                     # production Firebase
-flutter run --dart-define=APP_ENV=dev           # same project today
+flutter run --flavor prod                             # production Firebase
+flutter run --flavor prod --dart-define=APP_ENV=dev   # same project today
+flutter run --flavor demo --dart-define=APP_ENV=demo  # public demo Firebase
 flutter run --dart-define=FIREBASE_ENABLED=false
 flutter run --dart-define=SCREENSHOT_DEMO=true  # in-memory gallery; see docs/screenshots/README.md
 ```
+
+Installable Android demo APK: [`docs/demo_apk.md`](demo_apk.md).

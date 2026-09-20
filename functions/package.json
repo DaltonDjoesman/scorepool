@@ -18,6 +18,7 @@
     "test:pot": "npm run build && node ./scripts/test_pot_math.mjs",
     "verify:sample": "npm run build && node ./scripts/verify_wc2026_sample.mjs",
     "verify:catalog": "node ./scripts/check_firestore_catalog.mjs",
+    "seed:demo": "node ./scripts/seed_demo_catalog.mjs",
     "serve": "npm run build && firebase emulators:start --only functions",
     "shell": "npm run build && firebase functions:shell",
     "deploy": "firebase deploy --only functions",

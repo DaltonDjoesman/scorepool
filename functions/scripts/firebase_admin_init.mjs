@@ -1,22 +1,19 @@
 import admin from "firebase-admin";
 import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
 
 const DEFAULT_PROJECT_ID = "worldcup-pool-tracker-app";
 
 /**
  * Initializes Firebase Admin for local scripts.
- * Prefer GOOGLE_APPLICATION_CREDENTIALS pointing at a JSON **outside** this
- * repo (see docs/security.md). The docs/ fallback is gitignored only.
+ * Set GOOGLE_APPLICATION_CREDENTIALS to a JSON **outside** this repo
+ * (see docs/security.md). There is no in-repo fallback path.
  */
 export function initFirebaseAdmin() {
   if (admin.apps.length > 0) return admin;
 
-  const saPath =
-    process.env.GOOGLE_APPLICATION_CREDENTIALS ??
-    resolve(process.cwd(), "../docs/worldcup-pool-tracker-app.json");
+  const saPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
 
-  if (existsSync(saPath)) {
+  if (saPath && existsSync(saPath)) {
     const sa = JSON.parse(readFileSync(saPath, "utf8"));
     admin.initializeApp({
       credential: admin.credential.cert(sa),

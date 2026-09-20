@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1068211940687",
+    "project_id": "copabolaao-demo",
+    "storage_bucket": "copabolaao-demo.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1068211940687:android:65790f0207c5d7ddb4293a",
+        "android_client_info": {
+          "package_name": "com.example.worldcupbettracker_app.demo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDJlRgIo115tXnaqhaMCw3eFkgQLJVUi3s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

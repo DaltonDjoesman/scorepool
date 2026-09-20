@@ -1,6 +1,7 @@
 {
   "projects": {
-    "dev": "worldcup-pool-tracker-app"
+    "dev": "worldcup-pool-tracker-app",
+    "demo": "copabolaao-demo"
   },
   "targets": {},
   "etags": {}

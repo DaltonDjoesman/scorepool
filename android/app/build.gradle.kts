@@ -31,6 +31,20 @@ android {
         versionName = flutter.versionName
     }
 
+    flavorDimensions += "env"
+    productFlavors {
+        create("prod") {
+            dimension = "env"
+            applicationId = "com.example.worldcupbettracker_app"
+            resValue("string", "app_name", "CopaBolão")
+        }
+        create("demo") {
+            dimension = "env"
+            applicationId = "com.example.worldcupbettracker_app.demo"
+            resValue("string", "app_name", "CopaBolão Demo")
+        }
+    }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.

@@ -1,8 +1,9 @@
 import 'package:firebase_core/firebase_core.dart';
 
 import '../../firebase_options.dart';
+import '../../firebase_options_demo.dart';
 
-enum AppEnvironment { dev, prod }
+enum AppEnvironment { demo, dev, prod }
 
 class AppConfig {
   AppConfig({
@@ -15,6 +16,8 @@ class AppConfig {
   final bool firebaseEnabled;
   final bool screenshotDemo;
 
+  bool get isDemoFirebase => environment == AppEnvironment.demo;
+
   factory AppConfig.fromEnvironment() {
     final env = const String.fromEnvironment('APP_ENV', defaultValue: 'prod');
     final screenshotDemo = const bool.fromEnvironment(
@@ -26,9 +29,15 @@ class AppConfig {
       defaultValue: true,
     );
 
+    final AppEnvironment environment = switch (env) {
+      'demo' => AppEnvironment.demo,
+      'prod' => AppEnvironment.prod,
+      _ => AppEnvironment.dev,
+    };
+
     return AppConfig(
-      environment: env == 'prod' ? AppEnvironment.prod : AppEnvironment.dev,
-      // Demo flavor never talks to production Firebase.
+      environment: environment,
+      // Screenshot flavor never talks to any Firebase project.
       firebaseEnabled: screenshotDemo ? false : firebaseEnabled,
       screenshotDemo: screenshotDemo,
     );
@@ -37,8 +46,10 @@ class AppConfig {
   Future<void> maybeInitializeFirebase() async {
     if (!firebaseEnabled || screenshotDemo) return;
 
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
+    final options = isDemoFirebase
+        ? DemoFirebaseOptions.currentPlatform
+        : DefaultFirebaseOptions.currentPlatform;
+
+    await Firebase.initializeApp(options: options);
   }
 }

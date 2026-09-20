@@ -84,8 +84,11 @@ service cloud.firestore {
 
     // Groups root
     match /groups/{groupId} {
-      // Signed-in users may read group metadata to validate an invite code before joining.
-      allow read: if signedIn();
+      // Invite codes are document IDs. A signed-in user may GET a known ID to
+      // validate before joining. Listing the collection is denied — the client
+      // never queries /groups; it loads IDs from users/{uid}.groupIds then GET.
+      allow get: if signedIn();
+      allow list: if false;
       allow create: if signedIn()
         && request.auth.uid in request.resource.data.get('adminUids', [])
         && request.resource.data.get('carryOverPotCents', 0) == 0;

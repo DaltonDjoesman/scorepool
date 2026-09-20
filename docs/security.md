@@ -51,11 +51,35 @@ Until App Check is enforced in the app, API key restrictions are the main line o
 Settlement fields (`winnerUids`, `basePotCents`, `totalPotCents`, `closeoutAt`,
 `perfectScoresCount`, `carryOverPotCents`) are **server-only** — clients cannot forge results.
 
-Deploy after changes:
+`groups/{groupId}` is **get-by-id, not listable**:
+
+| Operation | Who |
+|-----------|-----|
+| `get` | any signed-in user (needed to validate an invite code before join) |
+| `list` | denied — a clone of this repo cannot dump every bolão |
+
+Predictions, debts, and members stay `isGroupMember`. Cloud Functions use the Admin SDK and are unaffected.
+
+Deploy after changing `firestore.rules` (production **and** demo):
 
 ```bash
 firebase deploy --only firestore:rules --project worldcup-pool-tracker-app
+firebase deploy --only firestore:rules --project copabolaao-demo
 ```
+
+## Public clone vs production data
+
+Committed FlutterFire files (`lib/firebase_options.dart`, `google-services.json`,
+`GoogleService-Info.plist`) are the **production** client config. That is expected
+for a mobile repo, but a public clone can register on production Auth.
+
+Before flipping the GitHub repo to public:
+
+- [ ] Restrict production API keys (section above) **or** turn off new Email/Password
+      registrations on `worldcup-pool-tracker-app` if you only need existing friends
+- [ ] Default portfolio installables to `--flavor demo` / `copabolaao-demo` (see [`demo_apk.md`](demo_apk.md))
+- [ ] Do **not** attach a production APK to GitHub Releases
+- [ ] App Check remains optional until the Dart app sends tokens; key restrictions first
 
 ## GitHub Actions secrets
 

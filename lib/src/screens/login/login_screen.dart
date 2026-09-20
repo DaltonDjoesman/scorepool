@@ -69,10 +69,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   String _friendlyAuthError(Object error) {
     final message = error.toString();
-    if (message.contains('CONFIGURATION_NOT_FOUND')) {
-      return 'Firebase Auth não está configurado no projeto. '
-          'No console Firebase (worldcup-pool-tracker-app), abra '
-          'Authentication → Sign-in method e habilite Email/Password.';
+    if (message.contains('CONFIGURATION_NOT_FOUND') ||
+        message.contains('OPERATION_NOT_ALLOWED')) {
+      return 'Firebase Auth (Email/Password) não está activo neste projecto. '
+          'No Console Firebase → Authentication → Sign-in method, '
+          'habilite Email/Password.';
     }
     if (message.contains('invalid-email')) {
       return 'Email inválido. Use um endereço como nome@exemplo.com';
