@@ -38,6 +38,16 @@ contain **client** API keys. They are expected in mobile repos but must be paire
    - **Application restrictions**: Android apps → package `com.example.worldcupbettracker_app` + SHA-1; iOS → bundle ID `com.example.worldcupbettrackerApp`
    - **API restrictions**: limit to Firebase-related APIs (Identity Toolkit, FCM, etc.)
 
+Done (2026-09-21), account `daltonyuiti2007@gmail.com`:
+
+- Android key: package `com.example.worldcupbettracker_app` + debug SHA-1 `F9:85:BC:8D:53:74:48:C4:56:AB:2A:93:BB:34:DD:49:80:5A:11:4B` (release builds currently sign with the debug keystore)
+- iOS key: bundle `com.example.worldcupbettrackerApp`
+- Existing Firebase API targets kept
+- Email/Password **left enabled** so friends can still register
+- App Check **not** enforced
+
+If you install a prod build from another machine, add that keystore’s SHA-1 to the Android key in [Credentials](https://console.cloud.google.com/apis/credentials?project=worldcup-pool-tracker-app).
+
 ### 2. Firebase App Check
 
 1. [Firebase Console → App Check](https://console.firebase.google.com/project/worldcup-pool-tracker-app/appcheck)
@@ -75,10 +85,9 @@ for a mobile repo, but a public clone can register on production Auth.
 
 Before flipping the GitHub repo to public:
 
-- [ ] Restrict production API keys (section above) **or** turn off new Email/Password
-      registrations on `worldcup-pool-tracker-app` if you only need existing friends
-- [ ] Default portfolio installables to `--flavor demo` / `copabolaao-demo` (see [`demo_apk.md`](demo_apk.md))
-- [ ] Do **not** attach a production APK to GitHub Releases
+- [x] Restrict production API keys (section above). Email/Password stays on.
+- [x] Default portfolio installables to `--flavor demo` / `copabolaao-demo` (see [`demo_apk.md`](demo_apk.md))
+- [x] Do **not** attach a production APK to GitHub Releases
 - [ ] App Check remains optional until the Dart app sends tokens; key restrictions first
 
 ## GitHub Actions secrets
