@@ -15,6 +15,6 @@ void main() {
     );
 
     await tester.pumpAndSettle();
-    expect(find.text('CopaBolão 2026'), findsOneWidget);
+    expect(find.text('Scorepool'), findsOneWidget);
   });
 }

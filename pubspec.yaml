@@ -1,5 +1,5 @@
 name: worldcupbettracker_app
-description: "CopaBolão 2026 — Flutter app for exact-score World Cup betting pools with friends."
+description: "Scorepool — Flutter app for an exact-score World Cup pool with friends."
 publish_to: "none"
 
 version: 1.0.1+6

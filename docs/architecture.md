@@ -1,6 +1,6 @@
 # Architecture
 
-CopaBolão is a Flutter mobile client (Android / iOS) backed by Firebase Auth, Cloud Firestore, and server-side TypeScript for match catalog sync and pot settlement.
+Scorepool is a Flutter mobile client (Android / iOS) backed by Firebase Auth, Cloud Firestore, and server-side TypeScript for match catalog sync and pot settlement.
 
 ## Layers (Flutter)
 

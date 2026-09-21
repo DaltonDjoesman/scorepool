@@ -36,12 +36,12 @@ android {
         create("prod") {
             dimension = "env"
             applicationId = "com.example.worldcupbettracker_app"
-            resValue("string", "app_name", "CopaBolão")
+            resValue("string", "app_name", "Scorepool")
         }
         create("demo") {
             dimension = "env"
             applicationId = "com.example.worldcupbettracker_app.demo"
-            resValue("string", "app_name", "CopaBolão Demo")
+            resValue("string", "app_name", "Scorepool Demo")
         }
     }
 

@@ -33,7 +33,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('CopaBolão 2026'), findsWidgets);
+    expect(find.text('Scorepool'), findsWidgets);
 
     await tester.enterText(
       find.byType(TextField).first,

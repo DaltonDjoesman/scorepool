@@ -1,10 +1,14 @@
-# CopaBolão 2026
+# Scorepool
 
-[![Flutter CI](https://github.com/DaltonDjoesman/worldcup-pool-tracker-app/actions/workflows/flutter-ci.yml/badge.svg)](https://github.com/DaltonDjoesman/worldcup-pool-tracker-app/actions/workflows/flutter-ci.yml)
+<p align="center">
+  <img src="docs/banner.svg" alt="Scorepool — exact-score World Cup pool. Only a perfect guess wins." width="100%">
+</p>
 
-> A full-stack mobile app for running an exact-score betting pool with friends and family during the 2026 FIFA World Cup.
+[![Flutter CI](https://github.com/DaltonDjoesman/scorepool/actions/workflows/flutter-ci.yml/badge.svg)](https://github.com/DaltonDjoesman/scorepool/actions/workflows/flutter-ci.yml)
 
-Built as a personal / portfolio project to learn end-to-end Flutter, Firebase, TypeScript backend logic, and real-time NoSQL modelling — and used by a real group of friends.
+> Exact-score pool for the 2026 FIFA World Cup. Friends call the score; only a perfect guess wins the pot.
+
+Flutter client, Firestore, and TypeScript settlement logic. A group of friends used it during the tournament.
 
 **Languages:** in-app UI copy is **Portuguese**; documentation in this repository is **English**.
 
@@ -24,16 +28,16 @@ Key rules:
 
 ---
 
-## Why I built this
+## Scope
 
-I'm a Computer Engineering student and I wanted a real-world project to put theory into practice — not a todo-list tutorial, but something with actual domain complexity, external integrations, and real usage pressure (people actually used it).
+Computer Engineering project, used by a group of friends during the 2026 World Cup. The domain is the point: exact-score pots, carry-over, and a payment ledger the client cannot forge.
 
-Specific things I wanted to learn:
-- Designing a production-grade Flutter app with a clean layered architecture
-- Modelling a relational-ish domain (groups, rounds, debts, carryover) on top of a NoSQL database
-- Writing server-side business rules in TypeScript that the client cannot bypass
-- Consuming an external API server-side to stay within free-tier quotas
-- Thinking about security: Firestore rules that enforce time windows and ownership
+What the repository is set up to show:
+- A layered Flutter app (screens, repositories, routing)
+- A relational-ish domain (groups, rounds, debts, carry-over) on Firestore
+- TypeScript business rules the client cannot bypass
+- football-data.org consumed server-side, with results cached to stay inside the free tier
+- Firestore Security Rules that enforce time windows and ownership
 
 ---
 
@@ -153,9 +157,9 @@ This lets groups follow specific national teams and also always include knockout
 
 ---
 
-## How this was built
+## Architecture for readers
 
-Work was specified locally with [OpenSpec](https://github.com/Fission-AI/OpenSpec) (capability specs and change proposals), then delivered through GitHub issues/PRs. Those spec files stay on the author’s machine — they are not part of this repository. Architecture for readers: [`docs/architecture.md`](docs/architecture.md).
+System layers, data model, and settlement path: [`docs/architecture.md`](docs/architecture.md).
 
 ---
 
@@ -208,17 +212,13 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for setup, analyze/test, and PR expecta
 
 ## Project status
 
-Portfolio project with real-group usage during the 2026 World Cup cycle. Not a commercial product — documented honestly for recruiters and collaborators.
+Used by a group of friends during the 2026 World Cup. Not a commercial product. Settlement on the live Spark plan runs through GitHub Actions; the same TypeScript can be deployed as Cloud Functions on Blaze.
 
 ---
 
-## AI assistance
+## Tooling
 
-This project was built with the help of AI tools — specifically [Cursor](https://cursor.com) (AI-powered IDE) and [Gemini](https://gemini.google.com). They were used for code generation, architecture discussion, debugging, and documentation.
-
-All decisions about what to build, how to structure it, and what trade-offs to make were mine. The AI acted as a pair-programmer and sounding board, not as the author. I reviewed, understood, and took responsibility for every piece of code that ended up in the project.
-
-I'm including this note because I think honesty about tooling matters — the same way you'd cite a library or a Stack Overflow answer.
+Built in [Cursor](https://cursor.com), with [Gemini](https://gemini.google.com) in the loop for generation, debugging, and docs. Product rules, security boundaries, and review are the author's.
 
 ## License
 

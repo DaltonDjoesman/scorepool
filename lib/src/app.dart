@@ -128,7 +128,7 @@ class _WorldCupBetTrackerAppState extends State<WorldCupBetTrackerApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'CopaBolão 2026',
+      title: 'Scorepool',
       theme: AppTheme.dark(),
       // Hide the red DEBUG ribbon so portfolio screenshots stay clean in debug.
       debugShowCheckedModeBanner: !widget.config.screenshotDemo,

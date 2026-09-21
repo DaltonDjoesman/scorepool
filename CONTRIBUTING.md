@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for taking an interest in CopaBolão. This is a personal / portfolio project; small PRs that improve clarity, tests, or docs are welcome.
+Thanks for taking an interest in Scorepool. This is a personal / portfolio project; small PRs that improve clarity, tests, or docs are welcome.
 
 ## Prerequisites
 

@@ -133,7 +133,7 @@ Future<void> seedScreenshotDemo(FirebaseFirestore db) async {
   ];
 
   await db.doc(FirestorePaths.group(groupId)).set({
-    'name': 'CopaBolão Prints',
+    'name': 'Friends Pool',
     'currency': 'BRL',
     'entryFeeCents': 2000,
     'predictionLockMinutes': 15,

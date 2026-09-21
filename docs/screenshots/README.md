@@ -38,7 +38,7 @@ flutter run --dart-define=SCREENSHOT_DEMO=true
 Suggested capture order:
 
 1. **Login** — take `01-login.png` **before** submitting.
-2. Sign in → feed opens on group `CopaBolão Prints`.
+2. Sign in → feed opens on group `Friends Pool`.
 3. **Feed** — `02-feed.png` on **Próximos** (final ESP–ARG); also check **Ao vivo** (ARG–ENG) and **Encerrados**.
 4. Open the final card → **prediction** countdown → `03-prediction.png`.
 5. Open finished SF ESP–FRA → ledger with pending + paid → `04-ledger.png`.

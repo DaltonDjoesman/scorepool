@@ -5,7 +5,7 @@ The portfolio **demo** Android build talks to a separate Firebase project (`copa
 | Item | Value |
 |------|--------|
 | Package | `com.example.worldcupbettracker_app.demo` |
-| App label | CopaBolão Demo |
+| App label | Scorepool Demo |
 | Firebase | `copabolaao-demo` |
 | Auth | Email/password (register in-app) |
 

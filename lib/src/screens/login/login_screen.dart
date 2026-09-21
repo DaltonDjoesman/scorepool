@@ -125,7 +125,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'CopaBolão 2026',
+                      'Scorepool',
                       style: AppTextStyles.displayHeadline(context),
                       textAlign: TextAlign.center,
                     ),

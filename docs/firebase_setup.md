@@ -4,7 +4,7 @@ Two Firebase projects, both Spark:
 
 | Project | Flavor | Who uses it |
 |---------|--------|-------------|
-| `worldcup-pool-tracker-app` | `--flavor prod` | The real friends bolão |
+| `worldcup-pool-tracker-app` | `--flavor prod` | The real friends pool |
 | `copabolaao-demo` | `--flavor demo` | Portfolio sandbox / public APK |
 
 `APP_ENV=dev` still uses the production client config today (reserved for a future split).
