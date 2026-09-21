@@ -48,12 +48,8 @@ External match data comes from **football-data.org**, called only from server sc
 
 ## Security
 
-Time windows (prediction lock, opt-out, declare-paid) and ownership are enforced in Firestore Security Rules. Settlement writes are Admin/server only. Pre-public checklist: [`security.md`](security.md).
+Time windows (prediction lock, opt-out, declare-paid) and ownership are enforced in Firestore Security Rules. Settlement writes are Admin/server only. Checklist: [`security.md`](security.md).
 
 ## Design archaeology
 
 [`worldcup-bet-tracker.html`](../worldcup-bet-tracker.html) is the single-file React prototype used to lock UX before Flutter implementation.
-
-## Spec-driven delivery
-
-Capability requirements live in [`openspec/specs/`](../openspec/specs/). How sections mapped to GitHub issues/PRs is documented in [`openspec/delivery.md`](../openspec/delivery.md).

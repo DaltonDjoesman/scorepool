@@ -79,3 +79,6 @@ key.properties
 docs/worldcup-pool-tracker-app.json
 **/*firebase-adminsdk*.json
 **/serviceAccount*.json
+
+# Local OpenSpec workflow (not published)
+openspec/

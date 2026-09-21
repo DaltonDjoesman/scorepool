@@ -30,13 +30,12 @@ Never commit secrets. Service-account JSON must live **outside** the repo; see [
 
 - Do not push product commits directly to `main`.
 - Prefer one focused branch per change.
-- Larger product work historically followed OpenSpec sections — see [`openspec/delivery.md`](openspec/delivery.md).
 
 ## Pull requests
 
 - Keep the PR scoped; describe *why* in the summary.
 - Ensure `flutter analyze` and `flutter test` pass.
-- Update docs/specs when behavior or public claims change.
+- Update docs when behavior or public claims change.
 - UI strings in the app are Portuguese; docs in this repo stay English.
 
 ## Code layout (short)

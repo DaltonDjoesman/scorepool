@@ -155,7 +155,7 @@ This lets groups follow specific national teams and also always include knockout
 
 ## How this was built
 
-Work was specified and delivered with [OpenSpec](openspec/): capability specs under [`openspec/specs/`](openspec/specs/), change proposals under `openspec/changes/` (completed ones archived), and a section → branch → PR workflow described in [`openspec/delivery.md`](openspec/delivery.md).
+Work was specified locally with [OpenSpec](https://github.com/Fission-AI/OpenSpec) (capability specs and change proposals), then delivered through GitHub issues/PRs. Those spec files stay on the author’s machine — they are not part of this repository. Architecture for readers: [`docs/architecture.md`](docs/architecture.md).
 
 ---
 
@@ -167,7 +167,7 @@ Work was specified and delivered with [OpenSpec](openspec/): capability specs un
 - Node.js 20 (for ingest / Functions scripts)
 - A Firebase project with Firestore and Auth enabled
 
-See [`docs/firebase_setup.md`](docs/firebase_setup.md) for Firebase configuration. Do not make this repository **public** until [`docs/security.md`](docs/security.md) is complete (API key restrictions + demo flavor; Firestore rules already deny listing `/groups`).
+See [`docs/firebase_setup.md`](docs/firebase_setup.md) for Firebase configuration. Client vs server secrets: [`docs/security.md`](docs/security.md).
 
 ### Flutter app
 
