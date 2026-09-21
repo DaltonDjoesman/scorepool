@@ -1,37 +1,38 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="360" viewBox="0 0 1280 360" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="220" viewBox="0 0 1280 220" role="img" aria-labelledby="title desc">
   <title id="title">Scorepool</title>
-  <desc id="desc">Exact-score World Cup pool for friends. Only a perfect guess wins the pot.</desc>
+  <desc id="desc">A football beside two match cards.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#06140f"/>
       <stop offset="1" stop-color="#0c2419"/>
     </linearGradient>
   </defs>
-  <rect width="1280" height="360" fill="url(#bg)"/>
-  <rect width="8" height="360" fill="#34d399"/>
-  <g transform="translate(1048 168)">
-    <circle r="74" fill="#f7faf7"/>
+  <rect width="1280" height="220" fill="url(#bg)"/>
+  <rect width="8" height="220" fill="#34d399"/>
+  <g transform="translate(250 110)">
+    <circle r="78" fill="#f7faf7"/>
     <g fill="#10261c">
-      <polygon points="0.00,-22.00 20.92,-6.80 12.93,17.80 -12.93,17.80 -20.92,-6.80"/>
-      <polygon points="39.97,-55.01 46.51,-34.89 29.39,-22.45 12.27,-34.89 18.81,-55.01"/>
-      <polygon points="64.67,21.01 47.55,33.45 30.43,21.01 36.97,0.89 58.13,0.89"/>
-      <polygon points="0.00,68.00 -17.12,55.56 -10.58,35.44 10.58,35.44 17.12,55.56"/>
-      <polygon points="-64.67,21.01 -58.13,0.89 -36.97,0.89 -30.43,21.01 -47.55,33.45"/>
-      <polygon points="-39.97,-55.01 -18.81,-55.01 -12.27,-34.89 -29.39,-22.45 -46.51,-34.89"/>
+      <polygon points="0.00,-24.00 22.83,-7.42 14.11,19.42 -14.11,19.42 -22.83,-7.42"/>
+      <polygon points="43.61,-60.02 50.74,-38.07 32.06,-24.49 13.38,-38.07 20.51,-60.02"/>
+      <polygon points="70.56,22.92 51.88,36.50 33.20,22.92 40.33,0.97 63.43,0.97"/>
+      <polygon points="0.00,74.18 -18.68,60.60 -11.55,38.65 11.55,38.65 18.68,60.60"/>
+      <polygon points="-70.56,22.92 -63.43,0.97 -40.33,0.97 -33.20,22.92 -51.88,36.50"/>
+      <polygon points="-43.61,-60.02 -20.51,-60.02 -13.38,-38.07 -32.06,-24.49 -50.74,-38.07"/>
     </g>
-    <circle r="74" fill="none" stroke="#d1fae5" stroke-width="4"/>
+    <circle r="78" fill="none" stroke="#d1fae5" stroke-width="4"/>
   </g>
-  <g font-family="Arial, Helvetica, sans-serif">
-    <text x="72" y="118" fill="#6ee7b7" font-size="15" letter-spacing="1.4">WORLD CUP 2026</text>
-    <text x="72" y="186" fill="#f8fafc" font-size="64" font-weight="700">Scorepool</text>
-    <text x="72" y="232" fill="#a7f3d0" font-size="22">Exact-score World Cup pool. Only a perfect guess wins.</text>
+  <g fill="#0c2419" stroke="#14532d" stroke-width="1.5">
+    <rect x="520" y="28" width="320" height="164" rx="16"/>
+    <rect x="870" y="28" width="320" height="164" rx="16"/>
   </g>
-  <g font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#d1fae5">
-    <rect x="72" y="268" width="92" height="32" rx="16" fill="#064e3b"/>
-    <text x="118" y="289" text-anchor="middle">Flutter</text>
-    <rect x="176" y="268" width="102" height="32" rx="16" fill="#064e3b"/>
-    <text x="227" y="289" text-anchor="middle">Firebase</text>
-    <rect x="290" y="268" width="118" height="32" rx="16" fill="#064e3b"/>
-    <text x="349" y="289" text-anchor="middle">TypeScript</text>
+  <g>
+    <rect x="548" y="52" width="92" height="22" rx="11" fill="#064e3b"/>
+    <rect x="898" y="52" width="92" height="22" rx="11" fill="#064e3b"/>
+    <rect x="620" y="96" width="36" height="28" rx="6" fill="#14532d"/>
+    <rect x="704" y="96" width="36" height="28" rx="6" fill="#14532d"/>
+    <rect x="970" y="96" width="36" height="28" rx="6" fill="#14532d"/>
+    <rect x="1054" y="96" width="36" height="28" rx="6" fill="#14532d"/>
+    <rect x="548" y="146" width="264" height="22" rx="11" fill="#34d399"/>
+    <rect x="898" y="146" width="264" height="22" rx="11" fill="#34d399"/>
   </g>
 </svg>
