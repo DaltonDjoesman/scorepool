@@ -1,14 +1,12 @@
 <p align="center">
-  <img src="docs/banner.svg" alt="" width="100%">
+  <img src="docs/banner.svg" alt="Scorepool" width="100%">
 </p>
 
-# Scorepool
-
-Exact-score World Cup pool. Only a perfect guess wins the pot.
+Friends call the exact score of each World Cup match. Only a perfect guess wins the pot; if nobody gets it right, the pot rolls over.
 
 [![Flutter CI](https://github.com/DaltonDjoesman/scorepool/actions/workflows/flutter-ci.yml/badge.svg)](https://github.com/DaltonDjoesman/scorepool/actions/workflows/flutter-ci.yml)
 
-Friends call the score of each match. If nobody gets it right, the pot rolls over. Flutter client, Firestore, and TypeScript settlement. A group of friends used it during the 2026 tournament.
+Flutter client, Firestore, and TypeScript settlement. A group of friends used it during the 2026 tournament. No money moves inside the app.
 
 **Languages:** in-app UI copy is **Portuguese**; documentation in this repository is **English**.
 
