@@ -4,6 +4,8 @@
 
 Friends call the exact score of each World Cup match. Only a perfect guess wins the pot; if nobody gets it right, the pot rolls over.
 
+**Portfolio:** [daltondjoesman.github.io](https://daltondjoesman.github.io)
+
 [![Flutter CI](https://github.com/DaltonDjoesman/scorepool/actions/workflows/flutter-ci.yml/badge.svg)](https://github.com/DaltonDjoesman/scorepool/actions/workflows/flutter-ci.yml)
 
 Flutter client, Firestore, and TypeScript settlement. A group of friends used it during the 2026 tournament. No money moves inside the app.
